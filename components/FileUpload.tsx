@@ -55,7 +55,22 @@ export default function FileUpload() {
         }
 
         const salesIdx = headers.findIndex(
-          (h) => typeof h === 'string' && (h.includes('sales') || h.includes('revenue') || h.includes('total sales') || h.includes('net sales'))
+          (h) => {
+            if (typeof h !== 'string') return false
+            const lowerH = h.toLowerCase().trim()
+            return (
+              lowerH.includes('sales') || 
+              lowerH.includes('revenue') || 
+              lowerH.includes('net sales') ||
+              lowerH.includes('total sales') ||
+              lowerH.includes('gross sales') ||
+              lowerH.includes('amount') ||
+              lowerH.includes('dollar') ||
+              lowerH.includes('$') ||
+              lowerH === 'sales $' ||
+              lowerH === 'revenue $'
+            )
+          }
         )
         const laborPOIdx = headers.findIndex(
           (h) =>
@@ -97,11 +112,26 @@ export default function FileUpload() {
           const storeNumber = Number(storeSource || nameSource)
           const mapped = workroomStoreData.find((r) => r.store === storeNumber)
 
+          // Parse sales value - handle various formats (currency, numbers, strings)
+          let salesValue = 0
+          if (salesIdx >= 0 && row[salesIdx] != null && row[salesIdx] !== '') {
+            const salesRaw = row[salesIdx]
+            if (typeof salesRaw === 'number') {
+              salesValue = salesRaw
+            } else if (typeof salesRaw === 'string') {
+              // Remove currency symbols, commas, and whitespace, then parse
+              const cleaned = String(salesRaw).replace(/[$€£¥,\s]/g, '').trim()
+              salesValue = Number(cleaned) || 0
+            } else {
+              salesValue = Number(salesRaw) || 0
+            }
+          }
+
           const workroom: any = {
             id,
             name: mapped?.workroom || String(nameSource || '').trim(),
             store: mapped?.store ?? storeSource ?? '',
-            sales: salesIdx >= 0 ? Number(row[salesIdx] || 0) : 0,
+            sales: salesValue,
             laborPO: laborPOIdx >= 0 ? Number(row[laborPOIdx] || 0) : 0,
             vendorDebit: vendorDebitIdx >= 0 ? Number(row[vendorDebitIdx] || 0) : 0,
           }

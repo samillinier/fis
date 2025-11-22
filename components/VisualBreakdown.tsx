@@ -19,12 +19,24 @@ interface VisualBreakdownProps {
   selectedWorkroom: string
 }
 
-const COLORS = ['#000000', '#333333', '#666666', '#999999', '#CCCCCC', '#E0E0E0']
+const COLORS = ['#000000', '#333333', '#666666', '#999999', '#CCCCCC', '#E0E0E0'] // For other charts
+const PIE_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'] // Colorful colors for pie chart
+
+// Helper function to check if a workroom name is valid (not "Location #" or similar)
+const isValidWorkroomName = (name: string): boolean => {
+  const normalizedName = name.toLowerCase().trim()
+  return (
+    normalizedName !== 'location #' &&
+    normalizedName !== 'location' &&
+    normalizedName !== '' &&
+    !normalizedName.includes('location #')
+  )
+}
 
 export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownProps) {
   const { data } = useData()
 
-  let filteredData = data.workrooms
+  let filteredData = data.workrooms.filter((w) => isValidWorkroomName(w.name || ''))
   if (selectedWorkroom !== 'all') {
     filteredData = filteredData.filter((w) => w.name === selectedWorkroom)
   }
@@ -230,9 +242,9 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
     .sort((a, b) => b.avgLaborPO - a.avgLaborPO)
     .slice(0, 4)
 
-  // WORKROOM PERFORMANCE INDEX (WPI) — RANKED BY WORKROOM
+  // Workroom Performance Index (WPI) by Workroom
   // Weighted: 50% LTR, 30% Labor PO $, 20% Vendor Debit discipline
-  const wpiRankedWorkrooms = Array.from(performingWorkroomsMap.values())
+  const wpiByWorkroom = Array.from(performingWorkroomsMap.values())
     .map((w) => {
       const totalCost = w.laborPO + w.vendorDebit
       // LTR% = Labor PO / Sales (as percentage)
@@ -255,15 +267,15 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
       
       // 2. Labor PO $ Score (30% weight): Higher Labor PO $ is better
       // Normalize based on max Labor PO $ across all workrooms
-      const maxLaborPO = Math.max(...Array.from(performingWorkroomsMap.values()).map(w => w.laborPO), 1)
+      const maxLaborPO = Math.max(...Array.from(performingWorkroomsMap.values()).map(wr => wr.laborPO), 1)
       const laborPOScore = maxLaborPO > 0 ? (w.laborPO / maxLaborPO) * 100 : 0
       
       // 3. Vendor Debit Discipline Score (20% weight): Lower vendor debit ratio is better
       // Vendor debit discipline = ratio of vendor debit to total cost
       // Lower ratio = better discipline
       let vendorDebitDisciplineScore = 100
+      const vendorDebitRatio = totalCost > 0 ? Math.abs(w.vendorDebit) / totalCost : 0
       if (totalCost > 0) {
-        const vendorDebitRatio = Math.abs(w.vendorDebit) / totalCost // Use absolute value for negative debits
         // Lower ratio = better discipline (0% = 100 points, 50%+ = 0 points)
         vendorDebitDisciplineScore = Math.max(0, 100 - (vendorDebitRatio * 200))
       }
@@ -271,19 +283,80 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
       // Calculate weighted WPI score
       const weightedWPI = (ltrScore * 0.50) + (laborPOScore * 0.30) + (vendorDebitDisciplineScore * 0.20)
       
+      // Calculate averages
+      const avgLaborPO = w.records > 0 ? w.laborPO / w.records : 0
+      const avgVendorDebit = w.records > 0 ? w.vendorDebit / w.records : 0
+
       return {
         name: w.name,
         ltrPercent,
         laborPO: w.laborPO,
         vendorDebit: w.vendorDebit,
+        avgLaborPO,
+        avgVendorDebit,
         totalCost,
-        vendorDebitRatio: totalCost > 0 ? Math.abs(w.vendorDebit) / totalCost : 0,
+        vendorDebitRatio,
         weightedWPI,
         stores: w.stores.size,
         records: w.records,
       }
     })
     .sort((a, b) => b.weightedWPI - a.weightedWPI)
+    .filter((w) => {
+      // Filter out invalid workroom names like "Location #"
+      const name = w.name.toLowerCase().trim()
+      return name !== 'location #' && 
+             name !== 'location' && 
+             name !== '' && 
+             !name.includes('location #') &&
+             w.name.trim() !== ''
+    })
+
+  // Average Labour PO $ by Workroom
+  const avgLaborPOByWorkroom = Array.from(performingWorkroomsMap.values())
+    .map((w) => {
+      const avgLaborPO = w.records > 0 ? w.laborPO / w.records : 0
+      return {
+        name: w.name,
+        avgLaborPO,
+        totalLaborPO: w.laborPO,
+        records: w.records,
+        stores: w.stores.size,
+      }
+    })
+    .sort((a, b) => b.avgLaborPO - a.avgLaborPO)
+    .filter((w) => {
+      // Filter out invalid workroom names like "Location #"
+      const name = w.name.toLowerCase().trim()
+      return name !== 'location #' && 
+             name !== 'location' && 
+             name !== '' && 
+             !name.includes('location #') &&
+             w.name.trim() !== ''
+    })
+
+  // Average Vendor Debits $ by Workroom
+  const avgVendorDebitByWorkroom = Array.from(performingWorkroomsMap.values())
+    .map((w) => {
+      const avgVendorDebit = w.records > 0 ? w.vendorDebit / w.records : 0
+      return {
+        name: w.name,
+        avgVendorDebit,
+        totalVendorDebit: w.vendorDebit,
+        records: w.records,
+        stores: w.stores.size,
+      }
+    })
+    .sort((a, b) => Math.abs(b.avgVendorDebit) - Math.abs(a.avgVendorDebit)) // Sort by absolute value since debits can be negative
+    .filter((w) => {
+      // Filter out invalid workroom names like "Location #"
+      const name = w.name.toLowerCase().trim()
+      return name !== 'location #' && 
+             name !== 'location' && 
+             name !== '' && 
+             !name.includes('location #') &&
+             w.name.trim() !== ''
+    })
 
   // Comprehensive Workroom Analysis Dashboard
   // Maps out: Store mix, LTR performance, Labor PO volume, Vendor debit exposure, 
@@ -590,7 +663,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                     dataKey="avgLaborPO"
                   >
                     {topLoadWorkrooms.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                     ))}
                   </Pie>
                   <Tooltip
@@ -655,12 +728,21 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
           <p className="text-xs text-gray-500 mt-1">Ranked by WPI Score (Workroom Performance Index)</p>
         </div>
 
-        <div className="compact-table-container">
-          <div className="overflow-x-auto" style={{ maxHeight: '600px', overflowY: 'auto' }}>
-            <table className="professional-table professional-table-zebra" style={{ fontSize: '0.75rem' }}>
+        <div className="compact-table-container" style={{ marginTop: 0, borderTop: 'none', paddingTop: 0, height: '100%', display: 'flex', flexDirection: 'column' }}>
+          <div className="overflow-x-auto" style={{ flex: 1, maxHeight: '600px', overflowY: 'auto' }}>
+            <table className="professional-table professional-table-zebra" style={{ fontSize: '0.75rem', width: '100%', tableLayout: 'fixed' }}>
+              <colgroup>
+                <col style={{ width: '8%' }} />
+                <col style={{ width: '22%' }} />
+                <col style={{ width: '10%' }} />
+                <col style={{ width: '12%' }} />
+                <col style={{ width: '16%' }} />
+                <col style={{ width: '16%' }} />
+                <col style={{ width: '16%' }} />
+              </colgroup>
               <thead>
                 <tr>
-                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', width: '40px' }}>Rank</th>
+                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Rank</th>
                   <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Workroom</th>
                   <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Stores</th>
                   <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>LTR%</th>
@@ -686,22 +768,22 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                         #{index + 1}
                       </td>
                       <td style={{ padding: '0.5rem 0.75rem', fontWeight: 600, fontSize: '0.75rem' }}>{workroom.name}</td>
-                      <td align="right" style={{ padding: '0.5rem 0.75rem', color: '#6b7280', fontSize: '0.75rem' }}>
+                      <td align="right" style={{ padding: '0.5rem 0.75rem', color: '#6b7280', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
                         {formatInt(workroom.stores)}
                       </td>
                       <td align="right" style={{ padding: '0.5rem 0.75rem' }}>
-                        <span className={`badge-pill ${ltrBadgeClass}`} style={{ fontSize: '0.65rem', padding: '0.15rem 0.4rem' }}>
+                        <span className={`badge-pill ${ltrBadgeClass}`} style={{ fontSize: '0.65rem', padding: '0.15rem 0.4rem', display: 'inline-block' }}>
                           {workroom.ltrPercent.toFixed(1)}%
                         </span>
                       </td>
-                      <td align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.75rem' }}>
+                      <td align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
                         {formatCurrency(workroom.laborPO)}
                       </td>
-                      <td align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.75rem' }}>
+                      <td align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
                         {formatCurrency(workroom.vendorDebit)}
                       </td>
                       <td align="right" style={{ padding: '0.5rem 0.75rem' }}>
-                        <span className={`badge-pill ${wpiBadgeClass}`} style={{ fontSize: '0.65rem', padding: '0.15rem 0.4rem', fontWeight: 600 }}>
+                        <span className={`badge-pill ${wpiBadgeClass}`} style={{ fontSize: '0.65rem', padding: '0.15rem 0.4rem', fontWeight: 600, display: 'inline-block' }}>
                           {workroom.wpiScore.toFixed(1)}
                         </span>
                       </td>
@@ -721,90 +803,6 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
         </div>
       </section>
       </div>
-
-      {/* WORKROOM PERFORMANCE INDEX (WPI) — RANKED BY WORKROOM */}
-      <section className="compact-section" style={{ marginTop: '1.5rem' }}>
-        <div className="compact-section-header">
-          <h3 className="compact-section-title">WORKROOM PERFORMANCE INDEX (WPI) — RANKED BY WORKROOM</h3>
-          <p className="text-xs text-gray-500 mt-1">
-            Weighted using: 50% LTR • 30% Labor PO $ • 20% Vendor Debit discipline
-          </p>
-        </div>
-
-        <div className="compact-table-container">
-          <div className="overflow-x-auto" style={{ maxHeight: '600px', overflowY: 'auto' }}>
-            <table className="professional-table professional-table-zebra" style={{ fontSize: '0.75rem' }}>
-              <thead>
-                <tr>
-                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', width: '40px' }}>Rank</th>
-                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Workroom</th>
-                  <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>LTR%</th>
-                  <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Labor PO $</th>
-                  <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Vendor Debit Ratio</th>
-                  <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>WPI Score</th>
-                </tr>
-              </thead>
-              <tbody>
-                {wpiRankedWorkrooms.map((workroom, index) => {
-                  let wpiBadgeClass = 'badge-neutral'
-                  if (workroom.weightedWPI > 70) wpiBadgeClass = 'badge-positive'
-                  else if (workroom.weightedWPI < 40) wpiBadgeClass = 'badge-warning'
-
-                  let ltrBadgeClass = 'badge-neutral'
-                  if (workroom.ltrPercent > 0) {
-                    if (workroom.ltrPercent < 20) ltrBadgeClass = 'badge-positive'
-                    else if (workroom.ltrPercent > 40) ltrBadgeClass = 'badge-warning'
-                  }
-
-                  let disciplineBadgeClass = 'badge-neutral'
-                  if (workroom.vendorDebitRatio < 0.1) disciplineBadgeClass = 'badge-positive'
-                  else if (workroom.vendorDebitRatio > 0.3) disciplineBadgeClass = 'badge-warning'
-
-                  return (
-                    <tr key={workroom.name}>
-                      <td style={{ padding: '0.5rem 0.75rem', fontWeight: 600, color: '#6b7280', fontSize: '0.7rem' }}>
-                        #{index + 1}
-                      </td>
-                      <td style={{ padding: '0.5rem 0.75rem', fontWeight: 600, fontSize: '0.75rem' }}>{workroom.name}</td>
-                      <td align="right" style={{ padding: '0.5rem 0.75rem' }}>
-                        {workroom.ltrPercent > 0 ? (
-                          <span className={`badge-pill ${ltrBadgeClass}`} style={{ fontSize: '0.65rem', padding: '0.15rem 0.4rem' }}>
-                            {workroom.ltrPercent.toFixed(1)}%
-                          </span>
-                        ) : (
-                          <span className="badge-pill badge-neutral" style={{ fontSize: '0.65rem', padding: '0.15rem 0.4rem' }}>
-                            N/A
-                          </span>
-                        )}
-                      </td>
-                      <td align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.75rem' }}>
-                        {formatCurrency(workroom.laborPO)}
-                      </td>
-                      <td align="right" style={{ padding: '0.5rem 0.75rem' }}>
-                        <span className={`badge-pill ${disciplineBadgeClass}`} style={{ fontSize: '0.65rem', padding: '0.15rem 0.4rem' }}>
-                          {(workroom.vendorDebitRatio * 100).toFixed(1)}%
-                        </span>
-                      </td>
-                      <td align="right" style={{ padding: '0.5rem 0.75rem' }}>
-                        <span className={`badge-pill ${wpiBadgeClass}`} style={{ fontSize: '0.65rem', padding: '0.15rem 0.4rem', fontWeight: 600 }}>
-                          {workroom.weightedWPI.toFixed(1)}
-                        </span>
-                      </td>
-                    </tr>
-                  )
-                })}
-                {wpiRankedWorkrooms.length === 0 && (
-                  <tr>
-                    <td colSpan={6} style={{ textAlign: 'center', padding: '2rem 0.75rem', color: '#6b7280', fontSize: '0.75rem' }}>
-                      Upload a T1/T2 scorecard to see WPI ranked workrooms.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
 
       {/* COMPREHENSIVE WORKROOM ANALYSIS DASHBOARD */}
       <section className="compact-section" style={{ marginTop: '1.5rem' }}>
@@ -950,6 +948,331 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
               </tbody>
             </table>
           </div>
+        </div>
+      </section>
+
+      {/* WORKROOM PERFORMANCE INDEX (WPI) BY WORKROOM - BAR CHART AND TABLE SIDE BY SIDE */}
+      <section className="compact-section" style={{ marginTop: '1.5rem' }}>
+        <div className="compact-section-header">
+          <h3 className="compact-section-title">WORKROOM PERFORMANCE INDEX (WPI) BY WORKROOM</h3>
+          <p className="text-xs text-gray-500 mt-1">
+            Weighted using: 50% LTR • 30% Labor PO $ • 20% Vendor Debit discipline
+          </p>
+        </div>
+
+        <div className="analytics-grid-container">
+          {/* BAR CHART */}
+          <div className="compact-chart-container" style={{ minHeight: '500px', padding: '1rem' }}>
+            {wpiByWorkroom.length > 0 ? (
+              <ResponsiveContainer width="100%" height={500}>
+                <BarChart
+                  data={wpiByWorkroom.map((w, index) => ({
+                    name: w.name.length > 15 ? w.name.substring(0, 15) + '...' : w.name,
+                    fullName: w.name,
+                    wpi: Number(w.weightedWPI.toFixed(1)),
+                    rank: index + 1,
+                  }))}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis
+                    dataKey="name"
+                    angle={-45}
+                    textAnchor="end"
+                    height={100}
+                    tick={{ fontSize: '0.7rem', fill: '#374151' }}
+                    interval={0}
+                  />
+                  <YAxis
+                    label={{ value: 'WPI Score', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#374151', fontSize: '0.75rem' } }}
+                    tick={{ fontSize: '0.7rem', fill: '#374151' }}
+                    domain={[0, 100]}
+                  />
+                  <Tooltip
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload
+                        return (
+                          <div style={{
+                            backgroundColor: '#ffffff',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '0.375rem',
+                            padding: '0.5rem',
+                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                          }}>
+                            <p style={{ fontWeight: 600, marginBottom: '0.25rem', fontSize: '0.75rem' }}>{data.fullName}</p>
+                            <p style={{ fontSize: '0.7rem', color: '#6b7280' }}>
+                              Rank: #{data.rank}
+                            </p>
+                            <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#1f2937', marginTop: '0.25rem' }}>
+                              WPI Score: {data.wpi.toFixed(1)}
+                            </p>
+                          </div>
+                        )
+                      }
+                      return null
+                    }}
+                  />
+                  <Bar
+                    dataKey="wpi"
+                    fill="#3b82f6"
+                    radius={[4, 4, 0, 0]}
+                  >
+                    {wpiByWorkroom.map((w, index) => {
+                      let fillColor = '#94a3b8' // neutral gray
+                      if (w.weightedWPI > 70) fillColor = '#10b981' // green - excellent
+                      else if (w.weightedWPI >= 50) fillColor = '#3b82f6' // blue - good
+                      else if (w.weightedWPI >= 40) fillColor = '#fbbf24' // yellow - warning
+                      else fillColor = '#ef4444' // red - poor
+
+                      return <Cell key={`cell-${index}`} fill={fillColor} />
+                    })}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '4rem 1rem', color: '#6b7280', fontSize: '0.875rem' }}>
+                Upload a T1/T2 scorecard to see WPI by workroom.
+              </div>
+            )}
+          </div>
+
+          {/* TABLE */}
+          <div className="compact-table-container" style={{ marginTop: 0, borderTop: 'none', paddingTop: 0 }}>
+            <div className="overflow-x-auto" style={{ maxHeight: '600px', overflowY: 'auto' }}>
+              <table className="professional-table professional-table-zebra" style={{ fontSize: '0.75rem', width: '100%', tableLayout: 'fixed' }}>
+                <colgroup>
+                  <col style={{ width: '30%' }} />
+                  <col style={{ width: '15%' }} />
+                  <col style={{ width: '27%' }} />
+                  <col style={{ width: '28%' }} />
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'left' }}>Workroom</th>
+                    <th align="center" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>WPI</th>
+                    <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Avg Labor PO $</th>
+                    <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Avg Vendor Debits</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {wpiByWorkroom.map((workroom) => {
+                    let wpiBadgeClass = 'badge-neutral'
+                    if (workroom.weightedWPI > 70) wpiBadgeClass = 'badge-positive'
+                    else if (workroom.weightedWPI < 40) wpiBadgeClass = 'badge-warning'
+
+                    return (
+                      <tr key={workroom.name}>
+                        <td style={{ padding: '0.5rem 0.75rem', fontWeight: 600, fontSize: '0.75rem', textAlign: 'left' }}>{workroom.name}</td>
+                        <td align="center" style={{ padding: '0.5rem 0.75rem' }}>
+                          <span className={`badge-pill ${wpiBadgeClass}`} style={{ fontSize: '0.65rem', padding: '0.15rem 0.4rem', fontWeight: 600, display: 'inline-block' }}>
+                            {workroom.weightedWPI.toFixed(1)}
+                          </span>
+                        </td>
+                        <td align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                          {formatCurrency(workroom.avgLaborPO)}
+                        </td>
+                        <td align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                          {formatCurrency(workroom.avgVendorDebit)}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                  {wpiByWorkroom.length === 0 && (
+                    <tr>
+                      <td colSpan={4} style={{ textAlign: 'center', padding: '2rem 0.75rem', color: '#6b7280', fontSize: '0.75rem' }}>
+                        Upload a T1/T2 scorecard to see WPI by workroom.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* AVERAGE LABOUR PO $ BY WORKROOM */}
+      <section className="compact-section" style={{ marginTop: '1.5rem' }}>
+        <div className="compact-section-header">
+          <h3 className="compact-section-title">AVERAGE LABOUR PO $ BY WORKROOM</h3>
+          <p className="text-xs text-gray-500 mt-1">
+            Average Labor PO per record across all workrooms
+          </p>
+        </div>
+
+        <div className="compact-chart-container" style={{ minHeight: '500px', padding: '1rem' }}>
+          {avgLaborPOByWorkroom.length > 0 ? (
+            <ResponsiveContainer width="100%" height={500}>
+              <BarChart
+                data={avgLaborPOByWorkroom.map((w) => ({
+                  name: w.name.length > 15 ? w.name.substring(0, 15) + '...' : w.name,
+                  fullName: w.name,
+                  avgLaborPO: Number(w.avgLaborPO.toFixed(2)),
+                  totalLaborPO: w.totalLaborPO,
+                  records: w.records,
+                }))}
+                margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis
+                  dataKey="name"
+                  angle={-45}
+                  textAnchor="end"
+                  height={100}
+                  tick={{ fontSize: '0.7rem', fill: '#374151' }}
+                  interval={0}
+                />
+                <YAxis
+                  label={{ value: 'Avg Labor PO $', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#374151', fontSize: '0.75rem' } }}
+                  tick={{ fontSize: '0.7rem', fill: '#374151' }}
+                  tickFormatter={(value) => `$${value.toLocaleString()}`}
+                />
+                <Tooltip
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0].payload
+                      return (
+                        <div style={{
+                          backgroundColor: '#ffffff',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '0.375rem',
+                          padding: '0.5rem',
+                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                        }}>
+                          <p style={{ fontWeight: 600, marginBottom: '0.25rem', fontSize: '0.75rem' }}>{data.fullName}</p>
+                          <p style={{ fontSize: '0.7rem', color: '#6b7280' }}>
+                            Records: {data.records}
+                          </p>
+                          <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#1f2937', marginTop: '0.25rem' }}>
+                            Avg Labor PO $: {formatCurrency(data.avgLaborPO)}
+                          </p>
+                          <p style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                            Total Labor PO $: {formatCurrency(data.totalLaborPO)}
+                          </p>
+                        </div>
+                      )
+                    }
+                    return null
+                  }}
+                />
+                <Bar
+                  dataKey="avgLaborPO"
+                  fill="#3b82f6"
+                  radius={[4, 4, 0, 0]}
+                >
+                  {avgLaborPOByWorkroom.map((w, index) => {
+                    // Color based on average Labor PO value
+                    let fillColor = '#94a3b8' // neutral gray
+                    const avg = w.avgLaborPO
+                    if (avg > 7000) fillColor = '#10b981' // green - high average
+                    else if (avg > 5000) fillColor = '#3b82f6' // blue - good
+                    else if (avg > 3000) fillColor = '#fbbf24' // yellow - moderate
+                    else fillColor = '#ef4444' // red - low
+
+                    return <Cell key={`cell-${index}`} fill={fillColor} />
+                  })}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '4rem 1rem', color: '#6b7280', fontSize: '0.875rem' }}>
+              Upload a T1/T2 scorecard to see average Labor PO by workroom.
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* AVERAGE VENDOR DEBITS $ BY WORKROOM */}
+      <section className="compact-section" style={{ marginTop: '1.5rem' }}>
+        <div className="compact-section-header">
+          <h3 className="compact-section-title">AVERAGE VENDOR DEBITS $ BY WORKROOM</h3>
+          <p className="text-xs text-gray-500 mt-1">
+            Average Vendor Debits per record across all workrooms
+          </p>
+        </div>
+
+        <div className="compact-chart-container" style={{ minHeight: '500px', padding: '1rem' }}>
+          {avgVendorDebitByWorkroom.length > 0 ? (
+            <ResponsiveContainer width="100%" height={500}>
+              <BarChart
+                data={avgVendorDebitByWorkroom.map((w) => ({
+                  name: w.name.length > 15 ? w.name.substring(0, 15) + '...' : w.name,
+                  fullName: w.name,
+                  avgVendorDebit: Number(w.avgVendorDebit.toFixed(2)),
+                  totalVendorDebit: w.totalVendorDebit,
+                  records: w.records,
+                }))}
+                margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis
+                  dataKey="name"
+                  angle={-45}
+                  textAnchor="end"
+                  height={100}
+                  tick={{ fontSize: '0.7rem', fill: '#374151' }}
+                  interval={0}
+                />
+                <YAxis
+                  label={{ value: 'Avg Vendor Debits $', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#374151', fontSize: '0.75rem' } }}
+                  tick={{ fontSize: '0.7rem', fill: '#374151' }}
+                  tickFormatter={(value) => `$${value.toLocaleString()}`}
+                />
+                <Tooltip
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0].payload
+                      return (
+                        <div style={{
+                          backgroundColor: '#ffffff',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '0.375rem',
+                          padding: '0.5rem',
+                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                        }}>
+                          <p style={{ fontWeight: 600, marginBottom: '0.25rem', fontSize: '0.75rem' }}>{data.fullName}</p>
+                          <p style={{ fontSize: '0.7rem', color: '#6b7280' }}>
+                            Records: {data.records}
+                          </p>
+                          <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#1f2937', marginTop: '0.25rem' }}>
+                            Avg Vendor Debits $: {formatCurrency(data.avgVendorDebit)}
+                          </p>
+                          <p style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                            Total Vendor Debits $: {formatCurrency(data.totalVendorDebit)}
+                          </p>
+                        </div>
+                      )
+                    }
+                    return null
+                  }}
+                />
+                <Bar
+                  dataKey="avgVendorDebit"
+                  fill="#3b82f6"
+                  radius={[4, 4, 0, 0]}
+                >
+                  {avgVendorDebitByWorkroom.map((w, index) => {
+                    // Color based on average Vendor Debit value (negative values are red, positive/zero are neutral)
+                    let fillColor = '#94a3b8' // neutral gray
+                    const avg = w.avgVendorDebit
+                    if (avg < -2000) fillColor = '#ef4444' // red - high negative (costing money)
+                    else if (avg < -1000) fillColor = '#f59e0b' // orange - moderate negative
+                    else if (avg < -500) fillColor = '#fbbf24' // yellow - low negative
+                    else if (avg < 0) fillColor = '#e5e7eb' // light gray - very small negative
+                    else if (avg === 0) fillColor = '#10b981' // green - zero (good)
+                    else fillColor = '#3b82f6' // blue - positive (credit)
+
+                    return <Cell key={`cell-${index}`} fill={fillColor} />
+                  })}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '4rem 1rem', color: '#6b7280', fontSize: '0.875rem' }}>
+              Upload a T1/T2 scorecard to see average Vendor Debits by workroom.
+            </div>
+          )}
         </div>
       </section>
     </div>

@@ -6,13 +6,26 @@ import { useData } from '@/context/DataContext'
 export default function KpiHeader() {
   const { data } = useData()
 
+  // Helper function to check if a workroom name is valid (not "Location #" or similar)
+  const isValidWorkroomName = (name: string): boolean => {
+    const normalizedName = (name || '').toLowerCase().trim()
+    return (
+      normalizedName !== 'location #' &&
+      normalizedName !== 'location' &&
+      normalizedName !== '' &&
+      !normalizedName.includes('location #')
+    )
+  }
+
   const kpis = useMemo(() => {
     const byWorkroom = new Map<
       string,
       { sales: number; cost: number; performanceIndex?: number; count: number }
     >()
 
-    data.workrooms.forEach((w) => {
+    data.workrooms
+      .filter((w) => isValidWorkroomName(w.name || ''))
+      .forEach((w) => {
       const key = w.name || 'Unknown'
       const existing = byWorkroom.get(key) || {
         sales: 0,

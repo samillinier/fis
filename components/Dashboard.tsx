@@ -18,7 +18,20 @@ export default function Dashboard() {
   const [excludeCycleTime, setExcludeCycleTime] = useState(false)
       const [activeView, setActiveView] = useState<string>('breakdown')
 
-  const uniqueWorkrooms = Array.from(new Set(data.workrooms.map((w) => w.name))).sort()
+  // Helper function to check if a workroom name is valid (not "Location #" or similar)
+  const isValidWorkroomName = (name: string): boolean => {
+    const normalizedName = (name || '').toLowerCase().trim()
+    return (
+      normalizedName !== 'location #' &&
+      normalizedName !== 'location' &&
+      normalizedName !== '' &&
+      !normalizedName.includes('location #')
+    )
+  }
+
+  const uniqueWorkrooms = Array.from(
+    new Set(data.workrooms.filter((w) => isValidWorkroomName(w.name || '')).map((w) => w.name))
+  ).sort()
 
   return (
     <div className="dashboard-root">

@@ -3,12 +3,24 @@
 import { useMemo } from 'react'
 import { useData } from '@/context/DataContext'
 
+// Helper function to check if a workroom name is valid (not "Location #" or similar)
+const isValidWorkroomName = (name: string): boolean => {
+  const normalizedName = (name || '').toLowerCase().trim()
+  return (
+    normalizedName !== 'location #' &&
+    normalizedName !== 'location' &&
+    normalizedName !== '' &&
+    !normalizedName.includes('location #')
+  )
+}
+
 export default function SummaryPanel() {
   const { data } = useData()
 
   const summary = useMemo(() => {
-    const totalWorkrooms = data.workrooms.length
-    const uniqueStores = new Set(data.workrooms.map((w) => w.store)).size
+    const validWorkrooms = data.workrooms.filter((w) => isValidWorkroomName(w.name || ''))
+    const totalWorkrooms = validWorkrooms.length
+    const uniqueStores = new Set(validWorkrooms.map((w) => w.store)).size
 
     let totalSales = 0
     let totalLaborPO = 0
@@ -16,7 +28,7 @@ export default function SummaryPanel() {
     let cycleTimeSum = 0
     let cycleTimeCount = 0
 
-    data.workrooms.forEach((w) => {
+    validWorkrooms.forEach((w) => {
       if (typeof w.sales === 'number') totalSales += w.sales
       if (typeof w.laborPO === 'number') totalLaborPO += w.laborPO
       if (typeof w.vendorDebit === 'number') totalVendorDebit += w.vendorDebit

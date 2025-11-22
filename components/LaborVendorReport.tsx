@@ -16,10 +16,21 @@ interface LaborVendorReportProps {
   selectedWorkroom: string
 }
 
+// Helper function to check if a workroom name is valid (not "Location #" or similar)
+const isValidWorkroomName = (name: string): boolean => {
+  const normalizedName = (name || '').toLowerCase().trim()
+  return (
+    normalizedName !== 'location #' &&
+    normalizedName !== 'location' &&
+    normalizedName !== '' &&
+    !normalizedName.includes('location #')
+  )
+}
+
 export default function LaborVendorReport({ selectedWorkroom }: LaborVendorReportProps) {
   const { data } = useData()
 
-  let filteredData = data.workrooms
+  let filteredData = data.workrooms.filter((w) => isValidWorkroomName(w.name || ''))
   if (selectedWorkroom !== 'all') {
     filteredData = filteredData.filter((w) => w.name === selectedWorkroom)
   }
