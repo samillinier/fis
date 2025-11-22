@@ -5,6 +5,13 @@
 :root {
   --background: #ffffff;
   --foreground: #000000;
+  --accent: #4f46e5; /* indigo */
+  --accent-soft: #eef2ff;
+  --accent-2: #0f766e; /* teal */
+  --accent-3: #f97316; /* orange */
+  --muted: #6b7280;
+  --card-bg: #ffffff;
+  --card-border: #e5e7eb;
 }
 
 body {
@@ -17,7 +24,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Sidebar layout helpers (work even if Tailwind isn't built) */
+/* Layout */
 .dashboard-root {
   min-height: 100vh;
   color: #000;
@@ -33,6 +40,7 @@ body {
   position: sticky;
   top: 0;
   z-index: 10;
+  box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.06);
 }
 
 .dashboard-layout {
@@ -44,7 +52,7 @@ body {
 .dashboard-sidebar {
   width: 260px;
   border-right: 1px solid #e5e7eb;
-  background: #fff;
+  background: #f9fafb;
   padding: 1.5rem;
   flex-shrink: 0;
 }
@@ -52,7 +60,7 @@ body {
 .dashboard-main {
   flex: 1;
   padding: 2rem;
-  background: #fff;
+  background: radial-gradient(circle at top, #eff6ff 0, #ffffff 40%);
   overflow-y: auto;
 }
 
@@ -63,10 +71,11 @@ body {
 }
 
 .dashboard-title {
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   font-weight: 700;
 }
 
+/* Sidebar */
 .sidebar-nav {
   display: flex;
   flex-direction: column;
@@ -79,20 +88,23 @@ body {
   width: 100%;
   text-align: left;
   padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
+  border-radius: 0.6rem;
   border: none;
   background: transparent;
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
+  color: #111827;
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
 }
 
 .sidebar-nav-button:hover {
-  background: #f3f4f6;
+  background: #e5e7eb;
+  transform: translateX(1px);
 }
 
 .sidebar-nav-button--active {
-  background: #000;
+  background: #111827;
   color: #fff;
 }
 
@@ -105,14 +117,15 @@ body {
   display: flex;
   align-items: center;
   gap: 0.35rem;
+  color: var(--muted);
 }
 
 .sidebar-select {
   width: 100%;
   padding: 0.4rem 0.6rem;
-  border-radius: 0.4rem;
+  border-radius: 0.5rem;
   border: 1px solid #d1d5db;
-  background: #fff;
+  background: #ffffff;
   font-size: 0.85rem;
 }
 
@@ -123,5 +136,309 @@ body {
   font-size: 0.85rem;
 }
 
+/* KPI + cards */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
 
+.kpi-card {
+  background: var(--card-bg);
+  border-radius: 0.85rem;
+  border: 1px solid var(--card-border);
+  padding: 0.9rem 1.1rem;
+  box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.06);
+}
+
+.kpi-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 0.35rem;
+}
+
+.kpi-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.kpi-sub {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.badge-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.badge-positive {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.badge-warning {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.badge-neutral {
+  background: #e5e7eb;
+  color: #4b5563;
+}
+
+/* Professional data tables */
+.professional-table-wrapper {
+  background: var(--card-bg);
+  border-radius: 1rem;
+  border: 1px solid var(--card-border);
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.professional-table-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #f3f4f6;
+}
+
+.professional-table-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.25rem;
+}
+
+.professional-table-subtitle {
+  font-size: 0.875rem;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.professional-table-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.375rem 0.75rem;
+  background: #f3f4f6;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #4b5563;
+}
+
+.professional-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.875rem;
+}
+
+.professional-table thead {
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+}
+
+.professional-table thead th {
+  padding: 1rem 1.25rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #ffffff;
+  border: none;
+}
+
+.professional-table thead th:first-child {
+  border-top-left-radius: 0.75rem;
+}
+
+.professional-table thead th:last-child {
+  border-top-right-radius: 0.75rem;
+  text-align: right;
+}
+
+.professional-table thead th[align="right"] {
+  text-align: right;
+}
+
+.professional-table tbody tr {
+  transition: background-color 0.15s ease, transform 0.1s ease;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.professional-table tbody tr:hover {
+  background-color: #f9fafb;
+  transform: scale(1.001);
+}
+
+.professional-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.professional-table tbody td {
+  padding: 1rem 1.25rem;
+  color: #111827;
+  vertical-align: middle;
+}
+
+.professional-table tbody td:first-child {
+  font-weight: 600;
+  color: #111827;
+}
+
+.professional-table tbody td[align="right"] {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.professional-table-zebra tbody tr:nth-child(even) {
+  background-color: #fafbfc;
+}
+
+.professional-table-zebra tbody tr:nth-child(even):hover {
+  background-color: #f3f4f6;
+}
+
+/* Section dividers and layout */
+.dashboard-section {
+  margin-bottom: 3rem;
+  padding-bottom: 2rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.dashboard-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+/* Side-by-side analytics layout */
+.analytics-grid-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.75rem;
+  align-items: start;
+}
+
+.analytics-grid-container > section:nth-child(3) {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 1024px) {
+  .analytics-grid-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .analytics-grid-container > section:nth-child(3) {
+    grid-column: 1;
+  }
+}
+
+.compact-section {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 1.5rem;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+}
+
+.compact-section:hover {
+  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.1), 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+  border-color: #d1d5db;
+  transform: translateY(-1px);
+}
+
+.compact-section-header {
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.875rem;
+  border-bottom: 2px solid #f3f4f6;
+}
+
+.compact-section-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.25rem;
+}
+
+.compact-chart-container {
+  flex: 0 0 auto;
+  min-height: 260px;
+  margin-bottom: 1.25rem;
+  padding: 0.75rem;
+  background: #fafbfc;
+  border-radius: 0.625rem;
+  border: 1px solid #f3f4f6;
+}
+
+.compact-chart-container > div {
+  width: 100% !important;
+}
+
+.compact-table-container {
+  margin-top: auto;
+  border-top: 1px solid #f3f4f6;
+  padding-top: 1rem;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.section-header-indicator {
+  width: 4px;
+  height: 32px;
+  background: linear-gradient(135deg, #111827 0%, #374151 100%);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.section-header-text {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.chart-card {
+  background: var(--card-bg);
+  border-radius: 0.875rem;
+  border: 1px solid var(--card-border);
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  transition: box-shadow 0.15s ease;
+}
+
+.chart-card:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.chart-card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 1rem;
+}
 

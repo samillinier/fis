@@ -2,6 +2,7 @@
   "name": "fis-dashboard",
   "version": "1.0.0",
   "description": "Workroom Performance Analytics Dashboard",
+  "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -27,5 +28,4 @@
     "autoprefixer": "^10.4.16"
   }
 }
-
 

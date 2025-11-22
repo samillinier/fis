@@ -127,7 +127,7 @@ export default function PerformanceIndex({
             <Legend />
             <Bar
               dataKey="performanceIndex"
-              fill="#000000"
+              fill="#22c55e"
               name="Performance Index"
               radius={[4, 4, 0, 0]}
             />

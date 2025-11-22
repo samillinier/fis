@@ -6,14 +6,17 @@ import VisualBreakdown from '@/components/VisualBreakdown'
 import SalesByWorkroom from '@/components/SalesByWorkroom'
 import LaborVendorReport from '@/components/LaborVendorReport'
 import PerformanceIndex from '@/components/PerformanceIndex'
+import StoreOverview from '@/components/StoreOverview'
 import FileUpload from '@/components/FileUpload'
+import SummaryPanel from '@/components/SummaryPanel'
+import KpiHeader from '@/components/KpiHeader'
 import { Filter } from 'lucide-react'
 
 export default function Dashboard() {
   const { data } = useData()
   const [selectedWorkroom, setSelectedWorkroom] = useState<string>('all')
   const [excludeCycleTime, setExcludeCycleTime] = useState(false)
-  const [activeView, setActiveView] = useState<string>('breakdown')
+      const [activeView, setActiveView] = useState<string>('breakdown')
 
   const uniqueWorkrooms = Array.from(new Set(data.workrooms.map((w) => w.name))).sort()
 
@@ -30,7 +33,7 @@ export default function Dashboard() {
         {/* Sidebar (fixed left column) */}
         <aside className="dashboard-sidebar">
           <nav className="sidebar-nav">
-            <button
+                <button
               onClick={() => setActiveView('breakdown')}
               className={`sidebar-nav-button ${
                 activeView === 'breakdown' ? 'sidebar-nav-button--active' : ''
@@ -62,6 +65,14 @@ export default function Dashboard() {
             >
               Performance Index
             </button>
+                <button
+                  onClick={() => setActiveView('store')}
+                  className={`sidebar-nav-button ${
+                    activeView === 'store' ? 'sidebar-nav-button--active' : ''
+                  }`}
+                >
+                  Store Overview
+                </button>
           </nav>
 
           <div className="space-y-4">
@@ -100,21 +111,36 @@ export default function Dashboard() {
 
         {/* Main content */}
         <main className="dashboard-main">
-          {activeView === 'breakdown' && (
-            <VisualBreakdown selectedWorkroom={selectedWorkroom} />
-          )}
+          {/* Always show Visual Breakdown on main page */}
+          <VisualBreakdown selectedWorkroom={selectedWorkroom} />
+
+          {/* Other views as separate sections below */}
           {activeView === 'sales' && (
-            <SalesByWorkroom selectedWorkroom={selectedWorkroom} />
+            <div className="mt-8 pt-8 border-t border-gray-200">
+              <SalesByWorkroom selectedWorkroom={selectedWorkroom} />
+            </div>
           )}
           {activeView === 'labor' && (
-            <LaborVendorReport selectedWorkroom={selectedWorkroom} />
+            <div className="mt-8 pt-8 border-t border-gray-200">
+              <LaborVendorReport selectedWorkroom={selectedWorkroom} />
+            </div>
           )}
           {activeView === 'performance' && (
-            <PerformanceIndex
-              selectedWorkroom={selectedWorkroom}
-              excludeCycleTime={excludeCycleTime}
-            />
+            <div className="mt-8 pt-8 border-t border-gray-200">
+              <PerformanceIndex
+                selectedWorkroom={selectedWorkroom}
+                excludeCycleTime={excludeCycleTime}
+              />
+            </div>
           )}
+          {activeView === 'store' && (
+            <div className="mt-8 pt-8 border-t border-gray-200">
+              <StoreOverview />
+            </div>
+          )}
+
+          {/* Global summary below the main view */}
+          {activeView === 'breakdown' && <SummaryPanel />}
         </main>
       </div>
     </div>

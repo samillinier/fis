@@ -76,7 +76,7 @@ export default function SalesByWorkroom({ selectedWorkroom }: SalesByWorkroomPro
               }}
             />
             <Legend />
-            <Bar dataKey="sales" fill="#000000" name="Sales ($)" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="sales" fill="#4f46e5" name="Sales ($)" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>

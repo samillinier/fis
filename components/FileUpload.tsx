@@ -55,7 +55,7 @@ export default function FileUpload() {
         }
 
         const salesIdx = headers.findIndex(
-          (h) => typeof h === 'string' && (h.includes('sales') || h.includes('revenue'))
+          (h) => typeof h === 'string' && (h.includes('sales') || h.includes('revenue') || h.includes('total sales') || h.includes('net sales'))
         )
         const laborPOIdx = headers.findIndex(
           (h) =>

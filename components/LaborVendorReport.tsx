@@ -83,8 +83,8 @@ export default function LaborVendorReport({ selectedWorkroom }: LaborVendorRepor
               }}
             />
             <Legend />
-            <Bar dataKey="laborPO" fill="#000000" name="Labor PO ($)" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="vendorDebit" fill="#666666" name="Vendor Debit ($)" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="laborPO" fill="#0f766e" name="Labor PO ($)" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="vendorDebit" fill="#f97316" name="Vendor Debit ($)" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
