@@ -1,19 +1,20 @@
 'use client'
 
-import { useState } from 'react'
-import Dashboard from '@/components/Dashboard'
-import { DataContext } from '@/context/DataContext'
-import { initialData } from '@/data/mockData'
+import Layout from '@/components/Layout'
+import VisualBreakdown from '@/components/VisualBreakdown'
+import SummaryPanel from '@/components/SummaryPanel'
+import { useFilters } from '@/components/FilterContext'
 
 export default function Home() {
-  const [data, setData] = useState(initialData)
+  const { selectedWorkroom } = useFilters()
 
   return (
-    <DataContext.Provider value={{ data, setData }}>
-      <main className="min-h-screen bg-white">
-        <Dashboard />
-      </main>
-    </DataContext.Provider>
+    <Layout>
+      <>
+        <VisualBreakdown selectedWorkroom={selectedWorkroom} />
+        <SummaryPanel />
+      </>
+    </Layout>
   )
 }
 

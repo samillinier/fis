@@ -1,6 +1,8 @@
 'use client'
 
+import { useState } from 'react'
 import { useData } from '@/context/DataContext'
+import RiskDialog from '@/components/RiskDialog'
 import {
   BarChart,
   Bar,
@@ -35,6 +37,8 @@ const isValidWorkroomName = (name: string): boolean => {
 
 export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownProps) {
   const { data } = useData()
+  const [selectedRiskWorkroom, setSelectedRiskWorkroom] = useState<any | null>(null)
+  const [isRiskDialogOpen, setIsRiskDialogOpen] = useState(false)
 
   let filteredData = data.workrooms.filter((w) => isValidWorkroomName(w.name || ''))
   if (selectedWorkroom !== 'all') {
@@ -134,7 +138,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
   const formatCurrency = (value: number) =>
     value === 0 ? '$0' : `$${value.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
 
-  // Top 15 Performing Workrooms - ranked by WPI Score
+  // Top Performing Workrooms - ranked by WPI Score
   const performingWorkroomsMap = new Map<
     string,
     { name: string; sales: number; laborPO: number; vendorDebit: number; stores: Set<string>; records: number; cycleTime?: number }
@@ -599,7 +603,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                     e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)'
                   }}
                 >
-                  <div style={{ fontWeight: 700, fontSize: '1.125rem', lineHeight: '1.3', marginBottom: '0.25rem' }}>
+                  <div style={{ fontWeight: 700, fontSize: '1.5rem', lineHeight: '1.3', marginBottom: '0.25rem' }}>
                     {workroom.name}
                   </div>
                   <div style={{ fontSize: '0.875rem', opacity: 0.95, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>
@@ -619,7 +623,31 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                       <span style={{ fontWeight: 600 }}>{workroom.financialRisk}</span>
                     </div>
                     {workroom.fixNowBullets.length > 0 && (
-                      <div style={{ marginTop: '0.5rem', fontSize: '0.65rem', opacity: 0.9 }}>
+                      <div 
+                        style={{ 
+                          marginTop: '0.5rem', 
+                          fontSize: '0.65rem', 
+                          opacity: 0.9,
+                          cursor: 'pointer',
+                          padding: '0.25rem 0.5rem',
+                          borderRadius: '0.25rem',
+                          transition: 'background-color 0.2s',
+                          textDecoration: 'underline'
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setSelectedRiskWorkroom(workroom)
+                          setIsRiskDialogOpen(true)
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'
+                          e.currentTarget.style.opacity = '1'
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = 'transparent'
+                          e.currentTarget.style.opacity = '0.9'
+                        }}
+                      >
                         {workroom.fixNowBullets.length} issue{workroom.fixNowBullets.length > 1 ? 's' : ''} to fix
                       </div>
                     )}
@@ -636,12 +664,12 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
         </div>
       </section>
 
-      {/* WORKROOMS MOST RESPONSIBLE FOR MOVING YOUR BUSINESS AND TOP 15 PERFORMING WORKROOMS SIDE BY SIDE */}
+      {/* Workrooms Most Responsible for Moving Your Business and Top Performing Workrooms Side by Side */}
       <div className="analytics-grid-container">
-        {/* WORKROOMS MOST RESPONSIBLE FOR MOVING YOUR BUSINESS */}
+        {/* Workrooms Most Responsible for Moving Your Business */}
         <section className="compact-section">
           <div className="compact-section-header">
-            <h3 className="compact-section-title">WORKROOMS MOST RESPONSIBLE FOR MOVING YOUR BUSINESS</h3>
+            <h3 className="compact-section-title">Workrooms Most Responsible for Moving Your Business</h3>
             <p className="text-xs text-gray-500 mt-1">Top Load (Labor PO $ Average) - Top 4 Workrooms</p>
           </div>
 
@@ -721,10 +749,10 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
           </div>
         </section>
 
-        {/* TOP 15 PERFORMING WORKROOMS */}
+        {/* TOP PERFORMING WORKROOMS */}
         <section className="compact-section">
         <div className="compact-section-header">
-          <h3 className="compact-section-title">Top 15 Performing Workrooms</h3>
+          <h3 className="compact-section-title">Top Performing Workrooms</h3>
           <p className="text-xs text-gray-500 mt-1">Ranked by WPI Score (Workroom Performance Index)</p>
         </div>
 
@@ -804,10 +832,10 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
       </section>
       </div>
 
-      {/* COMPREHENSIVE WORKROOM ANALYSIS DASHBOARD */}
+      {/* Comprehensive Workroom Analysis Dashboard */}
       <section className="compact-section" style={{ marginTop: '1.5rem' }}>
         <div className="compact-section-header">
-          <h3 className="compact-section-title">COMPREHENSIVE WORKROOM ANALYSIS DASHBOARD</h3>
+          <h3 className="compact-section-title">Comprehensive Workroom Analysis Dashboard</h3>
           <p className="text-xs text-gray-500 mt-1">
             Store Mix • LTR Performance • Labor PO Volume • Vendor Debit Exposure • Weighted Performance Score • Operational Risks • Financial Risk Rating • Fix This Now
           </p>
@@ -951,10 +979,10 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
         </div>
       </section>
 
-      {/* WORKROOM PERFORMANCE INDEX (WPI) BY WORKROOM - BAR CHART AND TABLE SIDE BY SIDE */}
+      {/* Workroom Performance Index (WPI) by Workroom - Bar Chart and Table Side by Side */}
       <section className="compact-section" style={{ marginTop: '1.5rem' }}>
         <div className="compact-section-header">
-          <h3 className="compact-section-title">WORKROOM PERFORMANCE INDEX (WPI) BY WORKROOM</h3>
+          <h3 className="compact-section-title">Workroom Performance Index (WPI) by Workroom</h3>
           <p className="text-xs text-gray-500 mt-1">
             Weighted using: 50% LTR • 30% Labor PO $ • 20% Vendor Debit discipline
           </p>
@@ -1092,10 +1120,10 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
         </div>
       </section>
 
-      {/* AVERAGE LABOUR PO $ BY WORKROOM */}
+      {/* Average Labour PO $ by Workroom */}
       <section className="compact-section" style={{ marginTop: '1.5rem' }}>
         <div className="compact-section-header">
-          <h3 className="compact-section-title">AVERAGE LABOUR PO $ BY WORKROOM</h3>
+          <h3 className="compact-section-title">Average Labour PO $ by Workroom</h3>
           <p className="text-xs text-gray-500 mt-1">
             Average Labor PO per record across all workrooms
           </p>
@@ -1275,6 +1303,16 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
           )}
         </div>
       </section>
+
+      {/* Risk Details Dialog */}
+      <RiskDialog
+        isOpen={isRiskDialogOpen}
+        onClose={() => {
+          setIsRiskDialogOpen(false)
+          setSelectedRiskWorkroom(null)
+        }}
+        workroom={selectedRiskWorkroom}
+      />
     </div>
   )
 }

@@ -97,6 +97,8 @@ export default function PerformanceIndex({
       ? processedData.reduce((sum, w) => sum + w.calculatedIndex, 0) / processedData.length
       : 0
 
+  const hasData = chartData.length > 0 && chartData.some((d) => d.performanceIndex > 0)
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between mb-6">
@@ -117,8 +119,9 @@ export default function PerformanceIndex({
       )}
 
       <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-        <ResponsiveContainer width="100%" height={400}>
-          <BarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 80 }}>
+        {hasData ? (
+          <ResponsiveContainer width="100%" height={400}>
+            <BarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 80 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
             <XAxis
               dataKey="name"
@@ -144,6 +147,12 @@ export default function PerformanceIndex({
             />
           </BarChart>
         </ResponsiveContainer>
+        ) : (
+          <div style={{ height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', color: '#6b7280' }}>
+            <p style={{ fontSize: '1rem', fontWeight: 500, marginBottom: '0.5rem' }}>No Performance Data Available</p>
+            <p style={{ fontSize: '0.875rem' }}>Upload a T1/T2 scorecard file with sales, labor PO, and vendor debit data to see performance metrics.</p>
+          </div>
+        )}
       </div>
     </div>
   )

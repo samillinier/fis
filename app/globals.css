@@ -24,6 +24,26 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Footer */
+.dashboard-footer {
+  border-top: 1px solid #e5e7eb;
+  background: #ffffff;
+  padding: 1.5rem 2rem;
+  margin-top: auto;
+}
+
+.dashboard-footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dashboard-footer-text {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
 /* Layout */
 .dashboard-root {
   min-height: 100vh;
@@ -52,7 +72,7 @@ body {
 .dashboard-sidebar {
   width: 260px;
   border-right: 1px solid #e5e7eb;
-  background: #f9fafb;
+  background: #80875d;
   padding: 1.5rem;
   flex-shrink: 0;
 }
@@ -68,6 +88,34 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+.dashboard-header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-left: 3rem;
+}
+
+.dashboard-logo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.dashboard-logo {
+  height: 50px;
+  width: auto;
+  object-fit: contain;
+}
+
+.dashboard-logo-text {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #111827;
+  text-align: center;
+  letter-spacing: 0.05em;
 }
 
 .dashboard-title {
@@ -94,17 +142,18 @@ body {
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
-  color: #111827;
+  color: #ffffff;
   transition: background-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+  text-decoration: none;
 }
 
 .sidebar-nav-button:hover {
-  background: #e5e7eb;
+  background: rgba(255, 255, 255, 0.2);
   transform: translateX(1px);
 }
 
 .sidebar-nav-button--active {
-  background: #111827;
+  background: rgba(0, 0, 0, 0.3);
   color: #fff;
 }
 
@@ -117,7 +166,7 @@ body {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  color: var(--muted);
+  color: #ffffff;
 }
 
 .sidebar-select {
@@ -134,6 +183,7 @@ body {
   align-items: center;
   gap: 0.4rem;
   font-size: 0.85rem;
+  color: #ffffff;
 }
 
 /* KPI + cards */

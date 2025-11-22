@@ -53,6 +53,7 @@ export default function SalesByWorkroom({ selectedWorkroom }: SalesByWorkroomPro
     .sort((a, b) => b.sales - a.sales)
 
   const totalSales = chartData.reduce((sum, w) => sum + w.sales, 0)
+  const hasSalesData = chartData.length > 0 && totalSales > 0
 
   return (
     <div className="space-y-6">
@@ -67,8 +68,9 @@ export default function SalesByWorkroom({ selectedWorkroom }: SalesByWorkroomPro
       </div>
 
       <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-        <ResponsiveContainer width="100%" height={400}>
-          <BarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 80 }}>
+        {hasSalesData ? (
+          <ResponsiveContainer width="100%" height={400}>
+            <BarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 80 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
             <XAxis
               dataKey="name"
@@ -90,6 +92,12 @@ export default function SalesByWorkroom({ selectedWorkroom }: SalesByWorkroomPro
             <Bar dataKey="sales" fill="#4f46e5" name="Sales ($)" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
+        ) : (
+          <div style={{ height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', color: '#6b7280' }}>
+            <p style={{ fontSize: '1rem', fontWeight: 500, marginBottom: '0.5rem' }}>No Sales Data Available</p>
+            <p style={{ fontSize: '0.875rem' }}>Upload a T1/T2 scorecard file with sales data to see sales by workroom.</p>
+          </div>
+        )}
       </div>
     </div>
   )

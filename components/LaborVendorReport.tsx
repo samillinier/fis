@@ -54,6 +54,7 @@ export default function LaborVendorReport({ selectedWorkroom }: LaborVendorRepor
 
   const totalLaborPO = chartData.reduce((sum, w) => sum + w.laborPO, 0)
   const totalVendorDebit = chartData.reduce((sum, w) => sum + w.vendorDebit, 0)
+  const hasCostData = chartData.length > 0 && (totalLaborPO > 0 || totalVendorDebit > 0)
 
   return (
     <div className="space-y-6">
@@ -74,8 +75,9 @@ export default function LaborVendorReport({ selectedWorkroom }: LaborVendorRepor
       </div>
 
       <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-        <ResponsiveContainer width="100%" height={400}>
-          <BarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 80 }}>
+        {hasCostData ? (
+          <ResponsiveContainer width="100%" height={400}>
+            <BarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 80 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
             <XAxis
               dataKey="name"
@@ -98,6 +100,12 @@ export default function LaborVendorReport({ selectedWorkroom }: LaborVendorRepor
             <Bar dataKey="vendorDebit" fill="#f97316" name="Vendor Debit ($)" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
+        ) : (
+          <div style={{ height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', color: '#6b7280' }}>
+            <p style={{ fontSize: '1rem', fontWeight: 500, marginBottom: '0.5rem' }}>No Cost Data Available</p>
+            <p style={{ fontSize: '0.875rem' }}>Upload a T1/T2 scorecard file with Labor PO and Vendor Debit data to see cost breakdowns.</p>
+          </div>
+        )}
       </div>
     </div>
   )

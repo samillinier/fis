@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { useData } from '@/context/DataContext'
+import { useNotification } from '@/components/NotificationContext'
 import { Upload } from 'lucide-react'
 import type { DashboardData, WorkroomData } from '@/context/DataContext'
 import * as XLSX from 'xlsx'
@@ -10,6 +11,7 @@ import { workroomStoreData } from '@/data/workroomStoreData'
 export default function FileUpload() {
   const [isUploading, setIsUploading] = useState(false)
   const { setData } = useData()
+  const { showNotification } = useNotification()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -144,7 +146,7 @@ export default function FileUpload() {
         }
 
         setData({ workrooms })
-        alert(`Successfully uploaded ${workrooms.length} records from Excel file!`)
+        showNotification(`Successfully uploaded ${workrooms.length} records from Excel file!`, 'success')
         return
       }
 
@@ -153,7 +155,7 @@ export default function FileUpload() {
         const jsonData = JSON.parse(text)
         if (jsonData.workrooms && Array.isArray(jsonData.workrooms)) {
           setData(jsonData as DashboardData)
-          alert('Data uploaded successfully!')
+          showNotification(`Successfully uploaded ${jsonData.workrooms.length} records from JSON file!`, 'success')
           return
         }
       }
@@ -213,14 +215,18 @@ export default function FileUpload() {
         }
 
         setData({ workrooms })
-        alert('Data uploaded successfully!')
+        showNotification(`Successfully uploaded ${workrooms.length} records from CSV file!`, 'success')
         return
       }
 
       throw new Error('Unsupported file format. Please use .xlsx, .xls, .csv, or .json')
     } catch (error) {
       console.error('Error uploading file:', error)
-      alert(`Error uploading file: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      showNotification(
+        `Error uploading file: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        'error',
+        6000
+      )
     } finally {
       setIsUploading(false)
       if (fileInputRef.current) {
