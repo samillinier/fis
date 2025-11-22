@@ -30,6 +30,7 @@ body {
   background: #ffffff;
   padding: 1.5rem 2rem;
   margin-top: auto;
+  margin-left: 260px; /* Sidebar width */
 }
 
 .dashboard-footer-inner {
@@ -66,15 +67,23 @@ body {
 .dashboard-layout {
   display: flex;
   flex: 1;
-  min-height: calc(100vh - 72px);
+  min-height: calc(100vh - 114px);
 }
 
 .dashboard-sidebar {
+  position: fixed;
+  left: 0;
+  top: 114px; /* Header height: padding (48px) + logo (50px) + gap (4px) + text (~12px) */
   width: 260px;
+  height: calc(100vh - 114px);
   border-right: 1px solid #e5e7eb;
   background: #80875d;
   padding: 1.5rem;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 5;
 }
 
 .dashboard-main {
@@ -82,6 +91,7 @@ body {
   padding: 2rem;
   background: radial-gradient(circle at top, #eff6ff 0, #ffffff 40%);
   overflow-y: auto;
+  margin-left: 260px; /* Sidebar width */
 }
 
 .dashboard-header-inner {
@@ -95,6 +105,53 @@ body {
   align-items: center;
   gap: 1rem;
   margin-left: 3rem;
+}
+
+/* User Menu with Hover Logout */
+.user-menu-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-name-display {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #374151;
+  font-size: 0.875rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  transition: background-color 0.15s ease;
+}
+
+.user-name-display:hover {
+  background-color: #f3f4f6;
+}
+
+.logout-button-hover {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: #e5e7eb;
+  color: #1f2937;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.logout-button-hover:hover {
+  background-color: #d1d5db;
+}
+
+.user-menu-container:hover .logout-button-hover {
+  display: flex;
 }
 
 .dashboard-logo-container {
@@ -124,11 +181,34 @@ body {
 }
 
 /* Sidebar */
+.sidebar-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  padding-top: 2rem; /* Push menu items down for better visibility */
+}
+
 .sidebar-nav {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   margin-bottom: 1.5rem;
+  flex-shrink: 0;
+}
+
+.sidebar-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.sidebar-upload {
+  margin-top: auto;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
 }
 
 .sidebar-nav-button {

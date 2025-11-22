@@ -1,9 +1,11 @@
 'use client'
 
-import FileUpload from '@/components/FileUpload'
+import { useRouter } from 'next/navigation'
 import Sidebar from '@/components/Sidebar'
 import NotificationContainer from '@/components/NotificationContainer'
 import { useFilters } from '@/components/FilterContext'
+import { useAuth } from '@/components/AuthContext'
+import { LogOut, User } from 'lucide-react'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -11,6 +13,13 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const { selectedWorkroom, setSelectedWorkroom, excludeCycleTime, setExcludeCycleTime } = useFilters()
+  const { user, logout } = useAuth()
+  const router = useRouter()
+
+  const handleLogout = () => {
+    logout()
+    router.push('/signin')
+  }
 
   return (
     <div className="dashboard-root">
@@ -26,7 +35,24 @@ export default function Layout({ children }: LayoutProps) {
               <span className="dashboard-logo-text">Floor Interior Service</span>
             </div>
           </div>
-          <FileUpload />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            {user && (
+              <div className="user-menu-container">
+                <div className="user-name-display" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#374151', fontSize: '0.875rem', cursor: 'pointer' }}>
+                  <User size={16} />
+                  <span>{user.name || user.email}</span>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="logout-button-hover"
+                  style={{ fontSize: '0.875rem', fontWeight: 500 }}
+                >
+                  <LogOut size={16} />
+                  <span>Logout</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 

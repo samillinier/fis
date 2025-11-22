@@ -6,6 +6,7 @@ import { initialData } from '@/data/mockData'
 import type { DashboardData } from '@/context/DataContext'
 import { FilterProvider } from '@/components/FilterContext'
 import { NotificationProvider } from '@/components/NotificationContext'
+import { AuthProvider } from '@/components/AuthContext'
 
 const DATA_STORAGE_KEY = 'fis-dashboard-data'
 
@@ -65,14 +66,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  return (
-    <DataContext.Provider value={{ data, setData }}>
-      <NotificationProvider>
-        <FilterProvider>
-          {children}
-        </FilterProvider>
-      </NotificationProvider>
-    </DataContext.Provider>
-  )
+      return (
+        <AuthProvider>
+          <DataContext.Provider value={{ data, setData }}>
+            <NotificationProvider>
+              <FilterProvider>
+                {children}
+              </FilterProvider>
+            </NotificationProvider>
+          </DataContext.Provider>
+        </AuthProvider>
+      )
 }
 

@@ -15,6 +15,7 @@ import {
   Pie,
   Cell,
 } from 'recharts'
+import CountUpNumber from '@/components/CountUpNumber'
 
 // Helper function to check if a workroom name is valid (not "Location #" or similar)
 const isValidWorkroomName = (name: string): boolean => {
@@ -153,20 +154,51 @@ export default function WorkroomSummary() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
           <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Sales</div>
-          <div className="mt-2 text-2xl font-bold">{formatCurrency(totalSales)}</div>
+          <div className="mt-2 text-2xl font-bold">
+            <CountUpNumber
+              value={totalSales}
+              duration={1500}
+              formatter={(val) => formatCurrency(val)}
+            />
+          </div>
         </div>
         <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
           <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Labor Cost</div>
-          <div className="mt-2 text-2xl font-bold">{formatCurrency(totalLaborCost)}</div>
+          <div className="mt-2 text-2xl font-bold">
+            <CountUpNumber
+              value={totalLaborCost}
+              duration={1500}
+              formatter={(val) => formatCurrency(val)}
+            />
+          </div>
         </div>
         <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
           <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Vendor Cost</div>
-          <div className="mt-2 text-2xl font-bold">{formatCurrency(totalVendorCost)}</div>
+          <div className="mt-2 text-2xl font-bold">
+            <CountUpNumber
+              value={totalVendorCost}
+              duration={1500}
+              formatter={(val) => formatCurrency(val)}
+            />
+          </div>
         </div>
         <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
           <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Profit Margin</div>
-          <div className="mt-2 text-2xl font-bold">{formatCurrency(totalMargin)}</div>
-          <div className="text-sm text-gray-600 mt-1">{formatPercent(overallMarginRate)}</div>
+          <div className="mt-2 text-2xl font-bold">
+            <CountUpNumber
+              value={totalMargin}
+              duration={1500}
+              formatter={(val) => formatCurrency(val)}
+            />
+          </div>
+          <div className="text-sm text-gray-600 mt-1">
+            <CountUpNumber
+              value={overallMarginRate}
+              duration={1500}
+              decimals={1}
+              suffix="%"
+            />
+          </div>
         </div>
       </div>
 
@@ -175,7 +207,13 @@ export default function WorkroomSummary() {
         {/* Job Count */}
         <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
           <h3 className="text-lg font-semibold mb-4">Job Count</h3>
-          <div className="text-4xl font-bold text-gray-900">{totalJobCount.toLocaleString()}</div>
+          <div className="text-4xl font-bold text-gray-900">
+            <CountUpNumber
+              value={totalJobCount}
+              duration={1500}
+              decimals={0}
+            />
+          </div>
           <p className="text-sm text-gray-600 mt-2">Total jobs across all workrooms</p>
         </div>
 

@@ -248,11 +248,11 @@ export default function FileUpload() {
       />
       <label
         htmlFor="file-upload-input"
-        className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="cursor-pointer inline-flex items-center justify-center gap-2 w-full px-4 py-2 bg-white text-gray-800 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-300"
       >
         <Upload size={18} />
-        <span className="text-sm font-medium">
-          {isUploading ? 'Uploading...' : 'Upload Excel/CSV/JSON'}
+        <span className="text-sm font-medium whitespace-nowrap">
+          {isUploading ? 'Uploading...' : 'Upload File'}
         </span>
       </label>
     </div>
