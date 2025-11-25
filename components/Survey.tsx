@@ -2,6 +2,7 @@
 
 import { useData } from '@/context/DataContext'
 import { useFilters } from '@/components/FilterContext'
+import { getStoreName } from '@/data/storeNames'
 
 const isValidWorkroomName = (name: string): boolean => {
   const normalizedName = (name || '').toLowerCase().trim()
@@ -42,6 +43,7 @@ export default function Survey() {
     })
     .map((w) => ({
       workroom: w.name || 'Unknown',
+      store: w.store || 'Unknown',
       surveyDate: w.surveyDate || (w as any).surveyDate || null,
       surveyComment: w.surveyComment || (w as any).surveyComment || null,
       laborCategory: w.laborCategory || (w as any).laborCategory || (w as any).category || 'N/A',
@@ -112,6 +114,7 @@ export default function Survey() {
               <thead>
                 <tr>
                   <th style={{ padding: '0.75rem 1rem', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'left' }}>Workroom</th>
+                  <th style={{ padding: '0.75rem 1rem', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'left' }}>Store Name</th>
                   <th style={{ padding: '0.75rem 1rem', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'left' }}>Survey Date</th>
                   <th style={{ padding: '0.75rem 1rem', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'left' }}>Labor Category</th>
                   <th style={{ padding: '0.75rem 1rem', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right' }}>LTR</th>
@@ -153,9 +156,22 @@ export default function Survey() {
                   return (
                     <tr key={survey.recordId || index}>
                       <td style={{ padding: '0.75rem 1rem', fontWeight: 600 }}>{survey.workroom}</td>
+                      <td style={{ padding: '0.75rem 1rem', color: '#374151' }}>{getStoreName(survey.store)}</td>
                       <td style={{ padding: '0.75rem 1rem', color: '#6b7280' }}>{formatDate(survey.surveyDate)}</td>
                       <td style={{ padding: '0.75rem 1rem' }}>
-                        <span className="badge-pill badge-neutral" style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}>
+                        <span 
+                          className="badge-pill badge-neutral" 
+                          style={{ 
+                            fontSize: '0.75rem', 
+                            padding: '0.25rem 0.5rem',
+                            whiteSpace: 'nowrap',
+                            display: 'inline-block',
+                            maxWidth: '100%',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                          }}
+                          title={survey.laborCategory}
+                        >
                           {survey.laborCategory}
                         </span>
                       </td>
