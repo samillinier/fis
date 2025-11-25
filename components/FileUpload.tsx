@@ -49,7 +49,11 @@ export default function FileUpload() {
           (h) => typeof h === 'string' && h.includes('store') && !h.includes('store name')
         )
         let locationIdx = headers.findIndex(
-          (h) => typeof h === 'string' && h.includes('location #')
+          (h) => {
+            if (typeof h !== 'string') return false
+            const lowerH = h.toLowerCase().trim()
+            return lowerH.includes('location #') || lowerH === 'location'
+          }
         )
         // Fallback: in the Lowe's T1/T2 file, Location # is the 5th column (index 4)
         if (locationIdx === -1 && headers.length > 4) {
@@ -86,6 +90,82 @@ export default function FileUpload() {
         )
         const cycleTimeIdx = headers.findIndex(
           (h) => typeof h === 'string' && h.includes('cycle time')
+        )
+        
+        // Survey-related columns
+        const surveyDateIdx = headers.findIndex(
+          (h) => {
+            if (typeof h !== 'string') return false
+            const lowerH = h.toLowerCase().trim()
+            return lowerH.includes('survey date') || lowerH.includes('survey date')
+          }
+        )
+        const surveyCommentIdx = headers.findIndex(
+          (h) => {
+            if (typeof h !== 'string') return false
+            const lowerH = h.toLowerCase().trim()
+            return lowerH.includes('survey comment') || lowerH.includes('comment')
+          }
+        )
+        const laborCategoryIdx = headers.findIndex(
+          (h) => {
+            if (typeof h !== 'string') return false
+            const lowerH = h.toLowerCase().trim()
+            return lowerH.includes('labor category') || lowerH.includes('labour category') || lowerH.includes('category')
+          }
+        )
+        
+        // Survey score columns
+        const reliableHomeImprovementScoreIdx = headers.findIndex(
+          (h) => {
+            if (typeof h !== 'string') return false
+            const lowerH = h.toLowerCase().trim()
+            return lowerH.includes('reliable home improvement score') || lowerH.includes('reliable home improvement')
+          }
+        )
+        const timeTakenToCompleteIdx = headers.findIndex(
+          (h) => {
+            if (typeof h !== 'string') return false
+            const lowerH = h.toLowerCase().trim()
+            return lowerH.includes('time taken to complete') || lowerH.includes('time to complete this project') || lowerH.includes('project completion time')
+          }
+        )
+        const projectValueScoreIdx = headers.findIndex(
+          (h) => {
+            if (typeof h !== 'string') return false
+            const lowerH = h.toLowerCase().trim()
+            return lowerH.includes('project value score') || lowerH.includes('project value')
+          }
+        )
+        const installerKnowledgeScoreIdx = headers.findIndex(
+          (h) => {
+            if (typeof h !== 'string') return false
+            const lowerH = h.toLowerCase().trim()
+            return lowerH.includes('installer knowledge score') || lowerH.includes('installer knowledge')
+          }
+        )
+        
+        // Additional survey score columns
+        const ltrScoreIdx = headers.findIndex(
+          (h) => {
+            if (typeof h !== 'string') return false
+            const lowerH = h.toLowerCase().trim()
+            return lowerH.includes('ltr score') || lowerH === 'ltr score'
+          }
+        )
+        const craftScoreIdx = headers.findIndex(
+          (h) => {
+            if (typeof h !== 'string') return false
+            const lowerH = h.toLowerCase().trim()
+            return lowerH.includes('craft score') || lowerH === 'craft score'
+          }
+        )
+        const profScoreIdx = headers.findIndex(
+          (h) => {
+            if (typeof h !== 'string') return false
+            const lowerH = h.toLowerCase().trim()
+            return lowerH.includes('prof score') || lowerH.includes('professional score') || lowerH === 'prof score'
+          }
         )
 
         const workrooms: WorkroomData[] = []
@@ -142,6 +222,54 @@ export default function FileUpload() {
             workroom.cycleTime = Number(row[cycleTimeIdx]) || 0
           }
 
+          // Add survey data if available
+          if (surveyDateIdx >= 0 && row[surveyDateIdx] != null && row[surveyDateIdx] !== '') {
+            workroom.surveyDate = row[surveyDateIdx]
+          }
+          if (surveyCommentIdx >= 0 && row[surveyCommentIdx] != null && row[surveyCommentIdx] !== '') {
+            workroom.surveyComment = String(row[surveyCommentIdx]).trim()
+          }
+          if (laborCategoryIdx >= 0 && row[laborCategoryIdx] != null && row[laborCategoryIdx] !== '') {
+            const categoryValue = String(row[laborCategoryIdx]).trim()
+            workroom.laborCategory = categoryValue
+            workroom.category = categoryValue // Also set category for backward compatibility
+          }
+
+          // Add survey scores if available
+          if (reliableHomeImprovementScoreIdx >= 0 && row[reliableHomeImprovementScoreIdx] != null && row[reliableHomeImprovementScoreIdx] !== '') {
+            const score = Number(row[reliableHomeImprovementScoreIdx]) || null
+            workroom.reliableHomeImprovementScore = score
+            workroom.reliableHomeImprovement = score
+          }
+          if (timeTakenToCompleteIdx >= 0 && row[timeTakenToCompleteIdx] != null && row[timeTakenToCompleteIdx] !== '') {
+            const time = Number(row[timeTakenToCompleteIdx]) || null
+            workroom.timeTakenToComplete = time
+            workroom.timeToComplete = time
+          }
+          if (projectValueScoreIdx >= 0 && row[projectValueScoreIdx] != null && row[projectValueScoreIdx] !== '') {
+            const score = Number(row[projectValueScoreIdx]) || null
+            workroom.projectValueScore = score
+            workroom.projectValue = score
+          }
+          if (installerKnowledgeScoreIdx >= 0 && row[installerKnowledgeScoreIdx] != null && row[installerKnowledgeScoreIdx] !== '') {
+            const score = Number(row[installerKnowledgeScoreIdx]) || null
+            workroom.installerKnowledgeScore = score
+            workroom.installerKnowledge = score
+          }
+          
+          // Add additional survey scores if available
+          if (ltrScoreIdx >= 0 && row[ltrScoreIdx] != null && row[ltrScoreIdx] !== '') {
+            workroom.ltrScore = Number(row[ltrScoreIdx]) || null
+          }
+          if (craftScoreIdx >= 0 && row[craftScoreIdx] != null && row[craftScoreIdx] !== '') {
+            workroom.craftScore = Number(row[craftScoreIdx]) || null
+          }
+          if (profScoreIdx >= 0 && row[profScoreIdx] != null && row[profScoreIdx] !== '') {
+            const score = Number(row[profScoreIdx]) || null
+            workroom.profScore = score
+            workroom.professionalScore = score
+          }
+
           workrooms.push(workroom as WorkroomData)
         }
 
@@ -174,7 +302,11 @@ export default function FileUpload() {
           (h) => typeof h === 'string' && (h.includes('workroom') || h.includes('name'))
         )
         let storeIdx = headers.findIndex(
-          (h) => typeof h === 'string' && (h.includes('store') || h.includes('location'))
+          (h) => {
+            if (typeof h !== 'string') return false
+            const lowerH = h.toLowerCase().trim()
+            return lowerH.includes('store') || lowerH.includes('location #') || lowerH === 'location'
+          }
         )
         if (storeIdx === -1 && headers.length > 4) {
           storeIdx = 4
@@ -187,6 +319,42 @@ export default function FileUpload() {
         )
         const cycleTimeIdx = headers.findIndex(
           (h) => typeof h === 'string' && (h.includes('cycle time') || h.includes('cycle'))
+        )
+        
+        // Survey-related columns for CSV
+        const surveyDateIdx = headers.findIndex(
+          (h) => typeof h === 'string' && (h.includes('survey date'))
+        )
+        const surveyCommentIdx = headers.findIndex(
+          (h) => typeof h === 'string' && (h.includes('survey comment') || h.includes('comment'))
+        )
+        const laborCategoryIdx = headers.findIndex(
+          (h) => typeof h === 'string' && (h.includes('labor category') || h.includes('labour category') || h === 'category')
+        )
+        
+        // Survey score columns for CSV
+        const reliableHomeImprovementScoreIdx = headers.findIndex(
+          (h) => typeof h === 'string' && (h.includes('reliable home improvement score') || h.includes('reliable home improvement'))
+        )
+        const timeTakenToCompleteIdx = headers.findIndex(
+          (h) => typeof h === 'string' && (h.includes('time taken to complete') || h.includes('time to complete this project') || h.includes('project completion time'))
+        )
+        const projectValueScoreIdx = headers.findIndex(
+          (h) => typeof h === 'string' && (h.includes('project value score') || h.includes('project value'))
+        )
+        const installerKnowledgeScoreIdx = headers.findIndex(
+          (h) => typeof h === 'string' && (h.includes('installer knowledge score') || h.includes('installer knowledge'))
+        )
+        
+        // Additional survey score columns for CSV
+        const ltrScoreIdx = headers.findIndex(
+          (h) => typeof h === 'string' && h.includes('ltr score')
+        )
+        const craftScoreIdx = headers.findIndex(
+          (h) => typeof h === 'string' && h.includes('craft score')
+        )
+        const profScoreIdx = headers.findIndex(
+          (h) => typeof h === 'string' && (h.includes('prof score') || h.includes('professional score'))
         )
 
         for (let i = 1; i < lines.length; i++) {
@@ -209,6 +377,54 @@ export default function FileUpload() {
 
           if (cycleTimeIdx >= 0 && values[cycleTimeIdx]) {
             workroom.cycleTime = Number(values[cycleTimeIdx]) || 0
+          }
+
+          // Add survey data if available
+          if (surveyDateIdx >= 0 && values[surveyDateIdx]) {
+            workroom.surveyDate = values[surveyDateIdx].trim()
+          }
+          if (surveyCommentIdx >= 0 && values[surveyCommentIdx]) {
+            workroom.surveyComment = values[surveyCommentIdx].trim()
+          }
+          if (laborCategoryIdx >= 0 && values[laborCategoryIdx]) {
+            const categoryValue = values[laborCategoryIdx].trim()
+            workroom.laborCategory = categoryValue
+            workroom.category = categoryValue // Also set category for backward compatibility
+          }
+
+          // Add survey scores if available
+          if (reliableHomeImprovementScoreIdx >= 0 && values[reliableHomeImprovementScoreIdx]) {
+            const score = Number(values[reliableHomeImprovementScoreIdx]) || null
+            workroom.reliableHomeImprovementScore = score
+            workroom.reliableHomeImprovement = score
+          }
+          if (timeTakenToCompleteIdx >= 0 && values[timeTakenToCompleteIdx]) {
+            const time = Number(values[timeTakenToCompleteIdx]) || null
+            workroom.timeTakenToComplete = time
+            workroom.timeToComplete = time
+          }
+          if (projectValueScoreIdx >= 0 && values[projectValueScoreIdx]) {
+            const score = Number(values[projectValueScoreIdx]) || null
+            workroom.projectValueScore = score
+            workroom.projectValue = score
+          }
+          if (installerKnowledgeScoreIdx >= 0 && values[installerKnowledgeScoreIdx]) {
+            const score = Number(values[installerKnowledgeScoreIdx]) || null
+            workroom.installerKnowledgeScore = score
+            workroom.installerKnowledge = score
+          }
+          
+          // Add additional survey scores if available
+          if (ltrScoreIdx >= 0 && values[ltrScoreIdx]) {
+            workroom.ltrScore = Number(values[ltrScoreIdx]) || null
+          }
+          if (craftScoreIdx >= 0 && values[craftScoreIdx]) {
+            workroom.craftScore = Number(values[craftScoreIdx]) || null
+          }
+          if (profScoreIdx >= 0 && values[profScoreIdx]) {
+            const score = Number(values[profScoreIdx]) || null
+            workroom.profScore = score
+            workroom.professionalScore = score
           }
 
           workrooms.push(workroom as WorkroomData)

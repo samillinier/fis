@@ -11,6 +11,23 @@ export interface WorkroomData {
   vendorDebit?: number
   cycleTime?: number
   performanceIndex?: number
+  surveyDate?: string | number | Date
+  surveyComment?: string
+  laborCategory?: string
+  category?: string
+  reliableHomeImprovementScore?: number
+  reliableHomeImprovement?: number
+  timeTakenToComplete?: number
+  timeToComplete?: number
+  projectValueScore?: number
+  projectValue?: number
+  installerKnowledgeScore?: number
+  installerKnowledge?: number
+  ltrScore?: number
+  craftScore?: number
+  profScore?: number
+  professionalScore?: number
+  [key: string]: any
 }
 
 export interface DashboardData {

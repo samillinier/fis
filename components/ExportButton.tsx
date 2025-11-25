@@ -15,14 +15,15 @@ export default function ExportButton() {
   const { showNotification } = useNotification()
 
   const getPageTitle = (path?: string) => {
-    const titles: Record<string, string> = {
-      '/': 'Visual Breakdown',
-      '/sales': 'Sales by Workroom',
-      '/labor': 'Labor PO & Vendor Debit',
-      '/performance': 'Performance Index',
-      '/store': 'Store Overview',
-      '/workroom-summary': 'Workroom Summary',
-    }
+      const titles: Record<string, string> = {
+        '/': 'Visual Breakdown',
+        '/sales': 'Sales by Workroom',
+        '/labor': 'Labor PO & Vendor Debit',
+        '/performance': 'Performance Index',
+        '/store': 'Store Overview',
+        '/workroom-summary': 'Workroom Summary',
+        '/survey': 'Survey',
+      }
     return titles[path || pathname] || 'Dashboard Report'
   }
 

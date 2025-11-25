@@ -37,8 +37,8 @@ const isValidWorkroomName = (name: string): boolean => {
 
 export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownProps) {
   const { data } = useData()
-  // const [selectedRiskWorkroom, setSelectedRiskWorkroom] = useState<any | null>(null)
-  // const [isRiskDialogOpen, setIsRiskDialogOpen] = useState(false)
+  const [selectedRiskWorkroom, setSelectedRiskWorkroom] = useState<any | null>(null)
+  const [isRiskDialogOpen, setIsRiskDialogOpen] = useState(false)
 
   let filteredData = data.workrooms.filter((w) => isValidWorkroomName(w.name || ''))
   if (selectedWorkroom !== 'all') {
@@ -636,8 +636,8 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                         }}
                         onClick={(e) => {
                           e.stopPropagation()
-                          // setSelectedRiskWorkroom(workroom)
-                          // setIsRiskDialogOpen(true)
+                          setSelectedRiskWorkroom(workroom)
+                          setIsRiskDialogOpen(true)
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'
@@ -1024,6 +1024,12 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                     return 'badge-neutral'
                   }
                   
+                  const getVendorDebitBadge = (value: number) => {
+                    if (value > 0) return 'badge-warning' // Red for positive (bad)
+                    if (value < 0) return 'badge-positive' // Green for negative (good - credit/refund)
+                    return 'badge-neutral' // Neutral for zero
+                  }
+                  
                   const getWPSBadge = (score: number) => {
                     if (score >= 70) return 'badge-positive'
                     if (score >= 40) return 'badge-neutral'
@@ -1066,7 +1072,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                       <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                           <span style={{ fontSize: '0.7rem' }}>{formatCurrency(workroom.vendorDebitExposure.value)}</span>
-                          <span className={`badge-pill ${getFinancialRiskBadge(workroom.vendorDebitExposure.rating)}`} style={{ fontSize: '0.65rem', padding: '0.1rem 0.35rem' }}>
+                          <span className={`badge-pill ${getVendorDebitBadge(workroom.vendorDebitExposure.value)}`} style={{ fontSize: '0.65rem', padding: '0.1rem 0.35rem' }}>
                             {(workroom.vendorDebitExposure.ratio * 100).toFixed(1)}% • {workroom.vendorDebitExposure.rating}
                           </span>
                         </div>
@@ -1444,15 +1450,92 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
         </div>
       </section>
 
-      {/* Risk Details Dialog - Component removed */}
-      {/* <RiskDialog
-        isOpen={isRiskDialogOpen}
-        onClose={() => {
-          setIsRiskDialogOpen(false)
-          setSelectedRiskWorkroom(null)
-        }}
-        workroom={selectedRiskWorkroom}
-      /> */}
+      {/* Risk Details Dialog */}
+      {isRiskDialogOpen && selectedRiskWorkroom && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+          }}
+          onClick={() => {
+            setIsRiskDialogOpen(false)
+            setSelectedRiskWorkroom(null)
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '0.5rem',
+              padding: '1.5rem',
+              maxWidth: '600px',
+              width: '90%',
+              maxHeight: '80vh',
+              overflowY: 'auto',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827' }}>
+                Issues to Fix - {selectedRiskWorkroom.name}
+              </h2>
+              <button
+                onClick={() => {
+                  setIsRiskDialogOpen(false)
+                  setSelectedRiskWorkroom(null)
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '1.5rem',
+                  cursor: 'pointer',
+                  color: '#6b7280',
+                  padding: '0.25rem',
+                  lineHeight: 1,
+                }}
+              >
+                ×
+              </button>
+            </div>
+            <div style={{ marginTop: '1rem' }}>
+              {selectedRiskWorkroom.fixNowBullets && selectedRiskWorkroom.fixNowBullets.length > 0 ? (
+                <ul style={{ listStyle: 'disc', paddingLeft: '1.5rem', margin: 0 }}>
+                  {selectedRiskWorkroom.fixNowBullets.map((bullet: string, index: number) => (
+                    <li
+                      key={index}
+                      style={{
+                        marginBottom: '0.75rem',
+                        color: '#374151',
+                        fontSize: '0.875rem',
+                        lineHeight: '1.5',
+                      }}
+                    >
+                      {bullet}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>No issues to fix.</p>
+              )}
+            </div>
+            {selectedRiskWorkroom.financialRisk && (
+              <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid #e5e7eb' }}>
+                <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: 0 }}>
+                  <strong style={{ color: '#111827' }}>Financial Risk:</strong> {selectedRiskWorkroom.financialRisk}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
