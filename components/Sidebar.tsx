@@ -87,6 +87,12 @@ export default function Sidebar({
           >
             Survey
           </Link>
+          <Link
+            href="/survey-misc"
+            className={`sidebar-nav-button ${isActive('/survey-misc') ? 'sidebar-nav-button--active' : ''}`}
+          >
+            Survey Misc
+          </Link>
         </nav>
 
         <div className="sidebar-filters">
