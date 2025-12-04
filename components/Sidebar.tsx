@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { Filter } from 'lucide-react'
 import ExportButton from '@/components/ExportButton'
-import FileUpload from '@/components/FileUpload'
+import DualFileUpload from '@/components/DualFileUpload'
 
 interface SidebarProps {
   selectedWorkroom: string
@@ -82,12 +82,6 @@ export default function Sidebar({
             Workroom Summary
           </Link>
           <Link
-            href="/survey"
-            className={`sidebar-nav-button ${isActive('/survey') ? 'sidebar-nav-button--active' : ''}`}
-          >
-            Survey
-          </Link>
-          <Link
             href="/survey-misc"
             className={`sidebar-nav-button ${isActive('/survey-misc') ? 'sidebar-nav-button--active' : ''}`}
           >
@@ -133,7 +127,7 @@ export default function Sidebar({
       </div>
 
       <div className="sidebar-upload">
-        <FileUpload />
+        <DualFileUpload />
       </div>
     </aside>
   )

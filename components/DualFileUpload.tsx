@@ -1,0 +1,605 @@
+'use client'
+
+import { useState, useRef } from 'react'
+import { useData } from '@/context/DataContext'
+import { useNotification } from '@/components/NotificationContext'
+import { Upload, FileText, CheckCircle2, XCircle } from 'lucide-react'
+import type { DashboardData, WorkroomData } from '@/context/DataContext'
+import * as XLSX from 'xlsx'
+import { workroomStoreData } from '@/data/workroomStoreData'
+import { getStoreName } from '@/data/storeNames'
+
+export default function DualFileUpload() {
+  const [isUploadingVisual, setIsUploadingVisual] = useState(false)
+  const [isUploadingSurvey, setIsUploadingSurvey] = useState(false)
+  const [visualFileName, setVisualFileName] = useState<string | null>(null)
+  const [surveyFileName, setSurveyFileName] = useState<string | null>(null)
+  const { data, setData } = useData()
+  const { showNotification } = useNotification()
+  const visualFileInputRef = useRef<HTMLInputElement>(null)
+  const surveyFileInputRef = useRef<HTMLInputElement>(null)
+
+  // Helper function to parse visual data (sales, labor PO, vendor debit, cycle time, workroom/store info)
+  const parseVisualData = async (file: File): Promise<WorkroomData[]> => {
+    const fileName = file.name.toLowerCase()
+    const isExcel = fileName.endsWith('.xlsx') || fileName.endsWith('.xls')
+    const isCSV = fileName.endsWith('.csv')
+    const isJSON = fileName.endsWith('.json')
+
+    if (isJSON) {
+      const text = await file.text()
+      const jsonData = JSON.parse(text)
+      if (jsonData.workrooms && Array.isArray(jsonData.workrooms)) {
+        return jsonData.workrooms as WorkroomData[]
+      }
+      throw new Error('JSON file must contain a "workrooms" array')
+    }
+
+    let headers: string[] = []
+    let rows: any[][] = []
+
+    if (isExcel) {
+      const arrayBuffer = await file.arrayBuffer()
+      const workbook = XLSX.read(arrayBuffer, { type: 'array' })
+      const firstSheetName = workbook.SheetNames[0]
+      const worksheet = workbook.Sheets[firstSheetName]
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][]
+
+      if (jsonData.length < 2) {
+        throw new Error('Excel file must have a header row and at least one data row')
+      }
+
+      headers = (jsonData[0] as any[]).map((h: any) => String(h ?? '').trim().toLowerCase())
+      rows = jsonData.slice(1)
+    } else if (isCSV) {
+      const text = await file.text()
+      const lines = text.split('\n').filter((line) => line.trim())
+      if (lines.length < 2) {
+        throw new Error('CSV file must have a header row and at least one data row')
+      }
+
+      headers = lines[0].split(',').map((h) => h.trim().toLowerCase())
+      rows = lines.slice(1).map((line) => line.split(',').map((v) => v.trim()))
+    }
+
+    // Map headers for visual data
+    const workroomIdx = headers.findIndex((h) => typeof h === 'string' && h.includes('workroom'))
+    let locationIdx = headers.findIndex((h) => {
+      if (typeof h !== 'string') return false
+      const lowerH = h.toLowerCase().trim()
+      return lowerH.includes('location #') || lowerH === 'location'
+    })
+    if (locationIdx === -1 && headers.length > 4) {
+      locationIdx = 4
+    }
+
+    const storeIdx = headers.findIndex(
+      (h) => typeof h === 'string' && h.includes('store') && !h.includes('store name')
+    )
+
+    const salesIdx = headers.findIndex((h) => {
+      if (typeof h !== 'string') return false
+      const lowerH = h.toLowerCase().trim()
+      return (
+        lowerH.includes('sales') ||
+        lowerH.includes('revenue') ||
+        lowerH.includes('amount') ||
+        lowerH.includes('dollar') ||
+        lowerH.includes('$')
+      )
+    })
+
+    const laborPOIdx = headers.findIndex(
+      (h) => typeof h === 'string' && (h.includes('labor po') || h === 'labor po $')
+    )
+    const vendorDebitIdx = headers.findIndex(
+      (h) => typeof h === 'string' && (h.includes('vendor debits') || h.includes('vendor debit'))
+    )
+    const cycleTimeIdx = headers.findIndex(
+      (h) => typeof h === 'string' && h.includes('cycle time')
+    )
+
+    const workrooms: WorkroomData[] = []
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i]
+      if (!row || row.length === 0) continue
+
+      const locationValue = locationIdx >= 0 ? String(row[locationIdx] || '').trim() : ''
+      const storeSource = storeIdx >= 0 ? String(row[storeIdx] || '').trim() : locationValue
+      const storeNumber = Number(storeSource || locationValue)
+
+      const mapped = workroomStoreData.find((r) => r.store === storeNumber)
+
+      const nameSource =
+        workroomIdx >= 0
+          ? row[workroomIdx]
+          : mapped?.workroom || storeSource || `Record ${i + 1}`
+
+      let salesValue = 0
+      if (salesIdx >= 0 && row[salesIdx] != null) {
+        const salesRaw = row[salesIdx]
+        if (typeof salesRaw === 'number') {
+          salesValue = salesRaw
+        } else if (typeof salesRaw === 'string') {
+          const cleaned = String(salesRaw).replace(/[$€£¥,\s]/g, '').trim()
+          salesValue = Number(cleaned) || 0
+        } else {
+          salesValue = Number(salesRaw) || 0
+        }
+      }
+
+      const workroom: WorkroomData = {
+        id: `visual-${i}-${Date.now()}`,
+        name: mapped?.workroom || String(nameSource || '').trim(),
+        store: mapped?.store ?? storeSource ?? '',
+        sales: salesValue,
+        laborPO: laborPOIdx >= 0 ? Number(row[laborPOIdx] || 0) : 0,
+        vendorDebit: vendorDebitIdx >= 0 ? Number(row[vendorDebitIdx] || 0) : 0,
+      }
+
+      if (cycleTimeIdx >= 0 && row[cycleTimeIdx] != null && row[cycleTimeIdx] !== '') {
+        workroom.cycleTime = Number(row[cycleTimeIdx]) || 0
+      }
+
+      workrooms.push(workroom)
+    }
+
+    return workrooms
+  }
+
+  // Helper function to parse survey data (survey scores, LTR, Craft, Prof, survey dates, etc.)
+  const parseSurveyData = async (file: File): Promise<Partial<WorkroomData>[]> => {
+    const fileName = file.name.toLowerCase()
+    const isExcel = fileName.endsWith('.xlsx') || fileName.endsWith('.xls')
+    const isCSV = fileName.endsWith('.csv')
+    const isJSON = fileName.endsWith('.json')
+
+    if (isJSON) {
+      const text = await file.text()
+      const jsonData = JSON.parse(text)
+      if (jsonData.surveys && Array.isArray(jsonData.surveys)) {
+        return jsonData.surveys
+      }
+      throw new Error('JSON file must contain a "surveys" array')
+    }
+
+    let headers: string[] = []
+    let rows: any[][] = []
+
+    if (isExcel) {
+      const arrayBuffer = await file.arrayBuffer()
+      const workbook = XLSX.read(arrayBuffer, { type: 'array' })
+      const firstSheetName = workbook.SheetNames[0]
+      const worksheet = workbook.Sheets[firstSheetName]
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][]
+
+      if (jsonData.length < 2) {
+        throw new Error('Excel file must have a header row and at least one data row')
+      }
+
+      headers = (jsonData[0] as any[]).map((h: any) => String(h ?? '').trim().toLowerCase())
+      rows = jsonData.slice(1)
+    } else if (isCSV) {
+      const text = await file.text()
+      const lines = text.split('\n').filter((line) => line.trim())
+      if (lines.length < 2) {
+        throw new Error('CSV file must have a header row and at least one data row')
+      }
+
+      headers = lines[0].split(',').map((h) => h.trim().toLowerCase())
+      rows = lines.slice(1).map((line) => line.split(',').map((v) => v.trim()))
+    }
+
+    // Map headers for survey data
+    const workroomIdx = headers.findIndex((h) => typeof h === 'string' && h.includes('workroom'))
+    let locationIdx = headers.findIndex((h) => {
+      if (typeof h !== 'string') return false
+      const lowerH = h.toLowerCase().trim()
+      return lowerH.includes('location #') || lowerH === 'location'
+    })
+    if (locationIdx === -1 && headers.length > 4) {
+      locationIdx = 4
+    }
+
+    const storeIdx = headers.findIndex(
+      (h) => typeof h === 'string' && h.includes('store') && !h.includes('store name')
+    )
+
+    const surveyDateIdx = headers.findIndex((h) => {
+      if (typeof h !== 'string') return false
+      const lowerH = h.toLowerCase().trim()
+      return lowerH.includes('survey date')
+    })
+
+    const surveyCommentIdx = headers.findIndex((h) => {
+      if (typeof h !== 'string') return false
+      const lowerH = h.toLowerCase().trim()
+      return lowerH.includes('survey comment')
+    })
+
+    const laborCategoryIdx = headers.findIndex((h) => {
+      if (typeof h !== 'string') return false
+      const lowerH = h.toLowerCase().trim()
+      return lowerH.includes('labor category') || lowerH.includes('category')
+    })
+
+    const ltrScoreIdx = headers.findIndex(
+      (h) => typeof h === 'string' && (h.includes('ltr score') || h === 'ltr')
+    )
+    const craftScoreIdx = headers.findIndex(
+      (h) => typeof h === 'string' && (h.includes('craft score') || h === 'craft')
+    )
+    const profScoreIdx = headers.findIndex(
+      (h) =>
+        typeof h === 'string' &&
+        (h.includes('prof score') || h.includes('professional score'))
+    )
+
+    const reliableHomeImprovementScoreIdx = headers.findIndex((h) => {
+      if (typeof h !== 'string') return false
+      const lowerH = h.toLowerCase().trim()
+      return lowerH.includes('reliable home improvement') || lowerH.includes('rhis')
+    })
+
+    const timeTakenToCompleteIdx = headers.findIndex((h) => {
+      if (typeof h !== 'string') return false
+      const lowerH = h.toLowerCase().trim()
+      return lowerH.includes('time taken') || lowerH.includes('time to complete')
+    })
+
+    const projectValueScoreIdx = headers.findIndex((h) => {
+      if (typeof h !== 'string') return false
+      const lowerH = h.toLowerCase().trim()
+      return lowerH.includes('project value') || lowerH.includes('prs')
+    })
+
+    const installerKnowledgeScoreIdx = headers.findIndex((h) => {
+      if (typeof h !== 'string') return false
+      const lowerH = h.toLowerCase().trim()
+      return lowerH.includes('installer knowledge') || lowerH.includes('iks')
+    })
+
+    const surveyRecords: Partial<WorkroomData>[] = []
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i]
+      if (!row || row.length === 0) continue
+
+      const locationValue = locationIdx >= 0 ? String(row[locationIdx] || '').trim() : ''
+      const storeSource = storeIdx >= 0 ? String(row[storeIdx] || '').trim() : locationValue
+      const storeNumber = Number(storeSource || locationValue)
+
+      const mapped = workroomStoreData.find((r) => r.store === storeNumber)
+
+      const nameSource =
+        workroomIdx >= 0
+          ? row[workroomIdx]
+          : mapped?.workroom || storeSource || `Record ${i + 1}`
+
+      const workroomName = mapped?.workroom || String(nameSource || '').trim()
+
+      // Only include records with survey-related data
+      const hasSurveyData =
+        (surveyDateIdx >= 0 && row[surveyDateIdx]) ||
+        (ltrScoreIdx >= 0 && row[ltrScoreIdx]) ||
+        (craftScoreIdx >= 0 && row[craftScoreIdx]) ||
+        (profScoreIdx >= 0 && row[profScoreIdx]) ||
+        (reliableHomeImprovementScoreIdx >= 0 && row[reliableHomeImprovementScoreIdx])
+
+      if (!hasSurveyData) continue
+
+      const surveyRecord: Partial<WorkroomData> = {
+        name: workroomName,
+        store: mapped?.store ?? storeSource ?? '',
+      }
+
+      if (surveyDateIdx >= 0 && row[surveyDateIdx] != null && row[surveyDateIdx] !== '') {
+        surveyRecord.surveyDate = row[surveyDateIdx]
+      }
+      if (surveyCommentIdx >= 0 && row[surveyCommentIdx] != null && row[surveyCommentIdx] !== '') {
+        surveyRecord.surveyComment = String(row[surveyCommentIdx]).trim()
+      }
+      if (laborCategoryIdx >= 0 && row[laborCategoryIdx] != null && row[laborCategoryIdx] !== '') {
+        const categoryValue = String(row[laborCategoryIdx]).trim()
+        surveyRecord.laborCategory = categoryValue
+        surveyRecord.category = categoryValue
+      }
+
+      if (ltrScoreIdx >= 0 && row[ltrScoreIdx] != null && row[ltrScoreIdx] !== '') {
+        surveyRecord.ltrScore = Number(row[ltrScoreIdx]) || null
+      }
+      if (craftScoreIdx >= 0 && row[craftScoreIdx] != null && row[craftScoreIdx] !== '') {
+        surveyRecord.craftScore = Number(row[craftScoreIdx]) || null
+      }
+      if (profScoreIdx >= 0 && row[profScoreIdx] != null && row[profScoreIdx] !== '') {
+        const score = Number(row[profScoreIdx]) || null
+        surveyRecord.profScore = score
+        surveyRecord.professionalScore = score
+      }
+
+      if (
+        reliableHomeImprovementScoreIdx >= 0 &&
+        row[reliableHomeImprovementScoreIdx] != null &&
+        row[reliableHomeImprovementScoreIdx] !== ''
+      ) {
+        const score = Number(row[reliableHomeImprovementScoreIdx]) || null
+        surveyRecord.reliableHomeImprovementScore = score
+        surveyRecord.reliableHomeImprovement = score
+      }
+
+      if (
+        timeTakenToCompleteIdx >= 0 &&
+        row[timeTakenToCompleteIdx] != null &&
+        row[timeTakenToCompleteIdx] !== ''
+      ) {
+        const time = Number(row[timeTakenToCompleteIdx]) || null
+        surveyRecord.timeTakenToComplete = time
+        surveyRecord.timeToComplete = time
+      }
+
+      if (
+        projectValueScoreIdx >= 0 &&
+        row[projectValueScoreIdx] != null &&
+        row[projectValueScoreIdx] !== ''
+      ) {
+        const score = Number(row[projectValueScoreIdx]) || null
+        surveyRecord.projectValueScore = score
+        surveyRecord.projectValue = score
+      }
+
+      if (
+        installerKnowledgeScoreIdx >= 0 &&
+        row[installerKnowledgeScoreIdx] != null &&
+        row[installerKnowledgeScoreIdx] !== ''
+      ) {
+        const score = Number(row[installerKnowledgeScoreIdx]) || null
+        surveyRecord.installerKnowledgeScore = score
+        surveyRecord.installerKnowledge = score
+      }
+
+      surveyRecords.push(surveyRecord)
+    }
+
+    return surveyRecords
+  }
+
+  // Smart merge function: combines visual data with survey data by matching store number and workroom name
+  const mergeData = (
+    visualData: WorkroomData[],
+    surveyData: Partial<WorkroomData>[]
+  ): WorkroomData[] => {
+    // Create a map of existing workrooms from visual data
+    const workroomMap = new Map<string, WorkroomData>()
+
+    // Index visual data by store + workroom key
+    visualData.forEach((wr) => {
+      const key = `${String(wr.store || '')}|||${wr.name || ''}`
+      if (!workroomMap.has(key)) {
+        workroomMap.set(key, { ...wr })
+      } else {
+        // If duplicate, merge sales/labor/vendor data (sum them)
+        const existing = workroomMap.get(key)!
+        existing.sales = (existing.sales || 0) + (wr.sales || 0)
+        existing.laborPO = (existing.laborPO || 0) + (wr.laborPO || 0)
+        existing.vendorDebit = (existing.vendorDebit || 0) + (wr.vendorDebit || 0)
+      }
+    })
+
+    // Merge survey data into visual data
+    surveyData.forEach((survey) => {
+      const store = String(survey.store || '')
+      const workroom = survey.name || ''
+      const key = `${store}|||${workroom}`
+
+      if (workroomMap.has(key)) {
+        // Merge survey data into existing visual record
+        const existing = workroomMap.get(key)!
+        Object.assign(existing, survey)
+      } else {
+        // Create new record from survey data (with minimal visual data)
+        const newRecord: WorkroomData = {
+          id: `survey-${Date.now()}-${Math.random()}`,
+          name: workroom,
+          store: survey.store || '',
+          sales: 0,
+          laborPO: 0,
+          vendorDebit: 0,
+          ...survey,
+        }
+        workroomMap.set(key, newRecord)
+      }
+    })
+
+    return Array.from(workroomMap.values())
+  }
+
+  const handleVisualDataUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    setIsUploadingVisual(true)
+    setVisualFileName(null)
+
+    try {
+      const visualData = await parseVisualData(file)
+      setVisualFileName(file.name)
+
+      // Merge with existing survey data if available
+      const existingSurveyData: Partial<WorkroomData>[] = data.workrooms
+        .filter((w) => w.ltrScore != null || w.craftScore != null || w.profScore != null)
+        .map((w) => ({
+          name: w.name,
+          store: w.store,
+          ltrScore: w.ltrScore,
+          craftScore: w.craftScore,
+          profScore: w.profScore,
+          surveyDate: w.surveyDate,
+          surveyComment: w.surveyComment,
+          laborCategory: w.laborCategory,
+          category: w.category,
+          reliableHomeImprovementScore: w.reliableHomeImprovementScore,
+          timeTakenToComplete: w.timeTakenToComplete,
+          projectValueScore: w.projectValueScore,
+          installerKnowledgeScore: w.installerKnowledgeScore,
+        }))
+
+      const merged = mergeData(visualData, existingSurveyData)
+      setData({ workrooms: merged })
+      showNotification(
+        `Successfully uploaded ${visualData.length} visual data records! ${
+          existingSurveyData.length > 0
+            ? `Merged with ${existingSurveyData.length} existing survey records.`
+            : ''
+        }`,
+        'success'
+      )
+    } catch (error: any) {
+      console.error('Visual data upload error:', error)
+      showNotification(`Error uploading visual data: ${error.message}`, 'error')
+      setVisualFileName(null)
+    } finally {
+      setIsUploadingVisual(false)
+      if (visualFileInputRef.current) {
+        visualFileInputRef.current.value = ''
+      }
+    }
+  }
+
+  const handleSurveyDataUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    setIsUploadingSurvey(true)
+    setSurveyFileName(null)
+
+    try {
+      const surveyData = await parseSurveyData(file)
+      setSurveyFileName(file.name)
+
+      // Merge with existing visual data if available
+      const existingVisualData: WorkroomData[] = data.workrooms.filter(
+        (w) => w.sales != null || w.laborPO != null || w.vendorDebit != null
+      )
+
+      const merged = mergeData(existingVisualData, surveyData)
+      setData({ workrooms: merged })
+      showNotification(
+        `Successfully uploaded ${surveyData.length} survey data records! ${
+          existingVisualData.length > 0
+            ? `Merged with ${existingVisualData.length} existing visual records.`
+            : ''
+        }`,
+        'success'
+      )
+    } catch (error: any) {
+      console.error('Survey data upload error:', error)
+      showNotification(`Error uploading survey data: ${error.message}`, 'error')
+      setSurveyFileName(null)
+    } finally {
+      setIsUploadingSurvey(false)
+      if (surveyFileInputRef.current) {
+        surveyFileInputRef.current.value = ''
+      }
+    }
+  }
+
+  return (
+    <div className="space-y-3">
+      {/* Visual Data Upload */}
+      <div className="bg-white border border-gray-200 rounded-lg p-3">
+        <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
+          Visual Data
+        </label>
+        <p className="text-xs text-gray-500 mb-2">
+          Sales, Labor PO, Vendor Debit, Cycle Time, Workroom/Store info
+        </p>
+        <div className="flex items-center gap-2">
+          <input
+            ref={visualFileInputRef}
+            type="file"
+            accept=".xlsx,.xls,.csv,.json"
+            onChange={handleVisualDataUpload}
+            disabled={isUploadingVisual}
+            className="hidden"
+            id="visual-upload-input"
+          />
+          <label
+            htmlFor="visual-upload-input"
+            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium cursor-pointer transition-colors ${
+              isUploadingVisual
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            {isUploadingVisual ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-400 border-t-transparent" />
+                <span>Uploading...</span>
+              </>
+            ) : (
+              <>
+                <Upload size={16} />
+                <span>Upload Visual Data</span>
+              </>
+            )}
+          </label>
+        </div>
+        {visualFileName && (
+          <div className="mt-2 flex items-center gap-2 text-xs text-gray-600">
+            <CheckCircle2 size={14} className="text-green-600" />
+            <span className="truncate">{visualFileName}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Survey Data Upload */}
+      <div className="bg-white border border-gray-200 rounded-lg p-3">
+        <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
+          Survey Data
+        </label>
+        <p className="text-xs text-gray-500 mb-2">
+          Survey Scores (LTR, Craft, Prof), Survey Dates, Comments, Labor Category
+        </p>
+        <div className="flex items-center gap-2">
+          <input
+            ref={surveyFileInputRef}
+            type="file"
+            accept=".xlsx,.xls,.csv,.json"
+            onChange={handleSurveyDataUpload}
+            disabled={isUploadingSurvey}
+            className="hidden"
+            id="survey-upload-input"
+          />
+          <label
+            htmlFor="survey-upload-input"
+            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium cursor-pointer transition-colors ${
+              isUploadingSurvey
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            {isUploadingSurvey ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-400 border-t-transparent" />
+                <span>Uploading...</span>
+              </>
+            ) : (
+              <>
+                <Upload size={16} />
+                <span>Upload Survey Data</span>
+              </>
+            )}
+          </label>
+        </div>
+        {surveyFileName && (
+          <div className="mt-2 flex items-center gap-2 text-xs text-gray-600">
+            <CheckCircle2 size={14} className="text-green-600" />
+            <span className="truncate">{surveyFileName}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+

@@ -22,7 +22,7 @@ export default function ExportButton() {
         '/performance': 'Performance Index',
         '/store': 'Store Overview',
         '/workroom-summary': 'Workroom Summary',
-        '/survey': 'Survey',
+        '/survey-misc': 'Survey Misc',
       }
     return titles[path || pathname] || 'Dashboard Report'
   }
