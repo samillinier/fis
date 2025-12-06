@@ -10,6 +10,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@azure/msal-browser": "^3.30.0",
     "@types/three": "^0.181.0",
     "date-fns": "^2.30.0",
     "html2canvas": "^1.4.1",

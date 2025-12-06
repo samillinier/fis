@@ -32,15 +32,22 @@ export default function Layout({ children }: LayoutProps) {
                 alt="FIS Logo" 
                 className="dashboard-logo"
               />
-              <span className="dashboard-logo-text">Floor Interior Service</span>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             {user && (
               <div className="user-menu-container">
-                <div className="user-name-display" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#374151', fontSize: '0.875rem', cursor: 'pointer' }}>
-                  <User size={16} />
-                  <span>{user.name || user.email}</span>
+                <div className="user-name-display" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#374151', fontSize: '1rem', cursor: 'pointer' }}>
+                  {user.photoUrl ? (
+                    <img 
+                      src={user.photoUrl} 
+                      alt={user.name || user.email}
+                      className="user-profile-photo"
+                    />
+                  ) : (
+                    <User size={28} />
+                  )}
+                  <span style={{ fontSize: '1rem', fontWeight: 500 }}>{user.name || user.email}</span>
                 </div>
                 <button
                   onClick={handleLogout}

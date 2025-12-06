@@ -10,7 +10,7 @@ import { AuthProvider } from '@/components/AuthContext'
 
 const DATA_STORAGE_KEY = 'fis-dashboard-data'
 
-// Load data from localStorage or return initial data
+// Load data from localStorage or return empty data
 function loadPersistedData(): DashboardData {
   if (typeof window === 'undefined') {
     return initialData
@@ -29,7 +29,8 @@ function loadPersistedData(): DashboardData {
     console.error('Error loading persisted data:', error)
   }
 
-  return initialData
+  // Return empty data instead of initial mock data
+  return { workrooms: [] }
 }
 
 // Save data to localStorage

@@ -4,18 +4,15 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/AuthContext'
 import { useNotification } from '@/components/NotificationContext'
-import { LogIn, Mail, Lock, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 
 export default function SignInPage() {
   const vantaRef = useRef<HTMLDivElement>(null)
   const vantaEffect = useRef<any>(null)
-  const { isAuthenticated, isLoading: authLoading } = useAuth()
+  const { isAuthenticated, isLoading: authLoading, loginWithMicrosoft } = useAuth()
   const router = useRouter()
   const { showNotification } = useNotification()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const { login } = useAuth()
 
   useEffect(() => {
     // Redirect to dashboard if already authenticated
@@ -93,24 +90,6 @@ export default function SignInPage() {
     return null // Don't show sign in page if already authenticated
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-
-    try {
-      const success = await login(email, password)
-      if (success) {
-        showNotification('Successfully signed in!', 'success')
-        router.push('/')
-      } else {
-        showNotification('Invalid email or password. Please try again.', 'error')
-      }
-    } catch (error) {
-      showNotification('An error occurred. Please try again.', 'error')
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
 
   return (
     <div className="min-h-screen relative flex items-center justify-center p-4">
@@ -134,47 +113,25 @@ export default function SignInPage() {
           <p className="text-gray-600">Sign in to access your dashboard</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-              Email Address
-            </label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#80875d] focus:border-transparent outline-none transition-all"
-                placeholder="Enter your email"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              Password
-            </label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#80875d] focus:border-transparent outline-none transition-all"
-                placeholder="Enter your password"
-              />
-            </div>
-          </div>
-
+        <div className="space-y-4">
           <button
-            type="submit"
+            type="button"
+            onClick={async () => {
+              setIsSubmitting(true)
+              try {
+                const success = await loginWithMicrosoft()
+                if (success) {
+                  showNotification('Signed in with Microsoft account', 'success')
+                  router.push('/')
+                } else {
+                  showNotification('Microsoft sign-in failed or was cancelled.', 'error')
+                }
+              } finally {
+                setIsSubmitting(false)
+              }
+            }}
             disabled={isSubmitting}
-            className="w-full bg-[#80875d] text-white py-3 rounded-lg font-semibold hover:bg-[#6d7349] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full bg-white border-2 border-gray-300 text-gray-800 py-4 rounded-lg font-semibold hover:bg-gray-50 hover:border-gray-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-sm"
           >
             {isSubmitting ? (
               <>
@@ -183,20 +140,16 @@ export default function SignInPage() {
               </>
             ) : (
               <>
-                <LogIn size={20} />
-                <span>Sign In</span>
+                <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="0.5" y="0.5" width="9" height="9" fill="#F25022"/>
+                  <rect x="10.5" y="0.5" width="9" height="9" fill="#7FBA00"/>
+                  <rect x="0.5" y="10.5" width="9" height="9" fill="#00A4EF"/>
+                  <rect x="10.5" y="10.5" width="9" height="9" fill="#FFB900"/>
+                </svg>
+                <span>Sign in with Microsoft</span>
               </>
             )}
           </button>
-        </form>
-
-        <div className="mt-6 text-center">
-          <p className="text-sm text-gray-600">
-            Don't have an account?{' '}
-            <a href="/signup" className="text-[#80875d] font-semibold hover:underline">
-              Sign up
-            </a>
-          </p>
         </div>
       </div>
     </div>

@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { useData } from '@/context/DataContext'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { Filter } from 'lucide-react'
 import ExportButton from '@/components/ExportButton'
 import DualFileUpload from '@/components/DualFileUpload'
 
@@ -52,10 +51,10 @@ export default function Sidebar({
             Visual Breakdown
           </Link>
           <Link
-            href="/sales"
-            className={`sidebar-nav-button ${isActive('/sales') ? 'sidebar-nav-button--active' : ''}`}
+            href="/analytics"
+            className={`sidebar-nav-button ${isActive('/analytics') ? 'sidebar-nav-button--active' : ''}`}
           >
-            Sales by Workroom
+            Historical Analytics
           </Link>
           <Link
             href="/labor"
@@ -90,25 +89,6 @@ export default function Sidebar({
         </nav>
 
         <div className="sidebar-filters">
-          <div>
-            <label className="sidebar-filter-label">
-              <Filter size={14} />
-              Filter by Workroom
-            </label>
-            <select
-              value={selectedWorkroom}
-              onChange={(e) => setSelectedWorkroom(e.target.value)}
-              className="sidebar-select"
-            >
-              <option value="all">All Workrooms</option>
-              {uniqueWorkrooms.map((workroom) => (
-                <option key={workroom} value={workroom}>
-                  {workroom}
-                </option>
-              ))}
-            </select>
-          </div>
-
           {pathname === '/performance' && setExcludeCycleTime && (
             <label className="sidebar-checkbox-row cursor-pointer">
               <input

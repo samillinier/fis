@@ -1,10 +1,12 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { PublicClientApplication, AccountInfo, AuthenticationResult } from '@azure/msal-browser'
 
 interface User {
   email: string
   name: string
+  photoUrl?: string
 }
 
 interface AuthContextType {
@@ -13,6 +15,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>
   signup: (name: string, email: string, password: string) => Promise<boolean>
   logout: () => void
+  loginWithMicrosoft: () => Promise<boolean>
   isLoading: boolean
 }
 
@@ -21,6 +24,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [msalInstance, setMsalInstance] = useState<PublicClientApplication | null>(null)
 
   useEffect(() => {
     // Check for existing session on mount
@@ -55,6 +59,96 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
     return false
+  }
+
+  const loginWithMicrosoft = async (): Promise<boolean> => {
+    if (typeof window === 'undefined') return false
+
+    try {
+      const clientId = process.env.NEXT_PUBLIC_MSAL_CLIENT_ID
+      // Use 'common' to allow multi-tenant access (users from any Azure AD tenant)
+      const tenantId = process.env.NEXT_PUBLIC_MSAL_TENANT_ID || 'common'
+
+      if (!clientId) {
+        console.error('Microsoft login is not configured. Please set NEXT_PUBLIC_MSAL_CLIENT_ID.')
+        return false
+      }
+
+      let instance = msalInstance
+      if (!instance) {
+        instance = new PublicClientApplication({
+          auth: {
+            clientId,
+            authority: `https://login.microsoftonline.com/${tenantId}`,
+            redirectUri: typeof window !== 'undefined' ? window.location.origin + '/signin' : '/signin',
+          },
+        })
+        await instance.initialize()
+        setMsalInstance(instance)
+      }
+
+      const accounts = instance.getAllAccounts()
+      let result: AuthenticationResult
+      
+      if (accounts.length > 0) {
+        // Silent token acquisition
+        try {
+          result = await instance.acquireTokenSilent({
+            scopes: ['User.Read'],
+            account: accounts[0],
+          })
+        } catch (error) {
+          // Fall back to popup if silent fails
+          result = await instance.loginPopup({
+            scopes: ['User.Read'],
+          })
+        }
+      } else {
+        result = await instance.loginPopup({
+          scopes: ['User.Read'],
+        })
+      }
+
+      const account: AccountInfo | null = result.account
+      if (account) {
+        const userData: User = {
+          email: account.username,
+          name: account.name || account.username,
+        }
+        
+        // Fetch profile photo from Microsoft Graph
+        try {
+          const photoResponse = await fetch('https://graph.microsoft.com/v1.0/me/photo/$value', {
+            headers: {
+              'Authorization': `Bearer ${result.accessToken}`,
+            },
+          })
+          
+          if (photoResponse.ok) {
+            const photoBlob = await photoResponse.blob()
+            // Convert blob to base64 for storage
+            const base64String = await new Promise<string>((resolve, reject) => {
+              const reader = new FileReader()
+              reader.onloadend = () => resolve(reader.result as string)
+              reader.onerror = reject
+              reader.readAsDataURL(photoBlob)
+            })
+            userData.photoUrl = base64String
+          }
+        } catch (error) {
+          console.log('Could not fetch profile photo:', error)
+          // Continue without photo if fetch fails
+        }
+        
+        setUser(userData)
+        localStorage.setItem('fis-user', JSON.stringify(userData))
+        return true
+      }
+      return false
+    } catch (error) {
+      console.error('Microsoft login failed:', error)
+      return false
+    }
   }
 
   const signup = async (name: string, email: string, password: string): Promise<boolean> => {
@@ -94,6 +188,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         signup,
         logout,
+        loginWithMicrosoft,
         isLoading,
       }}
     >

@@ -428,9 +428,21 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
       else if (w.stores.size >= 5) storeMixRating = 'Good'
       else if (w.stores.size >= 3) storeMixRating = 'Moderate'
       
-      // LTR Performance Rating
+      // LTR Performance Rating - Use survey LTR score if available
       let ltrPerformance = 'N/A'
-      if (ltrPercent > 0) {
+      let ltrPerformanceValue = 0
+      
+      // Use survey LTR score instead of calculated percentage
+      if (avgLTRFromSurvey != null && avgLTRFromSurvey > 0) {
+        ltrPerformanceValue = avgLTRFromSurvey
+        if (avgLTRFromSurvey > 9.0) ltrPerformance = 'Excellent'
+        else if (avgLTRFromSurvey >= 8.0) ltrPerformance = 'Good'
+        else if (avgLTRFromSurvey >= 7.0) ltrPerformance = 'Moderate'
+        else if (avgLTRFromSurvey >= 6.0) ltrPerformance = 'Poor'
+        else ltrPerformance = 'Critical'
+      } else if (ltrPercent > 0) {
+        // Fallback to calculated LTR% if no survey data
+        ltrPerformanceValue = ltrPercent
         if (ltrPercent < 15) ltrPerformance = 'Excellent'
         else if (ltrPercent < 25) ltrPerformance = 'Good'
         else if (ltrPercent < 35) ltrPerformance = 'Moderate'
@@ -546,8 +558,9 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
           stores: Array.from(w.stores),
         },
         ltrPerformance: {
-          value: ltrPercent,
+          value: ltrPerformanceValue,
           rating: ltrPerformance,
+          isSurveyData: avgLTRFromSurvey != null,
         },
         laborPOVolume: {
           value: w.laborPO,
@@ -597,76 +610,121 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
             alignItems: 'stretch'
           }}>
             {comprehensiveAnalysis.map((workroom) => {
-              // Determine heatmap color based on weighted performance score
-              let heatmapColor = '#ef4444' // Red - costing money (default for low scores)
+              // Determine heatmap color with vibrant volcanic gradient style
+              let gradientFrom = '#ef4444' // Red - costing money
+              let gradientTo = '#dc2626' // Dark red
               let heatmapLabel = 'Costing Money'
               let textColor = '#ffffff'
+              let glowColor = 'rgba(239, 68, 68, 0.4)' // Red glow
+              let borderColor = '#dc2626'
               
               if (workroom.weightedPerformanceScore >= 70) {
-                heatmapColor = '#10b981' // Green - carrying the company
+                gradientFrom = '#10b981' // Emerald green
+                gradientTo = '#059669' // Darker emerald
                 heatmapLabel = 'Carrying Company'
                 textColor = '#ffffff'
+                glowColor = 'rgba(16, 185, 129, 0.5)' // Green glow
+                borderColor = '#059669'
               } else if (workroom.weightedPerformanceScore >= 50) {
-                heatmapColor = '#fbbf24' // Yellow - inconsistent
+                gradientFrom = '#fbbf24' // Vibrant yellow
+                gradientTo = '#f59e0b' // Golden orange
                 heatmapLabel = 'Inconsistent'
-                textColor = '#000000'
+                textColor = '#1f2937' // Dark gray for readability
+                glowColor = 'rgba(251, 191, 36, 0.5)' // Yellow glow
+                borderColor = '#f59e0b'
               } else if (workroom.weightedPerformanceScore >= 40) {
-                heatmapColor = '#f59e0b' // Orange - warning
+                gradientFrom = '#f59e0b' // Amber orange
+                gradientTo = '#d97706' // Darker amber
                 heatmapLabel = 'Warning'
-                textColor = '#000000'
+                textColor = '#ffffff'
+                glowColor = 'rgba(245, 158, 11, 0.5)' // Orange glow
+                borderColor = '#d97706'
               }
 
-              // Additional red flags for critical issues
+              // Additional red flags for critical issues - intense volcanic red
               if (workroom.financialRisk === 'Critical' || 
                   workroom.vendorDebitExposure.ratio > 0.4 ||
                   (workroom.ltrPerformance.value > 50 && workroom.ltrPerformance.value > 0) ||
                   workroom.operationalRisks.length > 3) {
-                heatmapColor = '#dc2626' // Dark red
+                gradientFrom = '#dc2626' // Dark red
+                gradientTo = '#991b1b' // Very dark red
                 heatmapLabel = 'Critical Issues'
                 textColor = '#ffffff'
+                glowColor = 'rgba(220, 38, 38, 0.6)' // Strong red glow
+                borderColor = '#991b1b'
               }
 
               return (
                 <div
                   key={workroom.name}
                   style={{
-                    backgroundColor: heatmapColor,
+                    background: `linear-gradient(135deg, ${gradientFrom} 0%, ${gradientTo} 100%)`,
                     color: textColor,
                     padding: '1.25rem',
-                    borderRadius: '0.5rem',
-                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                    borderRadius: '0.75rem',
+                    boxShadow: `0 4px 12px ${glowColor}, 0 2px 4px rgba(0, 0, 0, 0.2)`,
+                    border: `2px solid ${borderColor}40`,
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '0.5rem',
                     cursor: 'pointer',
-                    transition: 'transform 0.2s, box-shadow 0.2s',
+                    transition: 'transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease',
                     minHeight: '140px',
                     height: '100%',
-                    justifyContent: 'space-between'
+                    justifyContent: 'space-between',
+                    position: 'relative',
+                    overflow: 'hidden'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-2px)'
-                    e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.15)'
+                    e.currentTarget.style.transform = 'translateY(-4px) scale(1.02)'
+                    e.currentTarget.style.boxShadow = `0 8px 24px ${glowColor}, 0 4px 8px rgba(0, 0, 0, 0.3)`
+                    e.currentTarget.style.borderColor = `${borderColor}80`
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)'
-                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)'
+                    e.currentTarget.style.transform = 'translateY(0) scale(1)'
+                    e.currentTarget.style.boxShadow = `0 4px 12px ${glowColor}, 0 2px 4px rgba(0, 0, 0, 0.2)`
+                    e.currentTarget.style.borderColor = `${borderColor}40`
                   }}
                 >
-                  <div style={{ fontWeight: 700, fontSize: '1.5rem', lineHeight: '1.3', marginBottom: '0.25rem' }}>
-                    {workroom.name}
+                  {/* Subtle overlay for depth */}
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: '40%',
+                    background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, transparent 100%)',
+                    pointerEvents: 'none',
+                    borderRadius: '0.75rem 0.75rem 0 0'
+                  }} />
+                  <div style={{ position: 'relative', zIndex: 1 }}>
+                    <div style={{ fontWeight: 800, fontSize: '1.5rem', lineHeight: '1.3', marginBottom: '0.25rem' }}>
+                      {workroom.name}
+                    </div>
+                    <div style={{ 
+                      fontSize: '0.875rem', 
+                      opacity: 0.98, 
+                      fontWeight: 700, 
+                      textTransform: 'uppercase', 
+                      letterSpacing: '0.1em', 
+                      marginBottom: '0.5rem'
+                    }}>
+                      {heatmapLabel}
+                    </div>
                   </div>
-                  <div style={{ fontSize: '0.875rem', opacity: 0.95, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>
-                    {heatmapLabel}
-                  </div>
-                  <div style={{ fontSize: '0.7rem', opacity: 0.95, marginTop: '0.25rem', borderTop: `1px solid ${textColor}33`, paddingTop: '0.5rem' }}>
+                  <div style={{ 
+                    fontSize: '0.7rem', 
+                    opacity: 0.95, 
+                    marginTop: '0.25rem', 
+                    borderTop: `2px solid ${textColor}40`, 
+                    paddingTop: '0.5rem',
+                    position: 'relative',
+                    zIndex: 1,
+                    backdropFilter: 'blur(4px)'
+                  }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
                       <span>WPI Score:</span>
                       <span style={{ fontWeight: 600 }}>{workroom.weightedPerformanceScore.toFixed(1)}</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                      <span>Stores:</span>
-                      <span style={{ fontWeight: 600 }}>{workroom.storeMix.count}</span>
                     </div>
                     {workroom.avgLTRFromSurvey !== null && (
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
@@ -674,6 +732,10 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                         <span style={{ fontWeight: 600 }}>{workroom.avgLTRFromSurvey.toFixed(1)}</span>
                       </div>
                     )}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                      <span>Stores:</span>
+                      <span style={{ fontWeight: 600 }}>{workroom.storeMix.count}</span>
+                    </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <span>Risk:</span>
                       <span style={{ fontWeight: 600 }}>{workroom.financialRisk}</span>
@@ -1109,7 +1171,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                         {workroom.ltrPerformance.value > 0 ? (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                             <span className={`badge-pill ${getLTRBadge(workroom.ltrPerformance.rating)}`} style={{ fontSize: '0.65rem', padding: '0.1rem 0.35rem' }}>
-                              {workroom.ltrPerformance.value.toFixed(1)}%
+                              {workroom.ltrPerformance.value.toFixed(1)}{workroom.ltrPerformance.isSurveyData ? '' : '%'}
                             </span>
                             <span style={{ fontSize: '0.65rem', color: '#6b7280' }}>{workroom.ltrPerformance.rating}</span>
                           </div>
@@ -1655,16 +1717,19 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                 }}>
                   <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: 500 }}>LTR Performance</div>
                   <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827', marginBottom: '0.25rem' }}>
-                    {selectedRiskWorkroom.ltrPerformance?.value?.toFixed(1) || 'N/A'}%
+                    {selectedRiskWorkroom.ltrPerformance?.value ? (
+                      <>
+                        {selectedRiskWorkroom.ltrPerformance.value.toFixed(1)}
+                        {selectedRiskWorkroom.ltrPerformance.isSurveyData ? '' : '%'}
+                      </>
+                    ) : 'N/A'}
                   </div>
                   <div style={{ fontSize: '0.65rem', color: '#6b7280' }}>
                     Rating: {selectedRiskWorkroom.ltrPerformance?.rating || 'N/A'}
+                    {selectedRiskWorkroom.ltrPerformance?.isSurveyData && (
+                      <span style={{ fontSize: '0.65rem', color: '#3b82f6', marginLeft: '0.5rem' }}>(Survey Data)</span>
+                    )}
                   </div>
-                  {selectedRiskWorkroom.avgLTRFromSurvey != null && (
-                    <div style={{ fontSize: '0.65rem', color: '#3b82f6', marginTop: '0.25rem' }}>
-                      Survey: {selectedRiskWorkroom.avgLTRFromSurvey.toFixed(1)}
-                    </div>
-                  )}
                 </div>
                 <div style={{
                   padding: '0.75rem',
