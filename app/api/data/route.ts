@@ -92,6 +92,16 @@ export async function POST(request: NextRequest) {
     // Insert new data (insert one by one due to SQL template limitations)
     if (body.workrooms.length > 0) {
       for (const workroom of body.workrooms) {
+        // Convert Date to string if it's a Date object
+        let surveyDate: string | null = null
+        if (workroom.surveyDate) {
+          if (workroom.surveyDate instanceof Date) {
+            surveyDate = workroom.surveyDate.toISOString().split('T')[0] // YYYY-MM-DD format
+          } else if (typeof workroom.surveyDate === 'string') {
+            surveyDate = workroom.surveyDate
+          }
+        }
+
         await sql`
           INSERT INTO workroom_data (
             user_id, workroom_name, store, sales, labor_po, vendor_debit, category, cycle_time,
@@ -103,7 +113,7 @@ export async function POST(request: NextRequest) {
             ${workroom.sales || null}, ${workroom.laborPO || null}, ${workroom.vendorDebit || null},
             ${workroom.category || null}, ${workroom.cycleTime || null},
             ${workroom.ltrScore || null}, ${workroom.craftScore || null}, ${workroom.profScore || null},
-            ${workroom.surveyDate || null}, ${workroom.surveyComment || null},
+            ${surveyDate}, ${workroom.surveyComment || null},
             ${workroom.laborCategory || null}, ${workroom.reliableHomeImprovementScore || null},
             ${workroom.timeTakenToComplete || null}, ${workroom.projectValueScore || null},
             ${workroom.installerKnowledgeScore || null}
