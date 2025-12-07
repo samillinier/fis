@@ -1,164 +1,49 @@
-// Database API client functions
-// These replace localStorage functions and call the API routes
+// Data Storage - localStorage Only (No Database)
+// Simplified for Vercel deployment - no database setup needed!
 
-import type { DashboardData, WorkroomData } from '@/context/DataContext'
+import type { DashboardData } from '@/context/DataContext'
 import type { HistoricalDataEntry } from '@/data/historicalDataStorage'
 
-// Get user ID from auth (you'll need to implement this based on your auth system)
-function getUserId(): string | null {
-  if (typeof window === 'undefined') return null
-  const userStr = localStorage.getItem('fis-user')
-  if (!userStr) return null
-  try {
-    const user = JSON.parse(userStr)
-    // For now, use email as user ID. In production, use actual user ID from auth
-    return user.email || null
-  } catch {
-    return null
-  }
-}
-
-// Get auth header for API requests
-function getAuthHeader(): string | null {
-  const userId = getUserId()
-  return userId ? `Bearer ${userId}` : null
-}
-
-// Main Dashboard Data API
+// Main Dashboard Data - localStorage only
 export async function fetchDashboardData(): Promise<DashboardData> {
-  const authHeader = getAuthHeader()
-  if (!authHeader) {
-    // Fallback to localStorage if no auth
-    return loadFromLocalStorage()
-  }
-
-  try {
-    const response = await fetch('/api/data', {
-      method: 'GET',
-      headers: {
-        'Authorization': authHeader,
-        'Content-Type': 'application/json',
-      },
-    })
-
-    if (!response.ok) {
-      // Always fallback to localStorage on API errors
-      console.warn('Database API error, using localStorage fallback')
-      return loadFromLocalStorage()
-    }
-
-    const data = await response.json()
-    return data as DashboardData
-  } catch (error: any) {
-    console.error('Error fetching data from database:', error)
-    // Fallback to localStorage
-    return loadFromLocalStorage()
-  }
+  return loadFromLocalStorage()
 }
 
 export async function saveDashboardData(data: DashboardData): Promise<boolean> {
-  const authHeader = getAuthHeader()
-  
-  // Always save to localStorage as backup
   saveToLocalStorage(data)
-
-  if (!authHeader) {
-    console.warn('No auth header, data saved to localStorage only')
-    return false
-  }
-
-  try {
-    const response = await fetch('/api/data', {
-      method: 'POST',
-      headers: {
-        'Authorization': authHeader,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    })
-
-    if (!response.ok) {
-      throw new Error(`API error: ${response.statusText}`)
-    }
-
-    return true
-  } catch (error) {
-    console.error('Error saving data to database:', error)
-    return false
-  }
+  return true
 }
 
 export async function clearDashboardData(): Promise<boolean> {
-  const authHeader = getAuthHeader()
-  if (!authHeader) return false
-
-  try {
-    const response = await fetch('/api/data', {
-      method: 'DELETE',
-      headers: {
-        'Authorization': authHeader,
-        'Content-Type': 'application/json',
-      },
-    })
-
-    if (!response.ok) {
-      throw new Error(`API error: ${response.statusText}`)
-    }
-
-    // Also clear localStorage
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('fis-dashboard-data')
-    }
-
-    return true
-  } catch (error) {
-    console.error('Error clearing data from database:', error)
-    return false
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('fis-dashboard-data')
   }
+  return true
 }
 
-// Historical Data API
+// Historical Data - localStorage only
 export async function fetchHistoricalData(
   period?: 'weekly' | 'monthly' | 'yearly',
   month?: string,
   year?: string
 ): Promise<HistoricalDataEntry[]> {
-  const authHeader = getAuthHeader()
-  if (!authHeader) {
-    return loadHistoricalFromLocalStorage()
+  let allData = loadHistoricalFromLocalStorage()
+  
+  // Filter by period if needed
+  if (month) {
+    allData = allData.filter(entry => entry.month === month)
   }
-
-  try {
-    const params = new URLSearchParams()
-    if (period) params.append('period', period)
-    if (month) params.append('month', month)
-    if (year) params.append('year', year)
-
-    const response = await fetch(`/api/historical?${params.toString()}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': authHeader,
-        'Content-Type': 'application/json',
-      },
-    })
-
-    if (!response.ok) {
-      throw new Error(`API error: ${response.statusText}`)
-    }
-
-    return await response.json()
-  } catch (error) {
-    console.error('Error fetching historical data from database:', error)
-    return loadHistoricalFromLocalStorage()
+  if (year) {
+    allData = allData.filter(entry => entry.year === year)
   }
+  
+  return allData.sort((a, b) => b.timestamp - a.timestamp)
 }
 
 export async function saveHistoricalData(
   data: DashboardData,
   customDate?: Date | string
 ): Promise<HistoricalDataEntry | null> {
-  const authHeader = getAuthHeader()
-  
   const dateObj = customDate
     ? typeof customDate === 'string' ? new Date(customDate) : customDate
     : new Date()
@@ -169,12 +54,11 @@ export async function saveHistoricalData(
   const month = String(dateObj.getMonth() + 1).padStart(2, '0')
   
   // Calculate week
-  const weekStart = getWeekStart(dateObj)
   const week = getISOWeek(dateObj)
   const weekKey = `${year}-W${week.padStart(2, '0')}`
 
   const entry: HistoricalDataEntry = {
-    id: `temp-${timestamp}-${Math.random().toString(36).substr(2, 9)}`,
+    id: `local-${timestamp}-${Math.random().toString(36).substr(2, 9)}`,
     uploadDate,
     week: weekKey,
     month: `${year}-${month}`,
@@ -183,96 +67,31 @@ export async function saveHistoricalData(
     timestamp,
   }
 
-  // Save to localStorage as backup
   saveHistoricalToLocalStorage(entry)
-
-  if (!authHeader) {
-    console.warn('No auth header, historical data saved to localStorage only')
-    return entry
-  }
-
-  try {
-    const response = await fetch('/api/historical', {
-      method: 'POST',
-      headers: {
-        'Authorization': authHeader,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        uploadDate,
-        week: weekKey,
-        month: `${year}-${month}`,
-        year,
-        data,
-        timestamp,
-      }),
-    })
-
-    if (!response.ok) {
-      throw new Error(`API error: ${response.statusText}`)
-    }
-
-    return await response.json()
-  } catch (error) {
-    console.error('Error saving historical data to database:', error)
-    return entry
-  }
+  return entry
 }
 
 export async function deleteHistoricalData(id: string): Promise<boolean> {
-  const authHeader = getAuthHeader()
-  if (!authHeader) return false
-
+  if (typeof window === 'undefined') return false
   try {
-    const response = await fetch(`/api/historical?id=${id}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': authHeader,
-        'Content-Type': 'application/json',
-      },
-    })
-
-    if (!response.ok) {
-      throw new Error(`API error: ${response.statusText}`)
-    }
-
+    const all = loadHistoricalFromLocalStorage()
+    const filtered = all.filter(entry => entry.id !== id)
+    localStorage.setItem('fis-historical-data', JSON.stringify(filtered))
     return true
   } catch (error) {
-    console.error('Error deleting historical data from database:', error)
+    console.error('Error deleting historical data:', error)
     return false
   }
 }
 
 export async function clearAllHistoricalData(): Promise<boolean> {
-  const authHeader = getAuthHeader()
-  if (!authHeader) return false
-
-  try {
-    const response = await fetch('/api/historical?clearAll=true', {
-      method: 'DELETE',
-      headers: {
-        'Authorization': authHeader,
-        'Content-Type': 'application/json',
-      },
-    })
-
-    if (!response.ok) {
-      throw new Error(`API error: ${response.statusText}`)
-    }
-
-    // Also clear localStorage
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('fis-historical-data')
-    }
-
-    return true
-  } catch (error) {
-    console.error('Error clearing historical data from database:', error)
-    return false
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('fis-historical-data')
   }
+  return true
 }
 
-// Helper functions for localStorage fallback
+// Helper functions for localStorage
 function loadFromLocalStorage(): DashboardData {
   if (typeof window === 'undefined') return { workrooms: [] }
   try {
@@ -320,14 +139,7 @@ function saveHistoricalToLocalStorage(entry: HistoricalDataEntry): void {
   }
 }
 
-// Helper functions for week calculation
-function getWeekStart(date: Date): Date {
-  const d = new Date(date)
-  const day = d.getDay()
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1)
-  return new Date(d.setDate(diff))
-}
-
+// Helper function for week calculation
 function getISOWeek(date: Date): string {
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
   const dayNum = d.getUTCDay() || 7
@@ -335,4 +147,3 @@ function getISOWeek(date: Date): string {
   const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1))
   return String(Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7))
 }
-
