@@ -1,39 +1,58 @@
-# 🔄 Redeploy Now - Environment Variables Added!
+# ✅ Environment Variables Are Set - Now Redeploy!
 
-## ✅ Great! You've added the environment variables.
+## Good News:
 
-Now you need to **redeploy** so the variables take effect.
+Your environment variables are correctly configured in Vercel:
+- ✅ `NEXT_PUBLIC_MSAL_CLIENT_ID`
+- ✅ `NEXT_PUBLIC_MSAL_TENANT_ID`
+- ✅ Both set to "All Environments"
 
-## 🚀 Quick Redeploy Steps:
+## 🔧 The Issue:
 
-### Option 1: Redeploy from Vercel Dashboard (Recommended)
+Environment variables are only available to **new deployments**. If you added them after your last deployment, the app won't see them until you redeploy.
 
-1. **Go to:** https://vercel.com/dashboard
-2. **Click** your "fis" project
-3. **Click** "Deployments" tab
-4. **Find** the latest deployment
-5. **Click** "..." (three dots) on the right
-6. **Click** "Redeploy"
-7. **Wait 2-3 minutes** for deployment to complete
+## ✅ Solution: Redeploy Your Project
 
-### Option 2: Push a Small Change to Trigger Deploy
+### Step 1: Go to Deployments
 
-I can create a small change and push it to trigger auto-deployment.
+1. In Vercel Dashboard, click **"Deployments"** tab (top navigation)
+2. You'll see a list of your deployments
 
-## ✅ After Redeployment:
+### Step 2: Redeploy Latest Deployment
 
-1. **Wait 2-3 minutes** for deployment to finish
-2. **Visit:** https://fis-he6w.vercel.app/signin
-3. **Click** "Sign in with Microsoft"
-4. **Should work now!** ✅
+1. Find the **latest deployment** (most recent one)
+2. Click **"..."** (three dots) on the right side of that deployment
+3. Click **"Redeploy"** from the dropdown menu
+4. A confirmation dialog will appear
+5. Click **"Redeploy"** again to confirm
 
-## 🔍 Check Deployment Status:
+### Step 3: Wait for Deployment
 
-- **Vercel Dashboard:** https://vercel.com/dashboard
-- **Your Project → Deployments** tab
-- Watch the build progress in real-time
+1. Watch the deployment build
+2. Wait **2-3 minutes** for it to complete
+3. You'll see the status change from "Building" to "Ready"
+
+### Step 4: Test Your App
+
+1. After deployment completes, visit: https://fis-he6w.vercel.app/signin
+2. The error should be gone! ✅
+3. Sign-in should work now
+
+## 🎯 Why This Is Needed:
+
+- Environment variables are injected at **build time**
+- Your previous deployment was built **before** you added the variables
+- New deployment will include the environment variables
+- The app will be able to read them
+
+## ✅ Quick Steps:
+
+1. **Vercel Dashboard** → **Deployments** tab
+2. Click **"..."** on latest deployment
+3. Click **"Redeploy"**
+4. Wait 2-3 minutes
+5. Test sign-in
 
 ---
 
-**Ready to redeploy! Use Option 1 above (easiest).** 🚀
-
+**Your variables are set correctly - just need to redeploy!** 🚀
