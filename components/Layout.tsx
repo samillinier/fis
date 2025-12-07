@@ -48,15 +48,19 @@ export default function Layout({ children }: LayoutProps) {
                     <User size={28} />
                   )}
                   <span style={{ fontSize: '1rem', fontWeight: 500 }}>{user.name || user.email}</span>
+                  <svg className="dropdown-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M2 4L6 8L10 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                 </div>
-                <button
-                  onClick={handleLogout}
-                  className="logout-button-hover"
-                  style={{ fontSize: '0.875rem', fontWeight: 500 }}
-                >
-                  <LogOut size={16} />
-                  <span>Logout</span>
-                </button>
+                <div className="logout-dropdown-menu">
+                  <button
+                    onClick={handleLogout}
+                    className="logout-button-hover"
+                  >
+                    <LogOut size={18} />
+                    <span>Sign Out</span>
+                  </button>
+                </div>
               </div>
             )}
           </div>

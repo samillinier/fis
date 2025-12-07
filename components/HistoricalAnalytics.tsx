@@ -68,37 +68,59 @@ export default function HistoricalAnalytics() {
   const visualFileInputRef = useRef<HTMLInputElement>(null)
   const surveyFileInputRef = useRef<HTMLInputElement>(null)
 
+  const [availableMonths, setAvailableMonths] = useState<string[]>([])
+  const [availableYears, setAvailableYears] = useState<string[]>([])
+  const [filteredEntries, setFilteredEntries] = useState<HistoricalDataEntry[]>([])
+
   // Load historical data on mount only (client-side)
   useEffect(() => {
     setIsMounted(true)
     if (typeof window !== 'undefined') {
-      const entries = getAllHistoricalData()
-      setHistoricalEntries(entries)
+      loadHistoricalData()
     }
   }, [])
 
-  // Refresh entries when uploading
-  const refreshEntries = () => {
-    const entries = getAllHistoricalData()
-    setHistoricalEntries(entries)
+  // Load historical data from database
+  const loadHistoricalData = async () => {
+    try {
+      const entries = await getAllHistoricalData()
+      setHistoricalEntries(entries)
+      
+      // Load available months and years
+      const months = await getAvailableMonths()
+      const years = await getAvailableYears()
+      setAvailableMonths(months)
+      setAvailableYears(years)
+    } catch (error) {
+      console.error('Error loading historical data:', error)
+    }
   }
 
-  // Get available months and years
-  const availableMonths = useMemo(() => {
-    if (typeof window === 'undefined') return []
-    return getAvailableMonths()
-  }, [historicalEntries])
+  // Refresh entries when uploading
+  const refreshEntries = async () => {
+    await loadHistoricalData()
+  }
 
-  const availableYears = useMemo(() => {
-    if (typeof window === 'undefined') return []
-    return getAvailableYears()
-  }, [historicalEntries])
-
-  // Get filtered data based on period (always reads fresh from storage, client-side only)
-  const filteredEntries = useMemo(() => {
-    if (typeof window === 'undefined') return []
-    return getHistoricalDataByPeriod(period, selectedMonth || undefined, selectedYear || undefined)
-  }, [period, selectedMonth, selectedYear, historicalEntries])
+  // Update filtered entries when filters change
+  useEffect(() => {
+    if (typeof window === 'undefined' || !isMounted) return
+    
+    const loadFiltered = async () => {
+      try {
+        const filtered = await getHistoricalDataByPeriod(
+          period,
+          selectedMonth || undefined,
+          selectedYear || undefined
+        )
+        setFilteredEntries(filtered)
+      } catch (error) {
+        console.error('Error loading filtered entries:', error)
+        setFilteredEntries([])
+      }
+    }
+    
+    loadFiltered()
+  }, [period, selectedMonth, selectedYear, historicalEntries, isMounted])
 
   // Process historical data to create comprehensive analysis (similar to front dashboard)
   const comprehensiveAnalysisData = useMemo(() => {
@@ -169,12 +191,26 @@ export default function HistoricalAnalytics() {
           entry.data.workrooms.some((wr) => wr.name === w.name)
         ).length
         
-        const avgSales = entryCount > 0 ? w.totalSales / entryCount : w.totalSales
-        const avgLaborPO = entryCount > 0 ? w.totalLaborPO / entryCount : w.totalLaborPO
-        const avgVendorDebit = entryCount > 0 ? w.totalVendorDebit / entryCount : w.totalVendorDebit
+        // For monthly/yearly views: show TOTALS (sum of all weeks)
+        // For weekly view: show AVERAGES (per week)
+        const displaySales = period === 'monthly' || period === 'yearly' 
+          ? w.totalSales 
+          : (entryCount > 0 ? w.totalSales / entryCount : w.totalSales)
+        const displayLaborPO = period === 'monthly' || period === 'yearly'
+          ? w.totalLaborPO
+          : (entryCount > 0 ? w.totalLaborPO / entryCount : w.totalLaborPO)
+        const displayVendorDebit = period === 'monthly' || period === 'yearly'
+          ? w.totalVendorDebit
+          : (entryCount > 0 ? w.totalVendorDebit / entryCount : w.totalVendorDebit)
+        
+        // Records: For monthly/yearly views, show TOTAL records (sum of all weeks)
+        // For weekly view, show TOTAL records (sum across selected weeks) - not averages
+        // Jobs completed should always show totals, not averages
+        const displayRecords = w.totalRecords
+        
         // LTR: ONLY from survey data, used for LTR display only (not WPI / jobs / risk)
         const avgLTR = w.ltrCount > 0 ? w.ltrSum / w.ltrCount : null
-        const totalCost = avgLaborPO + avgVendorDebit
+        const totalCost = displayLaborPO + displayVendorDebit
 
         // Calculate weighted performance score
         // IMPORTANT: Survey LTR is NOT used to influence WPI here.
@@ -185,11 +221,14 @@ export default function HistoricalAnalytics() {
             const wrEntryCount = filteredEntries.filter((entry) =>
               entry.data.workrooms.some((wrr) => wrr.name === wr.name)
             ).length
-            return wrEntryCount > 0 ? wr.totalLaborPO / wrEntryCount : wr.totalLaborPO
+            // Use same logic: totals for monthly/yearly, averages for weekly
+            return period === 'monthly' || period === 'yearly'
+              ? wr.totalLaborPO
+              : (wrEntryCount > 0 ? wr.totalLaborPO / wrEntryCount : wr.totalLaborPO)
           }), 1)
-        const laborPOScore = maxLaborPO > 0 ? ((avgLaborPO / maxLaborPO) * 100) : 0
+        const laborPOScore = maxLaborPO > 0 ? ((displayLaborPO / maxLaborPO) * 100) : 0
 
-        const vendorDebitRatio = totalCost > 0 ? Math.abs(avgVendorDebit) / totalCost : 0
+        const vendorDebitRatio = totalCost > 0 ? Math.abs(displayVendorDebit) / totalCost : 0
         const vendorDebitDisciplineScore = Math.max(0, 100 - (vendorDebitRatio * 200))
 
         // WPI uses ONLY visual data: Labor PO (volume) and Vendor Debits (discipline)
@@ -198,19 +237,19 @@ export default function HistoricalAnalytics() {
 
       return {
         name: w.name,
-        sales: avgSales,
-        laborPO: avgLaborPO,
-        vendorDebit: avgVendorDebit,
+        sales: displaySales,
+        laborPO: displayLaborPO,
+        vendorDebit: displayVendorDebit,
         totalCost,
         stores: w.stores.size,
-        records: w.totalRecords,
+        records: displayRecords,
         weightedPerformanceScore,
         avgLTR,
       }
     })
 
     return analysis.sort((a, b) => b.weightedPerformanceScore - a.weightedPerformanceScore)
-  }, [filteredEntries])
+  }, [filteredEntries, period])
 
   // Chart data for bar charts
   const chartData = useMemo(() => {
@@ -269,57 +308,62 @@ export default function HistoricalAnalytics() {
   }
 
   // Save merged data to historical storage with selected date
-  const saveMergedData = () => {
+  const saveMergedData = async () => {
     if (!selectedDate) {
       showNotification('Please select a date for this data snapshot', 'error')
       return
     }
 
-    if (pendingVisualData && pendingVisualData.length > 0) {
-      const merged = pendingSurveyData && pendingSurveyData.length > 0
-        ? mergeData(pendingVisualData, pendingSurveyData)
-        : pendingVisualData
-      
-      const dashboardData: DashboardData = { workrooms: merged }
-      const entry = saveHistoricalData(dashboardData, selectedDate)
-      refreshEntries()
-      
-      const surveyCount = pendingSurveyData && pendingSurveyData.length > 0 ? pendingSurveyData.length : 0
-      
-      // Clear pending data
-      setPendingVisualData(null)
-      setPendingSurveyData(null)
-      setVisualFileName(null)
-      setSurveyFileName(null)
-      // Reset date to today for next upload
-      setSelectedDate(new Date().toISOString().split('T')[0])
-      
-      showNotification(
-        `Weekly data uploaded successfully! (${entry.week})${surveyCount > 0 ? ` Merged with ${surveyCount} survey records.` : ''}`,
-        'success'
-      )
-    } else if (pendingSurveyData && pendingSurveyData.length > 0) {
-      // Survey-only upload
-      const workrooms: WorkroomData[] = pendingSurveyData.map((survey) => ({
-        id: `survey-${Date.now()}-${Math.random()}`,
-        name: survey.name || 'Unknown',
-        store: survey.store || '',
-        sales: 0,
-        laborPO: 0,
-        vendorDebit: 0,
-        ...survey,
-      }))
-      
-      const dashboardData: DashboardData = { workrooms }
-      const entry = saveHistoricalData(dashboardData, selectedDate)
-      refreshEntries()
-      
-      setPendingSurveyData(null)
-      setSurveyFileName(null)
-      // Reset date to today for next upload
-      setSelectedDate(new Date().toISOString().split('T')[0])
-      
-      showNotification(`Weekly survey data uploaded successfully! (${entry.week})`, 'success')
+    try {
+      if (pendingVisualData && pendingVisualData.length > 0) {
+        const merged = pendingSurveyData && pendingSurveyData.length > 0
+          ? mergeData(pendingVisualData, pendingSurveyData)
+          : pendingVisualData
+        
+        const dashboardData: DashboardData = { workrooms: merged }
+        const entry = await saveHistoricalData(dashboardData, selectedDate)
+        await refreshEntries()
+        
+        const surveyCount = pendingSurveyData && pendingSurveyData.length > 0 ? pendingSurveyData.length : 0
+        
+        // Clear pending data
+        setPendingVisualData(null)
+        setPendingSurveyData(null)
+        setVisualFileName(null)
+        setSurveyFileName(null)
+        // Reset date to today for next upload
+        setSelectedDate(new Date().toISOString().split('T')[0])
+        
+        showNotification(
+          `Weekly data uploaded successfully! (${entry.week})${surveyCount > 0 ? ` Merged with ${surveyCount} survey records.` : ''}`,
+          'success'
+        )
+      } else if (pendingSurveyData && pendingSurveyData.length > 0) {
+        // Survey-only upload
+        const workrooms: WorkroomData[] = pendingSurveyData.map((survey) => ({
+          id: `survey-${Date.now()}-${Math.random()}`,
+          name: survey.name || 'Unknown',
+          store: survey.store || '',
+          sales: 0,
+          laborPO: 0,
+          vendorDebit: 0,
+          ...survey,
+        }))
+        
+        const dashboardData: DashboardData = { workrooms }
+        const entry = await saveHistoricalData(dashboardData, selectedDate)
+        await refreshEntries()
+        
+        setPendingSurveyData(null)
+        setSurveyFileName(null)
+        // Reset date to today for next upload
+        setSelectedDate(new Date().toISOString().split('T')[0])
+        
+        showNotification(`Weekly survey data uploaded successfully! (${entry.week})`, 'success')
+      }
+    } catch (error) {
+      console.error('Error saving historical data:', error)
+      showNotification('Failed to save historical data. Please try again.', 'error')
     }
   }
 
@@ -688,17 +732,17 @@ export default function HistoricalAnalytics() {
     <div className="space-y-6">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className="text-3xl font-bold mb-2">Historical Analytics</h2>
+          <h2 className="text-3xl font-bold mb-2">Workroom Data</h2>
           <p className="text-gray-600">
             Comprehensive Workroom Analysis Dashboard with weekly, monthly, and yearly trends
           </p>
         </div>
         {isMounted && historicalEntries.length > 0 && (
           <button
-            onClick={() => {
+            onClick={async () => {
               if (confirm('Are you sure you want to clear all historical data? This action cannot be undone.')) {
-                clearAllHistoricalData()
-                refreshEntries()
+                await clearAllHistoricalData()
+                await refreshEntries()
                 showNotification('All historical data cleared', 'success')
               }
             }}
@@ -955,9 +999,9 @@ export default function HistoricalAnalytics() {
                 >
                   {entry.week}
                   <button
-                    onClick={() => {
-                      deleteHistoricalData(entry.id)
-                      refreshEntries()
+                    onClick={async () => {
+                      await deleteHistoricalData(entry.id)
+                      await refreshEntries()
                       showNotification('Historical entry deleted', 'success')
                     }}
                     className="ml-1 text-red-600 hover:text-red-800"
@@ -1131,7 +1175,7 @@ export default function HistoricalAnalytics() {
             </div>
           )}
 
-          {isMounted && availableMonths.length > 0 && (period as string) !== 'yearly' && (
+          {isMounted && (period as string) !== 'yearly' && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Month</label>
               <select
@@ -1141,17 +1185,21 @@ export default function HistoricalAnalytics() {
                 disabled={period === 'yearly'}
               >
                 <option value="">All Months</option>
-                {availableMonths
-                  .filter((month) => !selectedYear || month.startsWith(selectedYear))
-                  .map((month) => {
-                    const [year, monthNum] = month.split('-')
-                    const monthName = new Date(parseInt(year), parseInt(monthNum) - 1).toLocaleString('en-US', { month: 'long' })
-                    return (
-                      <option key={month} value={month}>
-                        {monthName} {year}
-                      </option>
-                    )
-                  })}
+                {availableMonths.length > 0 ? (
+                  availableMonths
+                    .filter((month) => !selectedYear || month.startsWith(selectedYear))
+                    .map((month) => {
+                      const [year, monthNum] = month.split('-')
+                      const monthName = new Date(parseInt(year), parseInt(monthNum) - 1).toLocaleString('en-US', { month: 'long' })
+                      return (
+                        <option key={month} value={month}>
+                          {monthName} {year}
+                        </option>
+                      )
+                    })
+                ) : (
+                  <option disabled>No months available</option>
+                )}
               </select>
             </div>
           )}
@@ -1426,7 +1474,7 @@ export default function HistoricalAnalytics() {
         <section className="bg-white border border-gray-200 rounded-lg shadow-sm p-12 text-center">
           <p className="text-gray-500 text-lg mb-2">No historical data available</p>
           <p className="text-gray-400 text-sm">
-            Upload weekly data snapshots to see historical analytics and trends.
+            Upload weekly data snapshots to see workroom data and trends.
           </p>
         </section>
       )}

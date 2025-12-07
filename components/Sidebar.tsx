@@ -54,7 +54,7 @@ export default function Sidebar({
             href="/analytics"
             className={`sidebar-nav-button ${isActive('/analytics') ? 'sidebar-nav-button--active' : ''}`}
           >
-            Historical Analytics
+            Workroom Data
           </Link>
           <Link
             href="/labor"

@@ -1,0 +1,10 @@
+#!/bin/bash
+echo "🔄 Restarting development server..."
+echo ""
+echo "Step 1: Stopping server on port 3000..."
+lsof -ti:3000 2>/dev/null | xargs kill -9 2>/dev/null && echo "✅ Server stopped" || echo "ℹ️  No server running"
+echo ""
+echo "Step 2: Starting server..."
+echo "   Run: npm run dev"
+echo ""
+echo "Or just run: npm run dev"

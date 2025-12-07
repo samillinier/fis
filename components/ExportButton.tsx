@@ -17,7 +17,7 @@ export default function ExportButton() {
   const getPageTitle = (path?: string) => {
       const titles: Record<string, string> = {
         '/': 'Visual Breakdown',
-        '/analytics': 'Historical Analytics',
+        '/analytics': 'Workroom Data',
         '/labor': 'Labor PO & Vendor Debit',
         '/performance': 'Performance Index',
         '/store': 'Store Overview',
@@ -29,7 +29,7 @@ export default function ExportButton() {
 
   const allPages = [
     { path: '/', title: 'Visual Breakdown' },
-    { path: '/analytics', title: 'Historical Analytics' },
+    { path: '/analytics', title: 'Workroom Data' },
     { path: '/sales', title: 'Sales by Workroom' },
     { path: '/labor', title: 'Labor PO & Vendor Debit' },
     { path: '/performance', title: 'Performance Index' },

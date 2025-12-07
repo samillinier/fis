@@ -1,7 +1,13 @@
 // Historical Data Storage System
-// Stores weekly uploads separately from main dashboard data
+// Now uses database API instead of localStorage
 
 import type { DashboardData } from '@/context/DataContext'
+import {
+  fetchHistoricalData,
+  saveHistoricalData as saveToDatabase,
+  deleteHistoricalData as deleteFromDatabase,
+  clearAllHistoricalData as clearAllFromDatabase,
+} from '@/lib/database'
 
 export interface HistoricalDataEntry {
   id: string
@@ -13,125 +19,75 @@ export interface HistoricalDataEntry {
   timestamp: number // Unix timestamp for sorting
 }
 
-const HISTORICAL_STORAGE_KEY = 'fis-historical-data'
-
-// Get all historical data entries (client-side only)
-export function getAllHistoricalData(): HistoricalDataEntry[] {
+// Get all historical data entries (from database)
+export async function getAllHistoricalData(): Promise<HistoricalDataEntry[]> {
   if (typeof window === 'undefined') {
     // Return empty array during SSR to prevent hydration mismatch
     return []
   }
 
   try {
-    const stored = localStorage.getItem(HISTORICAL_STORAGE_KEY)
-    if (stored) {
-      return JSON.parse(stored) as HistoricalDataEntry[]
-    }
+    return await fetchHistoricalData()
   } catch (error) {
     console.error('Error loading historical data:', error)
+    return []
   }
-
-  return []
 }
 
-// Save historical data entry with optional custom date
-export function saveHistoricalData(data: DashboardData, customDate?: Date | string): HistoricalDataEntry {
-  // Use custom date if provided, otherwise use current date
-  const dateObj = customDate 
-    ? (typeof customDate === 'string' ? new Date(customDate) : customDate)
-    : new Date()
-  
-  const timestamp = dateObj.getTime()
-  const uploadDate = dateObj.toISOString()
-  
-  // Calculate week number (ISO week) based on the provided date
-  const weekStart = getWeekStart(dateObj)
-  const year = dateObj.getFullYear().toString()
-  const month = String(dateObj.getMonth() + 1).padStart(2, '0')
-  const week = getISOWeek(dateObj)
-  const weekKey = `${year}-W${week.padStart(2, '0')}`
-
-  const entry: HistoricalDataEntry = {
-    id: `historical-${timestamp}-${Math.random().toString(36).substr(2, 9)}`,
-    uploadDate,
-    week: weekKey,
-    month: `${year}-${month}`,
-    year,
-    data,
-    timestamp,
+// Save historical data entry with optional custom date (to database)
+export async function saveHistoricalData(
+  data: DashboardData,
+  customDate?: Date | string
+): Promise<HistoricalDataEntry> {
+  const entry = await saveToDatabase(data, customDate)
+  if (!entry) {
+    throw new Error('Failed to save historical data')
   }
-
-  const allData = getAllHistoricalData()
-  allData.push(entry)
-  
-  // Sort by timestamp (newest first)
-  allData.sort((a, b) => b.timestamp - a.timestamp)
-
-  try {
-    localStorage.setItem(HISTORICAL_STORAGE_KEY, JSON.stringify(allData))
-  } catch (error) {
-    console.error('Error saving historical data:', error)
-  }
-
   return entry
 }
 
-// Get data filtered by time period
-export function getHistoricalDataByPeriod(
+// Get data filtered by time period (from database)
+export async function getHistoricalDataByPeriod(
   period: 'weekly' | 'monthly' | 'yearly',
   selectedMonth?: string,
   selectedYear?: string
-): HistoricalDataEntry[] {
-  const allData = getAllHistoricalData()
-  
-  let filtered = allData
-
-  // Filter by selected month if provided (format: "YYYY-MM")
-  if (selectedMonth) {
-    filtered = filtered.filter((entry) => entry.month === selectedMonth)
+): Promise<HistoricalDataEntry[]> {
+  try {
+    return await fetchHistoricalData(period, selectedMonth, selectedYear)
+  } catch (error) {
+    console.error('Error fetching historical data by period:', error)
+    return []
   }
-
-  // Filter by selected year if provided (format: "YYYY")
-  if (selectedYear) {
-    filtered = filtered.filter((entry) => entry.year === selectedYear)
-  }
-  
-  if (period === 'yearly') {
-    // User uploads weekly TI/T2 data every week
-    // Yearly view: return ALL weekly entries for the selected year (will be aggregated in UI)
-    // If year is selected, filtered already contains only that year's entries
-    return filtered.sort((a, b) => b.timestamp - a.timestamp)
-  }
-
-  if (period === 'monthly') {
-    // User uploads weekly TI/T2 data every week
-    // Monthly view: return ALL weekly entries for the selected month (will be aggregated in UI)
-    // If month is selected, filtered already contains only that month's entries
-    return filtered.sort((a, b) => b.timestamp - a.timestamp)
-  }
-
-  // Weekly: return all filtered entries (individual weekly snapshots)
-  return filtered.sort((a, b) => b.timestamp - a.timestamp)
 }
 
-// Get unique months from historical data
-export function getAvailableMonths(): string[] {
-  const allData = getAllHistoricalData()
-  const months = new Set<string>()
-  allData.forEach((entry) => {
-    months.add(entry.month)
-  })
-  return Array.from(months).sort().reverse() // Most recent first
+// Get unique months from historical data (from database)
+export async function getAvailableMonths(): Promise<string[]> {
+  try {
+    const allData = await getAllHistoricalData()
+    const months = new Set<string>()
+    allData.forEach((entry) => {
+      months.add(entry.month)
+    })
+    return Array.from(months).sort().reverse() // Most recent first
+  } catch (error) {
+    console.error('Error getting available months:', error)
+    return []
+  }
 }
 
-// Get unique years from historical data
-export function getAvailableYears(): string[] {
-  const allData = getAllHistoricalData()
-  const years = new Set<string>()
-  allData.forEach((entry) => {
-    years.add(entry.year)
-  })
-  return Array.from(years).sort().reverse() // Most recent first
+// Get unique years from historical data (from database)
+export async function getAvailableYears(): Promise<string[]> {
+  try {
+    const allData = await getAllHistoricalData()
+    const years = new Set<string>()
+    allData.forEach((entry) => {
+      years.add(entry.year)
+    })
+    return Array.from(years).sort().reverse() // Most recent first
+  } catch (error) {
+    console.error('Error getting available years:', error)
+    return []
+  }
 }
 
 // Helper functions
@@ -150,22 +106,19 @@ function getISOWeek(date: Date): string {
   return String(Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7))
 }
 
-// Delete historical data entry
-export function deleteHistoricalData(id: string): void {
-  const allData = getAllHistoricalData()
-  const filtered = allData.filter((entry) => entry.id !== id)
-  
+// Delete historical data entry (from database)
+export async function deleteHistoricalData(id: string): Promise<void> {
   try {
-    localStorage.setItem(HISTORICAL_STORAGE_KEY, JSON.stringify(filtered))
+    await deleteFromDatabase(id)
   } catch (error) {
     console.error('Error deleting historical data:', error)
   }
 }
 
-// Clear all historical data
-export function clearAllHistoricalData(): void {
+// Clear all historical data (from database)
+export async function clearAllHistoricalData(): Promise<void> {
   try {
-    localStorage.removeItem(HISTORICAL_STORAGE_KEY)
+    await clearAllFromDatabase()
   } catch (error) {
     console.error('Error clearing historical data:', error)
   }

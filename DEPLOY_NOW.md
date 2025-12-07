@@ -1,76 +1,88 @@
-# Quick Deployment Guide
+# 🚀 Deploy to Vercel - Quick Steps
 
-## ✅ Your code is ready! Build passed and pushed to GitHub.
+## ✅ Build Test: PASSED
 
-### Deploy via Vercel Dashboard (Easiest - 5 minutes)
+Your app is ready to deploy!
 
-1. **Go to Vercel**:
-   - Visit: https://vercel.com
-   - Click "Sign Up" or "Log In"
-   - Use your GitHub account to sign in
+## 🎯 Deploy Options:
 
-2. **Import Your Project**:
-   - Click "Add New..." → "Project"
-   - You'll see your GitHub repositories
-   - Find and select `fis` (or `samillinier/fis`)
-   - Click "Import"
+### Option 1: Deploy via Vercel Dashboard (Recommended)
 
-3. **Configure** (Vercel auto-detects Next.js):
-   - Framework Preset: **Next.js** (should be auto-selected)
-   - Root Directory: `./` (leave as default)
-   - Build Command: `npm run build` (auto-detected)
-   - Output Directory: `.next` (auto-detected)
-   - Install Command: `npm install` (auto-detected)
+1. **Go to Vercel:**
+   - https://vercel.com/dashboard
+   - Sign in
 
-4. **Deploy**:
-   - Click "Deploy" button
-   - Wait 2-3 minutes for the build
-   - Your app will be live! 🎉
+2. **Find Your Project:**
+   - Look for "fis" project
+   - Or go to: https://vercel.com/dashboard → Your projects
 
-5. **Your Live URL**:
-   - After deployment, you'll get a URL like: `https://fis-xxxxx.vercel.app`
-   - You can customize it in Project Settings → Domains
+3. **Redeploy:**
+   - Click on your project
+   - Go to **"Deployments"** tab
+   - Click **"..."** on latest deployment
+   - Click **"Redeploy"**
+   - Or push to GitHub to trigger auto-deploy
 
----
+4. **Verify Environment Variables:**
+   - Settings → Environment Variables
+   - Make sure all 5 variables are set (see `ENV_VARS_FOR_VERCEL.txt`)
 
-### Alternative: Deploy via CLI (Command Line)
-
-If you prefer command line:
+### Option 2: Deploy via Vercel CLI
 
 ```bash
-# Install Vercel CLI globally
+# Install Vercel CLI (if not installed)
 npm i -g vercel
 
-# Login to Vercel
+# Login
 vercel login
 
-# Deploy (first time - follow prompts)
-vercel
-
-# For production deployment
+# Deploy
+cd /Users/samuelendale/Documents/FIS
 vercel --prod
 ```
 
+### Option 3: Push to GitHub (Auto-Deploy)
+
+If your repo is connected to Vercel:
+
+```bash
+# Commit changes
+git add .
+git commit -m "Fix API routes and error handling"
+git push
+
+# Vercel will auto-deploy
+```
+
+## ⚙️ After Deployment:
+
+### 1. Update Azure Redirect URIs
+
+After deployment, add your Vercel URL to Azure Portal:
+- https://portal.azure.com
+- Azure Active Directory → App registrations → "FIS POD"
+- Authentication → Single-page application
+- Add: `https://fis-he6w.vercel.app/signin`
+- Add: `https://fis-he6w.vercel.app`
+- Save
+
+### 2. Test Your Deployment
+
+- Visit: https://fis-he6w.vercel.app
+- Test sign-in
+- Verify everything works
+
+## 📋 Environment Variables Checklist:
+
+Make sure these are set in Vercel:
+- ✅ `NEXT_PUBLIC_MSAL_CLIENT_ID`
+- ✅ `NEXT_PUBLIC_MSAL_TENANT_ID`
+- ✅ `NEXT_PUBLIC_SUPABASE_URL`
+- ✅ `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- ✅ `SUPABASE_SERVICE_ROLE_KEY`
+
+See `ENV_VARS_FOR_VERCEL.txt` for values.
+
 ---
 
-## 🎯 What Happens After Deployment
-
-✅ Your app will be live on the internet  
-✅ Anyone with the URL can access it  
-✅ Automatic deployments when you push to GitHub (optional)  
-✅ Free HTTPS certificate included  
-✅ Global CDN for fast loading  
-
-## 📝 Important Notes
-
-- **Data Storage**: Currently uses `localStorage` (browser-only)
-- **Authentication**: Works client-side only
-- **File Uploads**: Data is stored in the user's browser
-
-## 🔗 Your Repository
-https://github.com/samillinier/fis
-
----
-
-**Ready to deploy? Go to https://vercel.com and follow Option 1 above!**
-
+**Ready to deploy!** Choose one of the options above. 🚀
