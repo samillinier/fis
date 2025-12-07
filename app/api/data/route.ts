@@ -1,6 +1,6 @@
-// API Route - Vercel Postgres
+// API Route - Supabase
 import { NextRequest, NextResponse } from 'next/server'
-import { sql, ensureUserExists } from '@/lib/vercel-postgres'
+import { supabase, ensureUserExists } from '@/lib/supabase'
 import type { DashboardData, WorkroomData } from '@/context/DataContext'
 
 // GET - Fetch all workroom data for a user
@@ -20,14 +20,18 @@ export async function GET(request: NextRequest) {
     const userId = await ensureUserExists(userEmail)
 
     // Fetch workroom data
-    const result = await sql`
-      SELECT * FROM workroom_data 
-      WHERE user_id = ${userId}
-      ORDER BY created_at DESC
-    `
+    const { data, error } = await supabase
+      .from('workroom_data')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      throw error
+    }
 
     // Transform database rows to WorkroomData format
-    const workrooms: WorkroomData[] = result.rows.map((row) => ({
+    const workrooms: WorkroomData[] = (data || []).map((row) => ({
       id: row.id,
       name: row.workroom_name,
       store: row.store,
@@ -85,13 +89,18 @@ export async function POST(request: NextRequest) {
     const userId = await ensureUserExists(userEmail)
 
     // Delete existing data for this user
-    await sql`
-      DELETE FROM workroom_data WHERE user_id = ${userId}
-    `
+    const { error: deleteError } = await supabase
+      .from('workroom_data')
+      .delete()
+      .eq('user_id', userId)
 
-    // Insert new data (insert one by one due to SQL template limitations)
+    if (deleteError) {
+      throw deleteError
+    }
+
+    // Insert new data
     if (body.workrooms.length > 0) {
-      for (const workroom of body.workrooms) {
+      const workroomsToInsert = body.workrooms.map((workroom) => {
         // Convert Date to string if it's a Date object
         let surveyDate: string | null = null
         if (workroom.surveyDate) {
@@ -102,23 +111,34 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        await sql`
-          INSERT INTO workroom_data (
-            user_id, workroom_name, store, sales, labor_po, vendor_debit, category, cycle_time,
-            ltr_score, craft_score, prof_score, survey_date, survey_comment, labor_category,
-            reliable_home_improvement_score, time_taken_to_complete, project_value_score,
-            installer_knowledge_score
-          ) VALUES (
-            ${userId}, ${workroom.name || ''}, ${workroom.store ? String(workroom.store) : null},
-            ${workroom.sales || null}, ${workroom.laborPO || null}, ${workroom.vendorDebit || null},
-            ${workroom.category || null}, ${workroom.cycleTime || null},
-            ${workroom.ltrScore || null}, ${workroom.craftScore || null}, ${workroom.profScore || null},
-            ${surveyDate}, ${workroom.surveyComment || null},
-            ${workroom.laborCategory || null}, ${workroom.reliableHomeImprovementScore || null},
-            ${workroom.timeTakenToComplete || null}, ${workroom.projectValueScore || null},
-            ${workroom.installerKnowledgeScore || null}
-          )
-        `
+        return {
+          user_id: userId,
+          workroom_name: workroom.name || '',
+          store: workroom.store ? String(workroom.store) : null,
+          sales: workroom.sales || null,
+          labor_po: workroom.laborPO || null,
+          vendor_debit: workroom.vendorDebit || null,
+          category: workroom.category || null,
+          cycle_time: workroom.cycleTime || null,
+          ltr_score: workroom.ltrScore || null,
+          craft_score: workroom.craftScore || null,
+          prof_score: workroom.profScore || null,
+          survey_date: surveyDate,
+          survey_comment: workroom.surveyComment || null,
+          labor_category: workroom.laborCategory || null,
+          reliable_home_improvement_score: workroom.reliableHomeImprovementScore || null,
+          time_taken_to_complete: workroom.timeTakenToComplete || null,
+          project_value_score: workroom.projectValueScore || null,
+          installer_knowledge_score: workroom.installerKnowledgeScore || null,
+        }
+      })
+
+      const { error: insertError } = await supabase
+        .from('workroom_data')
+        .insert(workroomsToInsert)
+
+      if (insertError) {
+        throw insertError
       }
     }
 
@@ -147,9 +167,14 @@ export async function DELETE(request: NextRequest) {
     // Ensure user exists and get user ID
     const userId = await ensureUserExists(userEmail)
 
-    await sql`
-      DELETE FROM workroom_data WHERE user_id = ${userId}
-    `
+    const { error } = await supabase
+      .from('workroom_data')
+      .delete()
+      .eq('user_id', userId)
+
+    if (error) {
+      throw error
+    }
 
     return NextResponse.json({ success: true })
   } catch (error: any) {

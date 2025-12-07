@@ -67,6 +67,7 @@ export async function saveDashboardData(data: DashboardData): Promise<boolean> {
   const authHeader = getAuthHeader()
   if (!authHeader) {
     // No auth - localStorage only
+    console.warn('⚠️ No user logged in. Data saved to localStorage only. Please sign in to save to database.')
     return true
   }
 
@@ -81,9 +82,21 @@ export async function saveDashboardData(data: DashboardData): Promise<boolean> {
     })
 
     if (!response.ok) {
-      throw new Error(`API error: ${response.statusText}`)
+      const errorData = await response.json().catch(() => ({}))
+      const errorMessage = errorData.error || response.statusText
+      
+      if (response.status === 401) {
+        console.warn('⚠️ Unauthorized. Data saved to localStorage only. Please sign in.')
+      } else if (errorMessage.includes('does not exist') || errorMessage.includes('relation')) {
+        console.error('❌ Database tables not found. Please run database/vercel-postgres-schema.sql in Vercel Postgres SQL Editor.')
+      } else {
+        console.error('❌ Error saving to database:', errorMessage)
+        console.warn('⚠️ Data saved to localStorage as fallback. Check database connection.')
+      }
+      throw new Error(errorMessage)
     }
 
+    console.log('✅ Data saved to database successfully')
     return true
   } catch (error) {
     console.error('Error saving data to database:', error)

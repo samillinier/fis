@@ -1,6 +1,6 @@
-// API Route - Vercel Postgres for Historical Data
+// API Route - Supabase for Historical Data
 import { NextRequest, NextResponse } from 'next/server'
-import { sql, ensureUserExists } from '@/lib/vercel-postgres'
+import { supabase, ensureUserExists } from '@/lib/supabase'
 import type { DashboardData } from '@/context/DataContext'
 import type { HistoricalDataEntry } from '@/data/historicalDataStorage'
 
@@ -26,63 +26,33 @@ export async function GET(request: NextRequest) {
     const userId = await ensureUserExists(userEmail)
 
     // Build query with conditions
-    let result
+    let query = supabase
+      .from('historical_data')
+      .select('*')
+      .eq('user_id', userId)
+      .order('timestamp', { ascending: false })
+
     if (month && year) {
-      if (period === 'weekly') {
-        // Return only most recent for weekly view
-        result = await sql`
-          SELECT * FROM historical_data 
-          WHERE user_id = ${userId} AND month = ${month} AND year = ${year}
-          ORDER BY timestamp DESC
-          LIMIT 1
-        `
-      } else {
-        result = await sql`
-          SELECT * FROM historical_data 
-          WHERE user_id = ${userId} AND month = ${month} AND year = ${year}
-          ORDER BY timestamp DESC
-        `
-      }
+      query = query.eq('month', month).eq('year', year)
     } else if (month) {
-      if (period === 'weekly') {
-        result = await sql`
-          SELECT * FROM historical_data 
-          WHERE user_id = ${userId} AND month = ${month}
-          ORDER BY timestamp DESC
-          LIMIT 1
-        `
-      } else {
-        result = await sql`
-          SELECT * FROM historical_data 
-          WHERE user_id = ${userId} AND month = ${month}
-          ORDER BY timestamp DESC
-        `
-      }
+      query = query.eq('month', month)
     } else if (year) {
-      if (period === 'weekly') {
-        result = await sql`
-          SELECT * FROM historical_data 
-          WHERE user_id = ${userId} AND year = ${year}
-          ORDER BY timestamp DESC
-          LIMIT 1
-        `
-      } else {
-        result = await sql`
-          SELECT * FROM historical_data 
-          WHERE user_id = ${userId} AND year = ${year}
-          ORDER BY timestamp DESC
-        `
-      }
-    } else {
-      result = await sql`
-        SELECT * FROM historical_data 
-        WHERE user_id = ${userId}
-        ORDER BY timestamp DESC
-      `
+      query = query.eq('year', year)
+    }
+
+    // For weekly view, limit to 1 result
+    if (period === 'weekly' && (month || year)) {
+      query = query.limit(1)
+    }
+
+    const { data, error } = await query
+
+    if (error) {
+      throw error
     }
 
     // Transform to match HistoricalDataEntry format
-    const entries: HistoricalDataEntry[] = result.rows.map((row) => ({
+    const entries: HistoricalDataEntry[] = (data || []).map((row) => ({
       id: row.id,
       uploadDate: row.upload_date,
       week: row.week,
@@ -124,13 +94,27 @@ export async function POST(request: NextRequest) {
     const userId = await ensureUserExists(userEmail)
 
     // Insert historical data
-    const result = await sql`
-      INSERT INTO historical_data (user_id, upload_date, week, month, year, data, timestamp)
-      VALUES (${userId}, ${uploadDate}, ${week}, ${month}, ${year}, ${JSON.stringify(data)}::jsonb, ${timestamp})
-      RETURNING *
-    `
+    const { data: inserted, error } = await supabase
+      .from('historical_data')
+      .insert({
+        user_id: userId,
+        upload_date: uploadDate,
+        week,
+        month,
+        year,
+        data,
+        timestamp,
+      })
+      .select()
+      .single()
 
-    const inserted = result.rows[0]
+    if (error) {
+      throw error
+    }
+
+    if (!inserted) {
+      throw new Error('Failed to insert historical data')
+    }
 
     return NextResponse.json({
       id: inserted.id,
@@ -169,9 +153,15 @@ export async function DELETE(request: NextRequest) {
 
     if (clearAll) {
       // Delete all historical data for user
-      await sql`
-        DELETE FROM historical_data WHERE user_id = ${userId}
-      `
+      const { error } = await supabase
+        .from('historical_data')
+        .delete()
+        .eq('user_id', userId)
+
+      if (error) {
+        throw error
+      }
+
       return NextResponse.json({ success: true })
     }
 
@@ -180,10 +170,15 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Delete specific entry
-    await sql`
-      DELETE FROM historical_data 
-      WHERE id = ${id} AND user_id = ${userId}
-    `
+    const { error } = await supabase
+      .from('historical_data')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId)
+
+    if (error) {
+      throw error
+    }
 
     return NextResponse.json({ success: true })
   } catch (error: any) {
