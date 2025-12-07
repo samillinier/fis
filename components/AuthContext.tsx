@@ -70,7 +70,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const tenantId = process.env.NEXT_PUBLIC_MSAL_TENANT_ID || 'common'
 
       if (!clientId) {
-        console.error('Microsoft login is not configured. Please set NEXT_PUBLIC_MSAL_CLIENT_ID.')
+        const errorMsg = 'Microsoft login is not configured. Please set NEXT_PUBLIC_MSAL_CLIENT_ID in Vercel environment variables.'
+        console.error(errorMsg)
+        alert(errorMsg + '\n\nCheck: Vercel Dashboard → Settings → Environment Variables')
         return false
       }
 
@@ -104,9 +106,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           })
         }
       } else {
-        result = await instance.loginPopup({
-          scopes: ['User.Read'],
-        })
+        try {
+          result = await instance.loginPopup({
+            scopes: ['User.Read', 'User.ReadBasic.All'],
+          })
+        } catch (popupError: any) {
+          console.error('Popup login error:', popupError)
+          
+          // Check for specific errors
+          if (popupError.errorCode === 'popup_window_error' || popupError.message?.includes('popup')) {
+            alert('Popup was blocked. Please allow popups for this site and try again.')
+            return false
+          }
+          
+          if (popupError.errorCode?.includes('AADSTS500113') || popupError.message?.includes('reply address')) {
+            const redirectUri = window.location.origin + '/signin'
+            alert(`Redirect URI not configured in Azure Portal.\n\nPlease add this URI to Azure:\n${redirectUri}\n\nSee: Azure Portal → App Registrations → "FIS POD" → Authentication`)
+            return false
+          }
+          
+          alert(`Sign-in failed: ${popupError.message || popupError.errorCode || 'Unknown error'}\n\nCheck browser console (F12) for details.`)
+          return false
+        }
       }
 
       const account: AccountInfo | null = result.account
@@ -145,8 +166,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return true
       }
       return false
-    } catch (error) {
+    } catch (error: any) {
       console.error('Microsoft login failed:', error)
+      
+      // Provide helpful error messages
+      if (error.errorCode?.includes('AADSTS500113') || error.message?.includes('reply address')) {
+        const redirectUri = typeof window !== 'undefined' ? window.location.origin + '/signin' : '/signin'
+        alert(`Redirect URI not configured!\n\nAdd this to Azure Portal:\n${redirectUri}\n\nGo to: Azure Portal → App Registrations → "FIS POD" → Authentication → Single-page application`)
+      } else if (error.errorCode === 'popup_window_error' || error.message?.includes('popup')) {
+        alert('Popup was blocked. Please allow popups for this site.')
+      } else {
+        alert(`Sign-in error: ${error.message || error.errorCode || 'Unknown error'}\n\nCheck browser console (F12) for details.`)
+      }
+      
       return false
     }
   }
