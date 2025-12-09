@@ -1,63 +1,84 @@
-# 🔧 Fix: Preview Deployment Redirect URI
+# 🔧 Fix Preview Deployment Redirect URI Error
 
-## The Problem:
+## The Issue
 
-Your app is sending a **preview deployment URL** instead of the production URL:
+You're seeing this error for a **preview deployment URL**:
+```
+https://fis-hn1wxhvs9-samilliniers-projects.vercel.app/signin
+```
 
-**Being Sent:**
-- `https://fis-j97c42pnb-samilliniers-projects.vercel.app/signin`
+This is a **Vercel preview URL** that changes with each deployment.
 
-**Configured in Azure:**
-- `https://fis-he6w.vercel.app/signin`
+## Quick Fix: Add This Preview URL
 
-These don't match!
+### Step 1: Add to Azure AD
 
-## ✅ Solution 1: Add Preview URL to Azure (Quick Fix)
+1. **Go to Azure Portal:**
+   - https://portal.azure.com
+   - Sign in
 
-Add the preview URL to Azure Portal:
+2. **Navigate to App Registration:**
+   - Search for "App registrations"
+   - Find **"FIS POD"** (Client ID: `90da75a4-0ce9-49a2-9ab9-79adaaf65b3a`)
 
-1. Go to: https://portal.azure.com
-2. Azure AD → App registrations → "FIS POD"
-3. Authentication → Single-page application
-4. Click **"+ Add Redirect URI"**
-5. Add: `https://fis-j97c42pnb-samilliniers-projects.vercel.app/signin`
-6. Click **"+ Add Redirect URI"** again
-7. Add: `https://fis-j97c42pnb-samilliniers-projects.vercel.app`
-8. Click **"Save"**
-9. Wait 5-10 minutes
+3. **Add Preview URL:**
+   - Click **"Authentication"** (left sidebar)
+   - Under **"Single-page application"**, click **"Add URI"**
+   - Add these URIs:
 
-## ✅ Solution 2: Use Production URL (Better Solution)
+   **Preview URL 1:**
+   ```
+   https://fis-hn1wxhvs9-samilliniers-projects.vercel.app/signin
+   ```
 
-Instead of using the preview URL, access your app via the production URL:
+   **Preview URL 2:**
+   ```
+   https://fis-hn1wxhvs9-samilliniers-projects.vercel.app
+   ```
 
-1. **Visit:** https://fis-he6w.vercel.app/signin
-2. This will use the production URL that's already configured in Azure
-3. Sign-in should work immediately!
+4. **Click "Save"**
 
-## 🔍 Why This Happened:
+### Step 2: Verify Production URL is Added
 
-Vercel creates different URLs for:
-- **Production:** `https://fis-he6w.vercel.app` (your main domain)
-- **Preview:** `https://fis-j97c42pnb-samilliniers-projects.vercel.app` (temporary preview URL)
+Make sure these are also added:
 
-If you accessed the preview URL, the app uses that as the redirect URI.
+**Production URL 1:**
+```
+https://fis-phi.vercel.app/signin
+```
 
-## ✅ Best Solution:
+**Production URL 2:**
+```
+https://fis-phi.vercel.app
+```
 
-**Use the production URL:**
-- Go to: https://fis-he6w.vercel.app/signin
-- This will work with your existing Azure configuration
-- No need to add preview URLs (they change with each deployment)
+## ⚠️ Important Note
 
-## 📋 Option: Add Wildcard (Advanced)
+**Preview URLs change with each deployment!** Each time Vercel creates a new preview, you'll get a new URL like:
+- `https://fis-[random-hash]-samilliniers-projects.vercel.app`
 
-If you want preview deployments to work, you could add:
-- `https://*-samilliniers-projects.vercel.app/signin`
-- `https://*-samilliniers-projects.vercel.app`
+### Options:
 
-But this is usually not recommended - better to use production URL.
+**Option 1: Add Preview URLs Manually (Current)**
+- Add each new preview URL to Azure AD as they appear
+- Works but requires manual updates
+
+**Option 2: Use Production URL for Auth (Recommended)**
+- Configure the app to always use the production URL for authentication
+- Preview deployments will redirect to production for sign-in
+- More stable, but previews won't test auth flow
+
+**Option 3: Use Local Development**
+- Test auth locally with `http://localhost:3000`
+- Only use production for final testing
+
+## Recommended: Use Production URL
+
+For now, the easiest solution is to:
+1. ✅ Add the current preview URL (so it works now)
+2. ✅ Use production URL (`https://fis-phi.vercel.app`) for testing auth
+3. ✅ Preview deployments will work for everything except auth
 
 ---
 
-**Quick Fix: Just use https://fis-he6w.vercel.app/signin instead!** 🚀
-
+**After adding the preview URL, wait 1-2 minutes and try again!** 🚀
