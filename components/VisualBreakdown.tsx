@@ -650,106 +650,79 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
             alignItems: 'stretch'
           }}>
             {comprehensiveAnalysis.map((workroom) => {
-              // Determine heatmap color with vibrant volcanic gradient style
-              let gradientFrom = '#ef4444' // Red - costing money
-              let gradientTo = '#dc2626' // Dark red
+              // Heatmap colors (flat, no glass)
+              let backgroundColor = '#ef4444' // Red - costing money
               let heatmapLabel = 'Costing Money'
               let textColor = '#ffffff'
-              let glowColor = 'rgba(239, 68, 68, 0.4)' // Red glow
               let borderColor = '#dc2626'
+              let shadowColor = 'rgba(0, 0, 0, 0.15)'
               
               if (workroom.weightedPerformanceScore >= 70) {
-                gradientFrom = '#10b981' // Emerald green
-                gradientTo = '#059669' // Darker emerald
+                backgroundColor = '#22c55e' // Green
                 heatmapLabel = 'Carrying Company'
                 textColor = '#ffffff'
-                glowColor = 'rgba(16, 185, 129, 0.5)' // Green glow
-                borderColor = '#059669'
+                borderColor = '#16a34a'
+                shadowColor = 'rgba(34, 197, 94, 0.35)'
               } else if (workroom.weightedPerformanceScore >= 50) {
-                gradientFrom = '#fbbf24' // Vibrant yellow
-                gradientTo = '#f59e0b' // Golden orange
+                backgroundColor = '#facc15' // Yellow
                 heatmapLabel = 'Inconsistent'
-                textColor = '#1f2937' // Dark gray for readability
-                glowColor = 'rgba(251, 191, 36, 0.5)' // Yellow glow
-                borderColor = '#f59e0b'
+                textColor = '#1f2937'
+                borderColor = '#eab308'
+                shadowColor = 'rgba(234, 179, 8, 0.35)'
               } else if (workroom.weightedPerformanceScore >= 40) {
-                gradientFrom = '#f59e0b' // Amber orange
-                gradientTo = '#d97706' // Darker amber
+                backgroundColor = '#f59e0b' // Orange
                 heatmapLabel = 'Warning'
-                textColor = '#ffffff'
-                glowColor = 'rgba(245, 158, 11, 0.5)' // Orange glow
+                textColor = '#1f2937'
                 borderColor = '#d97706'
+                shadowColor = 'rgba(217, 119, 6, 0.35)'
               }
 
-              // Additional red flags for critical issues - intense volcanic red
+              // Additional red flags for critical issues
               if (workroom.financialRisk === 'Critical' || 
                   workroom.vendorDebitExposure.ratio > 0.4 ||
                   (workroom.ltrPerformance.value > 50 && workroom.ltrPerformance.value > 0) ||
                   workroom.operationalRisks.length > 3) {
-                gradientFrom = '#dc2626' // Dark red
-                gradientTo = '#991b1b' // Very dark red
+                backgroundColor = '#ef4444'
                 heatmapLabel = 'Critical Issues'
                 textColor = '#ffffff'
-                glowColor = 'rgba(220, 38, 38, 0.6)' // Strong red glow
-                borderColor = '#991b1b'
+                borderColor = '#b91c1c'
+                shadowColor = 'rgba(248, 113, 113, 0.35)'
               }
 
               return (
                 <div
                   key={workroom.name}
                   style={{
-                    background: `linear-gradient(135deg, ${gradientFrom} 0%, ${gradientTo} 100%)`,
+                    background: backgroundColor,
                     color: textColor,
                     padding: '1.25rem',
                     borderRadius: '0.75rem',
-                    boxShadow: `0 4px 12px ${glowColor}, 0 2px 4px rgba(0, 0, 0, 0.2)`,
-                    border: `2px solid ${borderColor}40`,
+                    boxShadow: `0 6px 16px ${shadowColor}`,
+                    border: `1px solid ${borderColor}`,
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '0.5rem',
                     cursor: 'pointer',
-                    transition: 'transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease',
+                    transition: 'transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease',
                     minHeight: '140px',
                     height: '100%',
                     justifyContent: 'space-between',
-                    position: 'relative',
-                    overflow: 'hidden'
+                    position: 'relative'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-4px) scale(1.02)'
-                    e.currentTarget.style.boxShadow = `0 8px 24px ${glowColor}, 0 4px 8px rgba(0, 0, 0, 0.3)`
-                    e.currentTarget.style.borderColor = `${borderColor}80`
+                    e.currentTarget.style.transform = 'translateY(-2px) scale(1.01)'
+                    e.currentTarget.style.boxShadow = `0 10px 22px ${shadowColor}`
+                    e.currentTarget.style.borderColor = borderColor
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.transform = 'translateY(0) scale(1)'
-                    e.currentTarget.style.boxShadow = `0 4px 12px ${glowColor}, 0 2px 4px rgba(0, 0, 0, 0.2)`
-                    e.currentTarget.style.borderColor = `${borderColor}40`
+                    e.currentTarget.style.boxShadow = `0 6px 16px ${shadowColor}`
+                    e.currentTarget.style.borderColor = borderColor
                   }}
                 >
-                  {/* Subtle overlay for depth */}
-                  <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: '40%',
-                    background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, transparent 100%)',
-                    pointerEvents: 'none',
-                    borderRadius: '0.75rem 0.75rem 0 0'
-                  }} />
                   <div style={{ position: 'relative', zIndex: 1 }}>
-                    <div style={{ fontWeight: 800, fontSize: '1.5rem', lineHeight: '1.3', marginBottom: '0.25rem' }}>
+                    <div style={{ fontWeight: 800, fontSize: '1.5rem', lineHeight: '1.3' }}>
                       {workroom.name}
-                    </div>
-                    <div style={{ 
-                      fontSize: '0.875rem', 
-                      opacity: 0.98, 
-                      fontWeight: 700, 
-                      textTransform: 'uppercase', 
-                      letterSpacing: '0.1em', 
-                      marginBottom: '0.5rem'
-                    }}>
-                      {heatmapLabel}
                     </div>
                   </div>
                   <div style={{ 
@@ -829,10 +802,43 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
           {(() => {
             // Calculate all metrics once
             // Jobs Completed: Sum of values from column T (Completed column)
-            const jobsCompleted = filteredData.reduce((sum, w) => {
+            // Only include records with visual data (not survey-only records)
+            const visualDataRecords = filteredData.filter((w) => {
+              const hasVisualData = (w.sales && w.sales > 0) || (w.laborPO && w.laborPO > 0) || (w.vendorDebit && w.vendorDebit !== 0)
+              return hasVisualData
+            })
+            
+            // Deduplicate records based on workroom + store + completed value
+            // This prevents counting the same record multiple times if uploaded twice
+            const seen = new Set<string>()
+            const uniqueVisualRecords = visualDataRecords.filter((w) => {
+              const key = `${w.name}|${w.store}|${w.completed ?? 'null'}|${w.laborPO ?? 0}|${w.vendorDebit ?? 0}`
+              if (seen.has(key)) {
+                return false // Duplicate
+              }
+              seen.add(key)
+              return true
+            })
+            
+            const jobsCompleted = uniqueVisualRecords.reduce((sum, w) => {
               const completedValue = w.completed != null && w.completed !== undefined ? Number(w.completed) : 0
               return sum + completedValue
             }, 0)
+            
+            // Debug: Log to help identify duplicates
+            if (process.env.NODE_ENV === 'development') {
+              console.log('Jobs Completed Calculation:', {
+                totalFilteredRecords: filteredData.length,
+                visualDataRecordsCount: visualDataRecords.length,
+                uniqueVisualRecordsCount: uniqueVisualRecords.length,
+                duplicatesRemoved: visualDataRecords.length - uniqueVisualRecords.length,
+                jobsCompletedTotal: jobsCompleted,
+                completedValues: uniqueVisualRecords
+                  .filter((w) => w.completed != null)
+                  .map((w) => ({ name: w.name, store: w.store, completed: w.completed }))
+                  .slice(0, 20) // Show first 20 for debugging
+              })
+            }
             
             // Average Cycle Time: Average of values from column AC
             const cycleTimeData = filteredData.filter((w) => w.cycleTime != null && w.cycleTime !== undefined && w.cycleTime > 0)
@@ -889,13 +895,13 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   </div>
                 </div>
 
-                {/* Work Order Cycle Time */}
+                {/* Details Cycle Time */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Work Order Cycle Time</div>
+                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Details Cycle Time</div>
                   <div className="text-xl font-bold text-gray-900">
-                    {avgCycleTime > 0 ? (
+                    {detailsCycleTimeData.length > 0 ? (
                       <CountUpNumber 
-                        value={avgCycleTime} 
+                        value={avgDetailsCycleTime} 
                         duration={1500} 
                         decimals={1} 
                       />
@@ -905,13 +911,29 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   </div>
                 </div>
 
-                {/* Jobs Order Cycle Time */}
+                {/* Job Cycle Time */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Jobs Order Cycle Time</div>
+                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Job Cycle Time</div>
                   <div className="text-xl font-bold text-gray-900">
                     {avgJobsWorkCycleTime > 0 ? (
                       <CountUpNumber 
                         value={avgJobsWorkCycleTime} 
+                        duration={1500} 
+                        decimals={1} 
+                      />
+                    ) : (
+                      '—'
+                    )}
+                  </div>
+                </div>
+
+                {/* Work Order Cycle Time */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Work Order Cycle Time</div>
+                  <div className="text-xl font-bold text-gray-900">
+                    {avgCycleTime > 0 ? (
+                      <CountUpNumber 
+                        value={avgCycleTime} 
                         duration={1500} 
                         decimals={1} 
                       />
@@ -944,22 +966,6 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                     {getItRightData.length > 0 ? (
                       <CountUpNumber 
                         value={avgGetItRight} 
-                        duration={1500} 
-                        decimals={1} 
-                      />
-                    ) : (
-                      '—'
-                    )}
-                  </div>
-                </div>
-
-                {/* Details Cycle Time */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Details Cycle Time</div>
-                  <div className="text-xl font-bold text-gray-900">
-                    {detailsCycleTimeData.length > 0 ? (
-                      <CountUpNumber 
-                        value={avgDetailsCycleTime} 
                         duration={1500} 
                         decimals={1} 
                       />
@@ -1147,7 +1153,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
         <div className="compact-section-header">
           <h3 className="compact-section-title">Comprehensive Workroom Analysis Dashboard</h3>
           <p className="text-xs text-gray-500 mt-1">
-            LTR Performance • Work Order Cycle Time • Jobs Order Cycle Time • Total Sales Volume • Vendor Debit Exposure • Reschedule Rate • Operational Risks • Risk • Weighted Performance Score (Click any row for detailed analysis)
+            LTR Performance • Work Order Cycle Time • Job Cycle Time • Total Sales Volume • Vendor Debit Exposure • Reschedule Rate • Operational Risks • Risk • Weighted Performance Score (Click any row for detailed analysis)
           </p>
         </div>
 
@@ -1159,7 +1165,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', position: 'sticky', left: 0, background: 'linear-gradient(135deg, #1f2937 0%, #111827 100%)', color: '#ffffff', zIndex: 10, textAlign: 'center' }}>Workroom</th>
                   <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>LTR Performance</th>
                   <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Work Order Cycle Time</th>
-                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Jobs Order Cycle Time</th>
+                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Job Cycle Time</th>
                   <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Total Sales Volume</th>
                   <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Vendor Debit Exposure</th>
                   <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Reschedule Rate</th>
@@ -1847,7 +1853,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   backgroundColor: '#f9fafb',
                   borderRadius: '0.375rem',
                 }}>
-                  <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: 500 }}>Total Jobs Order Cycle Time</div>
+                  <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: 500 }}>Total Job Cycle Time</div>
                   <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827', marginBottom: '0.25rem' }}>
                     {selectedRiskWorkroom.jobsWorkCycleTime != null && selectedRiskWorkroom.jobsWorkCycleTime > 0 
                       ? `${selectedRiskWorkroom.jobsWorkCycleTime.toFixed(1)} days`
@@ -1866,42 +1872,6 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                       : 'N/A'}
                   </div>
                 </div>
-              </div>
-            </div>
-
-            {/* Store Coverage */}
-            <div style={{ marginBottom: '1rem' }}>
-              <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#111827', marginBottom: '0.75rem', paddingBottom: '0.25rem', borderBottom: '1px solid #e5e7eb' }}>
-                Store Coverage
-              </h3>
-              <div style={{ 
-                padding: '0.75rem', 
-                backgroundColor: '#f9fafb', 
-                borderRadius: '0.375rem',
-              }}>
-                <div style={{ fontSize: '0.875rem', color: '#374151', marginBottom: '0.5rem', fontWeight: 600 }}>
-                  <strong>{selectedRiskWorkroom.storeMix?.count || 0}</strong> stores • Rating: <strong>{selectedRiskWorkroom.storeMix?.rating || 'N/A'}</strong>
-                </div>
-                {selectedRiskWorkroom.storeMix?.stores && selectedRiskWorkroom.storeMix.stores.length > 0 && (
-                  <div style={{ fontSize: '0.75rem', color: '#6b7280', padding: '0.5rem', backgroundColor: '#ffffff', borderRadius: '0.375rem' }}>
-                    <div style={{ fontWeight: 600, marginBottom: '0.25rem', color: '#111827', fontSize: '0.75rem' }}>Stores:</div>
-                    <div style={{ lineHeight: '1.5' }}>
-                      {selectedRiskWorkroom.storeMix.stores.slice(0, 10).map((storeNumber: string, idx: number) => {
-                        const fullStoreName = getStoreName(storeNumber)
-                        const cityName = fullStoreName ? extractCityName(fullStoreName) : `Store #${storeNumber}`
-                        return (
-                          <span key={idx}>
-                            {cityName}
-                            {idx < Math.min(selectedRiskWorkroom.storeMix.stores.length, 10) - 1 && <span>, </span>}
-                          </span>
-                        )
-                      })}
-                      {selectedRiskWorkroom.storeMix.stores.length > 10 && (
-                        <span style={{ fontWeight: 500 }}> (+{selectedRiskWorkroom.storeMix.stores.length - 10} more)</span>
-                      )}
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
 

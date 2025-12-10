@@ -34,6 +34,8 @@ interface WorkroomSurveyRow {
   ltrAvg: number
   craftAvg: number
   profAvg: number
+  company?: string
+  installerName?: string
 }
 
 export default function SurveyMisc() {
@@ -86,6 +88,8 @@ export default function SurveyMisc() {
       const laborCategory = w.laborCategory || (w as any).laborCategory || (w as any).category || 'N/A'
       const storeNumber = w.store ? String(w.store) : 'Unknown'
       const storeName = getStoreName(w.store as any)
+      const company = w.company || (w as any).company || ''
+      const installerName = w.installerName || (w as any).installerName || ''
       const key = `${storeNumber}|||${workroomName}|||${laborCategory}`
       const existing =
         map.get(key) || {
@@ -97,6 +101,8 @@ export default function SurveyMisc() {
           ltrAvg: 0,
           craftAvg: 0,
           profAvg: 0,
+          company: '',
+          installerName: '',
           ltrSum: 0,
           craftSum: 0,
           profSum: 0,
@@ -108,6 +114,20 @@ export default function SurveyMisc() {
       if (w.ltrScore != null) existing.ltrSum += w.ltrScore
       if (w.craftScore != null) existing.craftSum += w.craftScore
       if (w.profScore != null) existing.profSum += w.profScore
+      // Keep company value - use first non-empty value found
+      // Always update if we have a non-empty company value and existing is empty
+      if (company && company !== '' && company.trim() !== '') {
+        if (!existing.company || existing.company === '' || existing.company.trim() === '') {
+          existing.company = company.trim()
+        }
+      }
+      // Keep installerName value - use first non-empty value found
+      // Always update if we have a non-empty installerName value and existing is empty
+      if (installerName && installerName !== '' && installerName.trim() !== '') {
+        if (!existing.installerName || existing.installerName === '' || existing.installerName.trim() === '') {
+          existing.installerName = installerName.trim()
+        }
+      }
 
       map.set(key, existing)
     })
@@ -122,6 +142,8 @@ export default function SurveyMisc() {
         ltrAvg: r.count > 0 ? r.ltrSum / r.count : 0,
         craftAvg: r.count > 0 ? r.craftSum / r.count : 0,
         profAvg: r.count > 0 ? r.profSum / r.count : 0,
+        company: r.company,
+        installerName: r.installerName,
       }))
       .sort((a, b) => {
         // Sort primarily by numeric store number when possible, then by workroom
@@ -288,19 +310,19 @@ export default function SurveyMisc() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-lg shadow-sm px-4 py-4">
                   <div className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1">
-                    Excel File Rows
+                    Total Surveys
                   </div>
                   <div className="text-3xl font-bold text-blue-900 mb-1">
                     <CountUpNumber value={totalRows} duration={1.2} decimals={0} />
                   </div>
                   <div className="text-xs text-blue-600">
-                    {rowsWithLTR} rows with LTR data
+                    {rowsWithLTR} entries include LTR scores
                   </div>
                 </div>
 
                 <div className="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-lg shadow-sm px-4 py-4">
                   <div className="text-xs font-semibold text-green-700 uppercase tracking-wide mb-1">
-                    Average LTR (Column L)
+                    Average LTR Score
                   </div>
                   <div className="text-3xl font-bold text-green-900 mb-1">
                     {avgLTR != null ? (
@@ -310,7 +332,7 @@ export default function SurveyMisc() {
                     )}
                   </div>
                   <div className="text-xs text-green-600">
-                    From {rowsWithLTR} values in column L
+                    Based on {rowsWithLTR} LTR values
                   </div>
                 </div>
 
@@ -326,7 +348,7 @@ export default function SurveyMisc() {
                     )}
                   </div>
                   <div className="text-xs text-purple-600">
-                    From {craftScores.length} values in Excel file
+                    Based on {craftScores.length} craft values
                   </div>
                 </div>
 
@@ -655,10 +677,6 @@ export default function SurveyMisc() {
             <div style={{ marginBottom: '1rem', paddingBottom: '1rem', borderBottom: '1px solid #e5e7eb' }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', fontSize: '0.875rem' }}>
                 <div>
-                  <span style={{ fontWeight: 600, color: '#6b7280' }}>Store #:</span>
-                  <span style={{ marginLeft: '0.5rem', color: '#111827' }}>{selectedRow.storeNumber || '—'}</span>
-                </div>
-                <div>
                   <span style={{ fontWeight: 600, color: '#6b7280' }}>Store Name:</span>
                   <span style={{ marginLeft: '0.5rem', color: '#111827' }}>{selectedRow.storeName || '—'}</span>
                 </div>
@@ -667,8 +685,12 @@ export default function SurveyMisc() {
                   <span style={{ marginLeft: '0.5rem', color: '#111827' }}>{selectedRow.laborCategory}</span>
                 </div>
                 <div>
-                  <span style={{ fontWeight: 600, color: '#6b7280' }}>Total Surveys:</span>
-                  <span style={{ marginLeft: '0.5rem', color: '#111827' }}>{selectedRow.surveyCount}</span>
+                  <span style={{ fontWeight: 600, color: '#6b7280' }}>Company:</span>
+                  <span style={{ marginLeft: '0.5rem', color: '#111827' }}>{selectedRow.company || '—'}</span>
+                </div>
+                <div>
+                  <span style={{ fontWeight: 600, color: '#6b7280' }}>Installer Name:</span>
+                  <span style={{ marginLeft: '0.5rem', color: '#111827' }}>{selectedRow.installerName || '—'}</span>
                 </div>
               </div>
             </div>
@@ -722,17 +744,51 @@ export default function SurveyMisc() {
                     const hasSurveyData = w.ltrScore != null || w.craftScore != null || w.profScore != null || w.surveyDate || w.surveyComment
                     return matchesWorkroom && matchesStore && matchesCategory && hasSurveyData
                   })
-                  return matchingRecords.length
+                  
+                  // Remove duplicates
+                  const seen = new Set<string>()
+                  const uniqueRecords = matchingRecords.filter((w) => {
+                    const dateKey = w.surveyDate ? String(w.surveyDate) : ''
+                    const ltrKey = w.ltrScore != null ? String(w.ltrScore) : ''
+                    const craftKey = w.craftScore != null ? String(w.craftScore) : ''
+                    const profKey = w.profScore != null ? String(w.profScore) : ''
+                    const commentKey = w.surveyComment ? String(w.surveyComment).substring(0, 50) : ''
+                    const uniqueKey = `${dateKey}|${ltrKey}|${craftKey}|${profKey}|${commentKey}`
+                    if (seen.has(uniqueKey)) return false
+                    seen.add(uniqueKey)
+                    return true
+                  })
+                  
+                  return uniqueRecords.length
                 })()})
               </h3>
               <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
                 {(() => {
+                  // Filter matching records and remove duplicates based on unique combination
                   const matchingRecords = data.workrooms.filter((w) => {
                     const matchesWorkroom = w.name === selectedRow.workroom
                     const matchesStore = String(w.store) === selectedRow.storeNumber
                     const matchesCategory = (w.laborCategory || (w as any).category || 'N/A') === selectedRow.laborCategory
                     const hasSurveyData = w.ltrScore != null || w.craftScore != null || w.profScore != null || w.surveyDate || w.surveyComment
                     return matchesWorkroom && matchesStore && matchesCategory && hasSurveyData
+                  })
+
+                  // Remove duplicates by creating a unique key for each record
+                  const seen = new Set<string>()
+                  const uniqueRecords = matchingRecords.filter((w) => {
+                    // Create unique key from date, scores, and comment
+                    const dateKey = w.surveyDate ? String(w.surveyDate) : ''
+                    const ltrKey = w.ltrScore != null ? String(w.ltrScore) : ''
+                    const craftKey = w.craftScore != null ? String(w.craftScore) : ''
+                    const profKey = w.profScore != null ? String(w.profScore) : ''
+                    const commentKey = w.surveyComment ? String(w.surveyComment).substring(0, 50) : ''
+                    const uniqueKey = `${dateKey}|${ltrKey}|${craftKey}|${profKey}|${commentKey}`
+                    
+                    if (seen.has(uniqueKey)) {
+                      return false // Duplicate
+                    }
+                    seen.add(uniqueKey)
+                    return true
                   })
 
                   const formatDate = (date: string | number | Date | null | undefined): string => {
@@ -756,7 +812,7 @@ export default function SurveyMisc() {
                     return 'badge-warning'
                   }
 
-                  if (matchingRecords.length === 0) {
+                  if (uniqueRecords.length === 0) {
                     return (
                       <div style={{ padding: '1.5rem', textAlign: 'center', color: '#9ca3af' }}>
                         No individual survey records found.
@@ -766,7 +822,7 @@ export default function SurveyMisc() {
 
                   return (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                      {matchingRecords.map((record, index) => (
+                      {uniqueRecords.map((record, index) => (
                         <div
                           key={record.id || index}
                           style={{

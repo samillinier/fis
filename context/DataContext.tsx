@@ -32,6 +32,8 @@ export interface WorkroomData {
   rescheduleRate?: number
   getItRight?: number
   detailsCycleTime?: number
+  company?: string
+  installerName?: string
   [key: string]: any
 }
 
@@ -41,6 +43,8 @@ export interface DashboardData {
   rawCraftValues?: number[] // Store raw Craft scores directly from Excel file
   rawProfValues?: number[] // Store raw Prof scores directly from Excel file
   rawLaborCategories?: string[] // Store raw Labor Category values directly from Excel file
+  rawCompanyValues?: string[] // Store raw Company values from column T directly from Excel file
+  rawInstallerNames?: string[] // Store raw Installer Name values from column U directly from Excel file
   excelFileTotalRows?: number // Store total rows from Excel file
 }
 

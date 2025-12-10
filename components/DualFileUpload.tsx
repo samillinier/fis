@@ -217,6 +217,8 @@ export default function DualFileUpload() {
     rawCraft: number[]
     rawProf: number[]
     rawLaborCategories: string[]
+    rawCompanyValues: string[]
+    rawInstallerNames: string[]
   }> => {
     const fileName = file.name.toLowerCase()
     const isExcel = fileName.endsWith('.xlsx') || fileName.endsWith('.xls')
@@ -292,6 +294,20 @@ export default function DualFileUpload() {
       return lowerH.includes('labor category') || lowerH.includes('category')
     })
 
+    // Use column T (index 19) for Company
+    // Column T is the 20th column (A=0, B=1, ..., T=19)
+    // ALWAYS use index 19 for column T, don't search by header
+    const companyColumnIdx = headers.length > 19 ? 19 : -1
+    
+    // Find column U by header "INSTALLER NAME" or use index 20
+    // Column U is the 21st column (A=0, B=1, ..., U=20)
+    const installerNameHeaderIdx = headers.findIndex((h) => {
+      if (typeof h !== 'string') return false
+      const lowerH = h.toLowerCase().trim()
+      return lowerH.includes('installer name') || lowerH === 'installer name'
+    })
+    const installerNameColumnIdx = installerNameHeaderIdx >= 0 ? installerNameHeaderIdx : (headers.length > 20 ? 20 : -1) // Fallback to index 20 if header not found
+
     // Use column L (index 11) for LTR Score in survey files
     // Column L is the 12th column (A=0, B=1, ..., L=11)
     // ALWAYS use index 11 for column L, don't fall back to header search
@@ -334,6 +350,8 @@ export default function DualFileUpload() {
     const craftValues: number[] = [] // Track all Craft scores from Excel
     const profValues: number[] = [] // Track all Prof scores from Excel
     const laborCategories: string[] = [] // Track all Labor Categories from Excel
+    const companyValues: string[] = [] // Track all Company values from column T
+    const installerNames: string[] = [] // Track all Installer Name values from column U
 
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i]
@@ -393,6 +411,48 @@ export default function DualFileUpload() {
         surveyRecord.laborCategory = categoryValue
         surveyRecord.category = categoryValue
         laborCategories.push(categoryValue) // Track raw Labor Category from Excel
+      }
+
+      // Read column T (index 19) for Company
+      if (companyColumnIdx >= 0 && row.length > companyColumnIdx) {
+        const rawCompanyValue = row[companyColumnIdx]
+        // Check if value exists and is not empty/null/undefined
+        if (rawCompanyValue != null && rawCompanyValue !== '' && rawCompanyValue !== undefined) {
+          const companyValue = String(rawCompanyValue).trim()
+          // Only set if it's a valid non-empty string
+          if (companyValue && companyValue !== 'undefined' && companyValue !== 'null' && companyValue.length > 0) {
+            surveyRecord.company = companyValue
+            companyValues.push(companyValue)
+            // Debug: Log first few company values to verify column T
+            if (companyValues.length <= 3) {
+              console.log(`[Survey Parsing] Company from column (index ${companyColumnIdx}, header: "${headers[companyColumnIdx]}"):`, companyValue)
+            }
+          } else if (companyValues.length <= 3) {
+            console.log(`[Survey Parsing] Company value found but empty/invalid at index ${companyColumnIdx}:`, rawCompanyValue)
+          }
+        } else if (i < 3) {
+          console.log(`[Survey Parsing] No company value at index ${companyColumnIdx} for row ${i}, raw value:`, rawCompanyValue)
+        }
+      } else if (i < 3) {
+        console.log(`[Survey Parsing] Company column index ${companyColumnIdx} is invalid or row too short (length: ${row.length}), headers length: ${headers.length}`)
+      }
+
+      // Read column U (index 20) for Installer Name (header "INSTALLER NAME")
+      if (installerNameColumnIdx >= 0 && row.length > installerNameColumnIdx) {
+        const rawInstallerNameValue = row[installerNameColumnIdx]
+        // Check if value exists and is not empty/null/undefined
+        if (rawInstallerNameValue != null && rawInstallerNameValue !== '' && rawInstallerNameValue !== undefined) {
+          const installerNameValue = String(rawInstallerNameValue).trim()
+          // Only set if it's a valid non-empty string
+          if (installerNameValue && installerNameValue !== 'undefined' && installerNameValue !== 'null' && installerNameValue.length > 0) {
+            surveyRecord.installerName = installerNameValue
+            installerNames.push(installerNameValue)
+            // Debug: Log first few installer name values to verify column U
+            if (installerNames.length <= 3) {
+              console.log(`[Survey Parsing] Installer Name from column U (index ${installerNameColumnIdx}):`, installerNameValue)
+            }
+          }
+        }
       }
       if (craftScoreIdx >= 0 && row[craftScoreIdx] != null && row[craftScoreIdx] !== '') {
         const craftValue = Number(row[craftScoreIdx])
@@ -470,7 +530,9 @@ export default function DualFileUpload() {
       rawColumnL: columnLValues,
       rawCraft: craftValues,
       rawProf: profValues,
-      rawLaborCategories: laborCategories
+      rawLaborCategories: laborCategories,
+      rawCompanyValues: companyValues,
+      rawInstallerNames: installerNames
     }
   }
 
@@ -577,7 +639,9 @@ export default function DualFileUpload() {
         rawColumnL,
         rawCraft,
         rawProf,
-        rawLaborCategories
+        rawLaborCategories,
+        rawCompanyValues,
+        rawInstallerNames
       } = await parseSurveyData(file)
       setSurveyFileName(file.name)
 
@@ -606,6 +670,8 @@ export default function DualFileUpload() {
         rawCraftValues: rawCraft,
         rawProfValues: rawProf,
         rawLaborCategories: rawLaborCategories,
+        rawCompanyValues: rawCompanyValues,
+        rawInstallerNames: rawInstallerNames,
         excelFileTotalRows: excelFileTotalRows
       })
       showNotification(
