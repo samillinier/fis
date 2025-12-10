@@ -146,9 +146,15 @@ export default function DualFileUpload() {
         }
       }
 
+      let workroomName = mapped?.workroom || String(nameSource || '').trim()
+      // Normalize workroom names
+      if (workroomName === 'Panama Cit') {
+        workroomName = 'Panama City'
+      }
+
       const workroom: WorkroomData = {
         id: `visual-${i}-${Date.now()}`,
-        name: mapped?.workroom || String(nameSource || '').trim(),
+        name: workroomName,
         store: mapped?.store ?? storeSource ?? '',
         sales: salesValue,
         laborPO: laborPOIdx >= 0 ? Number(row[laborPOIdx] || 0) : 0,
@@ -331,7 +337,11 @@ export default function DualFileUpload() {
           ? row[workroomIdx]
           : mapped?.workroom || storeSource || `Record ${i + 1}`
 
-      const workroomName = mapped?.workroom || String(nameSource || '').trim()
+      let workroomName = mapped?.workroom || String(nameSource || '').trim()
+      // Normalize workroom names
+      if (workroomName === 'Panama Cit') {
+        workroomName = 'Panama City'
+      }
 
       // Only include records with survey-related data
       const hasSurveyData =

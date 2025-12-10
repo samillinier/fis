@@ -547,7 +547,11 @@ export default function HistoricalAnalytics() {
       const storeNumber = Number(storeSource || locationValue)
       const mapped = workroomStoreData.find((r) => r.store === storeNumber)
       const nameSource = workroomIdx >= 0 ? row[workroomIdx] : mapped?.workroom || storeSource || `Record ${i + 1}`
-      const workroomName = mapped?.workroom || String(nameSource || '').trim()
+      let workroomName = mapped?.workroom || String(nameSource || '').trim()
+      // Normalize workroom names
+      if (workroomName === 'Panama Cit') {
+        workroomName = 'Panama City'
+      }
 
       const hasSurveyData =
         (surveyDateIdx >= 0 && row[surveyDateIdx]) ||

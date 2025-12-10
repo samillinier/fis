@@ -66,12 +66,26 @@ const isValidWorkroomName = (name: string): boolean => {
   )
 }
 
+// Helper function to normalize workroom names
+const normalizeWorkroomName = (name: string): string => {
+  if (name === 'Panama Cit') {
+    return 'Panama City'
+  }
+  return name
+}
+
 export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownProps) {
   const { data } = useData()
   const [selectedRiskWorkroom, setSelectedRiskWorkroom] = useState<any | null>(null)
   const [isRiskDialogOpen, setIsRiskDialogOpen] = useState(false)
 
-  let filteredData = data.workrooms.filter((w) => isValidWorkroomName(w.name || ''))
+  // Normalize workroom names in the data
+  const normalizedData = data.workrooms.map((w) => ({
+    ...w,
+    name: normalizeWorkroomName(w.name || '')
+  }))
+
+  let filteredData = normalizedData.filter((w) => isValidWorkroomName(w.name || ''))
   if (selectedWorkroom !== 'all') {
     filteredData = filteredData.filter((w) => w.name === selectedWorkroom)
   }
@@ -172,7 +186,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
   // Top Performing Workrooms - ranked by WPI Score
   const performingWorkroomsMap = new Map<
     string,
-    { name: string; sales: number; laborPO: number; vendorDebit: number; stores: Set<string>; records: number; cycleTime?: number }
+    { name: string; sales: number; laborPO: number; vendorDebit: number; stores: Set<string>; records: number; cycleTime?: number; jobsWorkCycleTime?: number; jobsWorkCycleTimeCount: number; rescheduleRate: number; rescheduleRateCount: number }
   >()
 
   filteredData.forEach((w) => {
@@ -184,7 +198,24 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
       stores: new Set<string>(),
       records: 0,
       cycleTime: undefined,
+      jobsWorkCycleTime: 0,
+      jobsWorkCycleTimeCount: 0,
+      rescheduleRate: 0,
+      rescheduleRateCount: 0,
     }
+    let jobsWorkCycleTime = existing.jobsWorkCycleTime || 0
+    let jobsWorkCycleTimeCount = existing.jobsWorkCycleTimeCount || 0
+    if (w.jobsWorkCycleTime != null && w.jobsWorkCycleTime !== undefined && w.jobsWorkCycleTime > 0) {
+      jobsWorkCycleTime += w.jobsWorkCycleTime
+      jobsWorkCycleTimeCount += 1
+    }
+    let rescheduleRate = existing.rescheduleRate || 0
+    let rescheduleRateCount = existing.rescheduleRateCount || 0
+    if (w.rescheduleRate != null && w.rescheduleRate !== undefined && !isNaN(Number(w.rescheduleRate))) {
+      rescheduleRate += Number(w.rescheduleRate)
+      rescheduleRateCount += 1
+    }
+    existing.stores.add(String(w.store))
     performingWorkroomsMap.set(w.name, {
       name: w.name,
       sales: existing.sales + (w.sales || 0),
@@ -193,8 +224,11 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
       stores: existing.stores,
       records: existing.records + 1,
       cycleTime: w.cycleTime || existing.cycleTime,
+      jobsWorkCycleTime,
+      jobsWorkCycleTimeCount,
+      rescheduleRate,
+      rescheduleRateCount,
     })
-    existing.stores.add(String(w.store))
   })
 
   const topPerformingWorkrooms = Array.from(performingWorkroomsMap.values())
@@ -321,6 +355,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
       // Calculate averages
       const avgLaborPO = w.records > 0 ? w.laborPO / w.records : 0
       const avgVendorDebit = w.records > 0 ? w.vendorDebit / w.records : 0
+      const avgTicketSale = w.records > 0 ? w.laborPO / w.records : 0
 
       return {
         name: w.name,
@@ -329,6 +364,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
         vendorDebit: w.vendorDebit,
         avgLaborPO,
         avgVendorDebit,
+        avgTicketSale,
         totalCost,
         vendorDebitRatio,
         weightedWPI,
@@ -415,6 +451,8 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
       const vendorDebitRatio = totalCost > 0 ? Math.abs(w.vendorDebit) / totalCost : 0
       const avgCostPerRecord = w.records > 0 ? totalCost / w.records : 0
       const avgLaborPOPerStore = w.stores.size > 0 ? w.laborPO / w.stores.size : 0
+      const avgJobsWorkCycleTime = w.jobsWorkCycleTimeCount > 0 ? (w.jobsWorkCycleTime || 0) / w.jobsWorkCycleTimeCount : null
+      const avgRescheduleRate = w.rescheduleRateCount > 0 ? (w.rescheduleRate || 0) / w.rescheduleRateCount : null
       
       // Calculate average LTR score from survey data
       const surveyLTR = surveyLTRMap.get(w.name)
@@ -551,7 +589,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
       }
       
       return {
-        name: w.name,
+        name: normalizeWorkroomName(w.name),
         storeMix: {
           count: w.stores.size,
           rating: storeMixRating,
@@ -579,6 +617,8 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
         fixNowBullets,
         records: w.records,
         cycleTime: w.cycleTime,
+        jobsWorkCycleTime: avgJobsWorkCycleTime,
+        rescheduleRate: avgRescheduleRate,
         sales: w.sales,
         totalCost,
         avgCostPerRecord,
@@ -849,9 +889,9 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   </div>
                 </div>
 
-                {/* Work Cycle Time */}
+                {/* Work Order Cycle Time */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Work Cycle Time</div>
+                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Work Order Cycle Time</div>
                   <div className="text-xl font-bold text-gray-900">
                     {avgCycleTime > 0 ? (
                       <CountUpNumber 
@@ -865,9 +905,9 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   </div>
                 </div>
 
-                {/* Jobs Work Cycle Time */}
+                {/* Jobs Order Cycle Time */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Jobs Work Cycle Time</div>
+                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Jobs Order Cycle Time</div>
                   <div className="text-xl font-bold text-gray-900">
                     {avgJobsWorkCycleTime > 0 ? (
                       <CountUpNumber 
@@ -1107,7 +1147,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
         <div className="compact-section-header">
           <h3 className="compact-section-title">Comprehensive Workroom Analysis Dashboard</h3>
           <p className="text-xs text-gray-500 mt-1">
-            Store Mix • LTR Performance • Total Sales Volume • Vendor Debit Exposure • Weighted Performance Score • Operational Risks • Financial Risk Rating • Fix This Now
+            LTR Performance • Work Order Cycle Time • Jobs Order Cycle Time • Total Sales Volume • Vendor Debit Exposure • Reschedule Rate • Operational Risks • Risk • Weighted Performance Score (Click any row for detailed analysis)
           </p>
         </div>
 
@@ -1116,15 +1156,16 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
             <table className="professional-table professional-table-zebra" style={{ fontSize: '0.7rem' }}>
               <thead>
                 <tr>
-                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', position: 'sticky', left: 0, backgroundColor: '#ffffff', zIndex: 10 }}>Workroom</th>
-                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Store Mix</th>
-                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>LTR Performance</th>
-                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Total Sales Volume</th>
-                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Vendor Debit Exposure</th>
-                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Weighted Score</th>
-                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Operational Risks</th>
-                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Financial Risk</th>
-                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', minWidth: '200px' }}>Fix This Now</th>
+                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', position: 'sticky', left: 0, background: 'linear-gradient(135deg, #1f2937 0%, #111827 100%)', color: '#ffffff', zIndex: 10, textAlign: 'center' }}>Workroom</th>
+                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>LTR Performance</th>
+                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Work Order Cycle Time</th>
+                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Jobs Order Cycle Time</th>
+                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Total Sales Volume</th>
+                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Vendor Debit Exposure</th>
+                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Reschedule Rate</th>
+                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Operational Risks</th>
+                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Risk</th>
+                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Weighted Score</th>
                 </tr>
               </thead>
               <tbody>
@@ -1155,8 +1196,8 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   }
                   
                   const getVendorDebitBadge = (value: number) => {
+                    if (value < 0) return 'badge-warning' // Red for negative (bad)
                     if (value > 0) return 'badge-warning' // Red for positive (bad)
-                    if (value < 0) return 'badge-positive' // Green for negative (good - credit/refund)
                     return 'badge-neutral' // Neutral for zero
                   }
                   
@@ -1167,17 +1208,33 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   }
 
                   return (
-                    <tr key={workroom.name}>
+                    <tr 
+                      key={workroom.name}
+                      onClick={() => {
+                        setSelectedRiskWorkroom(workroom)
+                        setIsRiskDialogOpen(true)
+                      }}
+                      style={{ 
+                        cursor: 'pointer',
+                        transition: 'background-color 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#f9fafb'
+                        const firstCell = e.currentTarget.querySelector('td:first-child') as HTMLElement
+                        if (firstCell) {
+                          firstCell.style.backgroundColor = '#f9fafb'
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = ''
+                        const firstCell = e.currentTarget.querySelector('td:first-child') as HTMLElement
+                        if (firstCell) {
+                          firstCell.style.backgroundColor = ''
+                        }
+                      }}
+                    >
                       <td style={{ padding: '0.5rem 0.75rem', fontWeight: 600, fontSize: '0.75rem', position: 'sticky', left: 0, backgroundColor: '#ffffff', zIndex: 5 }}>
                         {workroom.name}
-                      </td>
-                      <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                          <span className={`badge-pill ${getStoreMixBadge(workroom.storeMix.rating)}`} style={{ fontSize: '0.65rem', padding: '0.1rem 0.35rem' }}>
-                            {workroom.storeMix.count} stores
-                          </span>
-                          <span style={{ fontSize: '0.65rem', color: '#6b7280' }}>{workroom.storeMix.rating}</span>
-                        </div>
                       </td>
                       <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>
                         {workroom.ltrPerformance.value > 0 ? (
@@ -1191,8 +1248,26 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                           <span style={{ fontSize: '0.65rem', color: '#9ca3af' }}>N/A</span>
                         )}
                       </td>
-                      <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                      <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>
+                        {workroom.cycleTime != null && workroom.cycleTime > 0 ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', alignItems: 'center' }}>
+                            <span style={{ fontWeight: 600, fontSize: '0.7rem' }}>{workroom.cycleTime.toFixed(1)} days</span>
+                          </div>
+                        ) : (
+                          <span style={{ fontSize: '0.65rem', color: '#9ca3af' }}>N/A</span>
+                        )}
+                      </td>
+                      <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>
+                        {workroom.jobsWorkCycleTime != null && workroom.jobsWorkCycleTime > 0 ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', alignItems: 'center' }}>
+                            <span style={{ fontWeight: 600, fontSize: '0.7rem' }}>{workroom.jobsWorkCycleTime.toFixed(1)} days</span>
+                          </div>
+                        ) : (
+                          <span style={{ fontSize: '0.65rem', color: '#9ca3af' }}>N/A</span>
+                        )}
+                      </td>
+                      <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', alignItems: 'center' }}>
                           <span style={{ fontWeight: 600, fontSize: '0.7rem' }}>{formatCurrency(workroom.laborPOVolume.value)}</span>
                           <span style={{ fontSize: '0.65rem', color: '#6b7280' }}>
                             {workroom.laborPOVolume.rating} ({workroom.laborPOVolume.contribution.toFixed(1)}%)
@@ -1201,16 +1276,26 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                       </td>
                       <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                          <span style={{ fontSize: '0.7rem' }}>{formatCurrency(workroom.vendorDebitExposure.value)}</span>
-                          <span className={`badge-pill ${getVendorDebitBadge(workroom.vendorDebitExposure.value)}`} style={{ fontSize: '0.65rem', padding: '0.1rem 0.35rem' }}>
+                          <span style={{ fontSize: '0.7rem', color: workroom.vendorDebitExposure.value < 0 ? '#ef4444' : (workroom.vendorDebitExposure.value > 0 ? '#ef4444' : '#111827') }}>{formatCurrency(workroom.vendorDebitExposure.value)}</span>
+                          <span 
+                            className="badge-pill" 
+                            style={{ 
+                              fontSize: '0.65rem', 
+                              padding: '0.1rem 0.35rem',
+                              backgroundColor: workroom.vendorDebitExposure.value !== 0 ? '#fee2e2' : '#e5e7eb',
+                              color: workroom.vendorDebitExposure.value !== 0 ? '#dc2626' : '#4b5563'
+                            }}
+                          >
                             {(workroom.vendorDebitExposure.ratio * 100).toFixed(1)}% • {workroom.vendorDebitExposure.rating}
                           </span>
                         </div>
                       </td>
-                      <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>
-                        <span className={`badge-pill ${getWPSBadge(workroom.weightedPerformanceScore)}`} style={{ fontSize: '0.65rem', padding: '0.1rem 0.35rem', fontWeight: 600 }}>
-                          {workroom.weightedPerformanceScore.toFixed(1)}
-                        </span>
+                      <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>
+                        {workroom.rescheduleRate != null && workroom.rescheduleRate !== undefined ? (
+                          <span style={{ fontWeight: 600, fontSize: '0.7rem' }}>{workroom.rescheduleRate.toFixed(1)}</span>
+                        ) : (
+                          <span style={{ fontSize: '0.65rem', color: '#9ca3af' }}>N/A</span>
+                        )}
                       </td>
                       <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', maxWidth: '150px' }}>
                         {workroom.operationalRisks.length > 0 ? (
@@ -1228,23 +1313,17 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                           {workroom.financialRisk}
                         </span>
                       </td>
-                      <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', maxWidth: '200px' }}>
-                        {workroom.fixNowBullets.length > 0 ? (
-                          <ul style={{ margin: 0, paddingLeft: '1rem', fontSize: '0.65rem', color: '#dc2626', fontWeight: 500 }}>
-                            {workroom.fixNowBullets.map((bullet, idx) => (
-                              <li key={idx} style={{ marginBottom: '0.25rem' }}>• {bullet}</li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <span style={{ fontSize: '0.65rem', color: '#10b981' }}>✓ No critical issues</span>
-                        )}
+                      <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>
+                        <span className={`badge-pill ${getWPSBadge(workroom.weightedPerformanceScore)}`} style={{ fontSize: '0.65rem', padding: '0.1rem 0.35rem', fontWeight: 600 }}>
+                          {workroom.weightedPerformanceScore.toFixed(1)}
+                        </span>
                       </td>
                     </tr>
                   )
                 })}
                 {comprehensiveAnalysis.length === 0 && (
                   <tr>
-                    <td colSpan={9} style={{ textAlign: 'center', padding: '2rem 0.75rem', color: '#6b7280', fontSize: '0.75rem' }}>
+                    <td colSpan={10} style={{ textAlign: 'center', padding: '2rem 0.75rem', color: '#6b7280', fontSize: '0.75rem' }}>
                       Upload a T1/T2 scorecard to see comprehensive workroom analysis.
                     </td>
                   </tr>
@@ -1346,16 +1425,18 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
             <div className="overflow-x-auto" style={{ maxHeight: '600px', overflowY: 'auto' }}>
               <table className="professional-table professional-table-zebra" style={{ fontSize: '0.75rem', width: '100%', tableLayout: 'fixed' }}>
                 <colgroup>
-                  <col style={{ width: '30%' }} />
-                  <col style={{ width: '15%' }} />
-                  <col style={{ width: '27%' }} />
-                  <col style={{ width: '28%' }} />
+                  <col style={{ width: '25%' }} />
+                  <col style={{ width: '12%' }} />
+                  <col style={{ width: '21%' }} />
+                  <col style={{ width: '21%' }} />
+                  <col style={{ width: '21%' }} />
                 </colgroup>
                 <thead>
                   <tr>
                     <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'left' }}>Workroom</th>
                     <th align="center" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>WPI</th>
                     <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Avg Total Sales</th>
+                    <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Avg Ticket Sale</th>
                     <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Avg Vendor Debits</th>
                   </tr>
                 </thead>
@@ -1377,6 +1458,9 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                           {formatCurrency(workroom.avgLaborPO)}
                         </td>
                         <td align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                          {formatCurrency(workroom.avgTicketSale)}
+                        </td>
+                        <td align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
                           {formatCurrency(workroom.avgVendorDebit)}
                         </td>
                       </tr>
@@ -1384,7 +1468,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   })}
                   {wpiByWorkroom.length === 0 && (
                     <tr>
-                      <td colSpan={4} style={{ textAlign: 'center', padding: '2rem 0.75rem', color: '#6b7280', fontSize: '0.75rem' }}>
+                      <td colSpan={5} style={{ textAlign: 'center', padding: '2rem 0.75rem', color: '#6b7280', fontSize: '0.75rem' }}>
                         Upload a T1/T2 scorecard to see WPI by workroom.
                       </td>
                     </tr>
@@ -1695,9 +1779,11 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                 backgroundColor: '#f9fafb',
                 borderRadius: '0.375rem',
               }}>
-                <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Store Coverage</div>
+                <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Reschedule Rate</div>
                 <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#111827' }}>
-                  {selectedRiskWorkroom.storeMix?.count || 0} <span style={{ fontSize: '0.75rem', fontWeight: 400, color: '#6b7280' }}>stores</span>
+                  {selectedRiskWorkroom.rescheduleRate != null && selectedRiskWorkroom.rescheduleRate !== undefined 
+                    ? selectedRiskWorkroom.rescheduleRate.toFixed(1)
+                    : 'N/A'}
                 </div>
               </div>
               <div style={{
@@ -1707,7 +1793,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
               }}>
                 <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Sales</div>
                 <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827' }}>
-                  {formatCurrency(selectedRiskWorkroom.sales || 0)}
+                  {formatCurrency(selectedRiskWorkroom.laborPOVolume?.value || 0)}
                 </div>
               </div>
             </div>
@@ -1749,7 +1835,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   borderRadius: '0.375rem',
                 }}>
                   <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: 500 }}>Vendor Debit Exposure</div>
-                  <div style={{ fontSize: '1.25rem', fontWeight: 700, color: selectedRiskWorkroom.vendorDebitExposure?.value && selectedRiskWorkroom.vendorDebitExposure.value > 0 ? '#ef4444' : '#10b981', marginBottom: '0.25rem' }}>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 700, color: selectedRiskWorkroom.vendorDebitExposure?.value && selectedRiskWorkroom.vendorDebitExposure.value !== 0 ? '#ef4444' : '#111827', marginBottom: '0.25rem' }}>
                     {formatCurrency(Math.abs(selectedRiskWorkroom.vendorDebitExposure?.value || 0))}
                   </div>
                   <div style={{ fontSize: '0.65rem', color: '#6b7280' }}>
@@ -1761,12 +1847,11 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   backgroundColor: '#f9fafb',
                   borderRadius: '0.375rem',
                 }}>
-                  <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: 500 }}>Total Sales Volume</div>
+                  <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: 500 }}>Total Jobs Order Cycle Time</div>
                   <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827', marginBottom: '0.25rem' }}>
-                    {formatCurrency(selectedRiskWorkroom.laborPOVolume?.value || 0)}
-                  </div>
-                  <div style={{ fontSize: '0.65rem', color: '#6b7280' }}>
-                    {(selectedRiskWorkroom.laborPOVolume?.contribution || 0).toFixed(1)}% • {selectedRiskWorkroom.laborPOVolume?.rating || 'N/A'}
+                    {selectedRiskWorkroom.jobsWorkCycleTime != null && selectedRiskWorkroom.jobsWorkCycleTime > 0 
+                      ? `${selectedRiskWorkroom.jobsWorkCycleTime.toFixed(1)} days`
+                      : 'N/A'}
                   </div>
                 </div>
                 <div style={{
@@ -1774,15 +1859,12 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   backgroundColor: '#f9fafb',
                   borderRadius: '0.375rem',
                 }}>
-                  <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: 500 }}>Total Cost</div>
+                  <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: 500 }}>Total Work Order Cycle Time</div>
                   <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827', marginBottom: '0.25rem' }}>
-                    {formatCurrency(selectedRiskWorkroom.totalCost || 0)}
+                    {selectedRiskWorkroom.cycleTime != null && selectedRiskWorkroom.cycleTime > 0 
+                      ? `${selectedRiskWorkroom.cycleTime.toFixed(1)} days`
+                      : 'N/A'}
                   </div>
-                  {selectedRiskWorkroom.avgCostPerRecord && (
-                    <div style={{ fontSize: '0.65rem', color: '#6b7280' }}>
-                      Avg/Record: {formatCurrency(selectedRiskWorkroom.avgCostPerRecord)}
-                    </div>
-                  )}
                 </div>
               </div>
             </div>

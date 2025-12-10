@@ -226,9 +226,15 @@ export default function FileUpload() {
             }
           }
 
+          let workroomName = mapped?.workroom || String(nameSource || '').trim()
+          // Normalize workroom names
+          if (workroomName === 'Panama Cit') {
+            workroomName = 'Panama City'
+          }
+
           const workroom: any = {
             id,
-            name: mapped?.workroom || String(nameSource || '').trim(),
+            name: workroomName,
             store: mapped?.store ?? storeSource ?? '',
             sales: salesValue,
             laborPO: laborPOIdx >= 0 ? Number(row[laborPOIdx] || 0) : 0,
@@ -431,9 +437,15 @@ export default function FileUpload() {
 
           const storeNumber = Number(rawStore || rawName)
           const mapped = workroomStoreData.find((r) => r.store === storeNumber)
+          let workroomName = mapped?.workroom || rawName
+          // Normalize workroom names
+          if (workroomName === 'Panama Cit') {
+            workroomName = 'Panama City'
+          }
+
           const workroom: any = {
             id: `workroom-${i}-${Date.now()}`,
-            name: mapped?.workroom || rawName,
+            name: workroomName,
             store: mapped?.store ?? rawStore,
             sales: 0,
             laborPO: laborPOIdx >= 0 ? Number(values[laborPOIdx] || 0) : 0,
