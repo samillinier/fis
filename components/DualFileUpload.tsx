@@ -209,7 +209,15 @@ export default function DualFileUpload() {
   }
 
   // Helper function to parse survey data (survey scores, LTR, Craft, Prof, survey dates, etc.)
-  const parseSurveyData = async (file: File): Promise<Partial<WorkroomData>[]> => {
+  // Returns records, total row count, and raw Excel data
+  const parseSurveyData = async (file: File): Promise<{
+    records: Partial<WorkroomData>[]
+    totalRows: number
+    rawColumnL: number[]
+    rawCraft: number[]
+    rawProf: number[]
+    rawLaborCategories: string[]
+  }> => {
     const fileName = file.name.toLowerCase()
     const isExcel = fileName.endsWith('.xlsx') || fileName.endsWith('.xls')
     const isCSV = fileName.endsWith('.csv')
@@ -284,9 +292,10 @@ export default function DualFileUpload() {
       return lowerH.includes('labor category') || lowerH.includes('category')
     })
 
-    const ltrScoreIdx = headers.findIndex(
-      (h) => typeof h === 'string' && (h.includes('ltr score') || h === 'ltr')
-    )
+    // Use column L (index 11) for LTR Score in survey files
+    // Column L is the 12th column (A=0, B=1, ..., L=11)
+    // ALWAYS use index 11 for column L, don't fall back to header search
+    const ltrScoreIdx = 11
     const craftScoreIdx = headers.findIndex(
       (h) => typeof h === 'string' && (h.includes('craft score') || h === 'craft')
     )
@@ -321,6 +330,10 @@ export default function DualFileUpload() {
     })
 
     const surveyRecords: Partial<WorkroomData>[] = []
+    const columnLValues: number[] = [] // Track all column L values from Excel
+    const craftValues: number[] = [] // Track all Craft scores from Excel
+    const profValues: number[] = [] // Track all Prof scores from Excel
+    const laborCategories: string[] = [] // Track all Labor Categories from Excel
 
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i]
@@ -343,19 +356,30 @@ export default function DualFileUpload() {
         workroomName = 'Panama City'
       }
 
-      // Only include records with survey-related data
-      const hasSurveyData =
-        (surveyDateIdx >= 0 && row[surveyDateIdx]) ||
-        (ltrScoreIdx >= 0 && row[ltrScoreIdx]) ||
-        (craftScoreIdx >= 0 && row[craftScoreIdx]) ||
-        (profScoreIdx >= 0 && row[profScoreIdx]) ||
-        (reliableHomeImprovementScoreIdx >= 0 && row[reliableHomeImprovementScoreIdx])
+      // Read column L (index 11) - include ALL rows, even if column L is empty
+      // We want to capture every row from the survey file
+      let columnLValue: number | null = null
+      if (row.length > 11) {
+        const rawValue = row[11]
+        if (rawValue != null && rawValue !== '') {
+          const numValue = Number(rawValue)
+          if (!isNaN(numValue)) {
+            columnLValue = numValue
+            columnLValues.push(numValue) // Debug: track all valid column L values
+          }
+        }
+      }
 
-      if (!hasSurveyData) continue
-
+      // Include ALL rows from survey file - don't filter
+      // Create record even if column L is empty (for other survey fields)
       const surveyRecord: Partial<WorkroomData> = {
         name: workroomName,
         store: mapped?.store ?? storeSource ?? '',
+      }
+
+      // Only set ltrScore if column L has a valid value
+      if (columnLValue !== null) {
+        surveyRecord.ltrScore = columnLValue
       }
 
       if (surveyDateIdx >= 0 && row[surveyDateIdx] != null && row[surveyDateIdx] !== '') {
@@ -368,18 +392,22 @@ export default function DualFileUpload() {
         const categoryValue = String(row[laborCategoryIdx]).trim()
         surveyRecord.laborCategory = categoryValue
         surveyRecord.category = categoryValue
-      }
-
-      if (ltrScoreIdx >= 0 && row[ltrScoreIdx] != null && row[ltrScoreIdx] !== '') {
-        surveyRecord.ltrScore = Number(row[ltrScoreIdx]) || null
+        laborCategories.push(categoryValue) // Track raw Labor Category from Excel
       }
       if (craftScoreIdx >= 0 && row[craftScoreIdx] != null && row[craftScoreIdx] !== '') {
-        surveyRecord.craftScore = Number(row[craftScoreIdx]) || null
+        const craftValue = Number(row[craftScoreIdx])
+        if (!isNaN(craftValue)) {
+          surveyRecord.craftScore = craftValue
+          craftValues.push(craftValue) // Track raw Craft value from Excel
+        }
       }
       if (profScoreIdx >= 0 && row[profScoreIdx] != null && row[profScoreIdx] !== '') {
-        const score = Number(row[profScoreIdx]) || null
-        surveyRecord.profScore = score
-        surveyRecord.professionalScore = score
+        const profValue = Number(row[profScoreIdx])
+        if (!isNaN(profValue)) {
+          surveyRecord.profScore = profValue
+          surveyRecord.professionalScore = profValue
+          profValues.push(profValue) // Track raw Prof value from Excel
+        }
       }
 
       if (
@@ -425,7 +453,25 @@ export default function DualFileUpload() {
       surveyRecords.push(surveyRecord)
     }
 
-    return surveyRecords
+    // Debug: log parsing results
+    const totalRowsFromFile = rows.length // Actual total rows from Excel file
+    console.log('Survey File Parsing:', {
+      totalRows: totalRowsFromFile,
+      recordsCreated: surveyRecords.length,
+      columnLValuesFound: columnLValues.length,
+      craftValuesFound: craftValues.length,
+      profValuesFound: profValues.length,
+      laborCategoriesFound: laborCategories.length
+    })
+
+    return {
+      records: surveyRecords,
+      totalRows: totalRowsFromFile,
+      rawColumnL: columnLValues,
+      rawCraft: craftValues,
+      rawProf: profValues,
+      rawLaborCategories: laborCategories
+    }
   }
 
   // Smart merge function: combines visual data with survey data by matching store number and workroom name
@@ -489,31 +535,18 @@ export default function DualFileUpload() {
       const visualData = await parseVisualData(file)
       setVisualFileName(file.name)
 
-      // Merge with existing survey data if available
-      const existingSurveyData: Partial<WorkroomData>[] = data.workrooms
-        .filter((w) => w.ltrScore != null || w.craftScore != null || w.profScore != null)
-        .map((w) => ({
-          name: w.name,
-          store: w.store,
-          ltrScore: w.ltrScore,
-          craftScore: w.craftScore,
-          profScore: w.profScore,
-          surveyDate: w.surveyDate,
-          surveyComment: w.surveyComment,
-          laborCategory: w.laborCategory,
-          category: w.category,
-          reliableHomeImprovementScore: w.reliableHomeImprovementScore,
-          timeTakenToComplete: w.timeTakenToComplete,
-          projectValueScore: w.projectValueScore,
-          installerKnowledgeScore: w.installerKnowledgeScore,
-        }))
+      // DON'T merge - keep visual data separate from survey data
+      // Keep existing survey data and add all visual records separately
+      const existingSurveyData: WorkroomData[] = data.workrooms.filter(
+        (w) => w.ltrScore != null || w.craftScore != null || w.profScore != null
+      )
 
-      const merged = mergeData(visualData, existingSurveyData)
-      setData({ workrooms: merged })
+      // Combine: survey data + all visual records (no merging)
+      setData({ workrooms: [...existingSurveyData, ...visualData] })
       showNotification(
         `Successfully uploaded ${visualData.length} visual data records! ${
           existingSurveyData.length > 0
-            ? `Merged with ${existingSurveyData.length} existing survey records.`
+            ? `Kept ${existingSurveyData.length} existing survey records separate.`
             : ''
         }`,
         'success'
@@ -538,20 +571,47 @@ export default function DualFileUpload() {
     setSurveyFileName(null)
 
     try {
-      const surveyData = await parseSurveyData(file)
+      const { 
+        records: surveyData, 
+        totalRows: excelFileTotalRows,
+        rawColumnL,
+        rawCraft,
+        rawProf,
+        rawLaborCategories
+      } = await parseSurveyData(file)
       setSurveyFileName(file.name)
 
-      // Merge with existing visual data if available
+      // DON'T merge - keep survey data separate from visual data
+      // Keep existing visual data and add all survey records separately
       const existingVisualData: WorkroomData[] = data.workrooms.filter(
         (w) => w.sales != null || w.laborPO != null || w.vendorDebit != null
       )
 
-      const merged = mergeData(existingVisualData, surveyData)
-      setData({ workrooms: merged })
+      // Convert survey data to full WorkroomData records (each row = one record)
+      const surveyRecords: WorkroomData[] = surveyData.map((survey, index) => ({
+        id: `survey-${Date.now()}-${index}`,
+        name: survey.name || 'Unknown',
+        store: survey.store || '',
+        sales: 0,
+        laborPO: 0,
+        vendorDebit: 0,
+        ...survey,
+      }))
+
+      // Combine: visual data + all survey records (no merging)
+      // Store ALL raw values directly from Excel file for dashboard use
+      setData({ 
+        workrooms: [...existingVisualData, ...surveyRecords],
+        rawColumnLValues: rawColumnL,
+        rawCraftValues: rawCraft,
+        rawProfValues: rawProf,
+        rawLaborCategories: rawLaborCategories,
+        excelFileTotalRows: excelFileTotalRows
+      })
       showNotification(
         `Successfully uploaded ${surveyData.length} survey data records! ${
           existingVisualData.length > 0
-            ? `Merged with ${existingVisualData.length} existing visual records.`
+            ? `Kept ${existingVisualData.length} existing visual records separate.`
             : ''
         }`,
         'success'

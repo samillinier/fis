@@ -37,6 +37,11 @@ export interface WorkroomData {
 
 export interface DashboardData {
   workrooms: WorkroomData[]
+  rawColumnLValues?: number[] // Store raw column L values directly from Excel file
+  rawCraftValues?: number[] // Store raw Craft scores directly from Excel file
+  rawProfValues?: number[] // Store raw Prof scores directly from Excel file
+  rawLaborCategories?: string[] // Store raw Labor Category values directly from Excel file
+  excelFileTotalRows?: number // Store total rows from Excel file
 }
 
 interface DataContextType {

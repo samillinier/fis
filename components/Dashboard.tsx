@@ -5,18 +5,15 @@ import { useData } from '@/context/DataContext'
 import VisualBreakdown from '@/components/VisualBreakdown'
 import SalesByWorkroom from '@/components/SalesByWorkroom'
 import LaborVendorReport from '@/components/LaborVendorReport'
-import PerformanceIndex from '@/components/PerformanceIndex'
 import StoreOverview from '@/components/StoreOverview'
 import FileUpload from '@/components/FileUpload'
 import SummaryPanel from '@/components/SummaryPanel'
-import KpiHeader from '@/components/KpiHeader'
 import { Filter } from 'lucide-react'
 
 export default function Dashboard() {
   const { data } = useData()
   const [selectedWorkroom, setSelectedWorkroom] = useState<string>('all')
-  const [excludeCycleTime, setExcludeCycleTime] = useState(false)
-      const [activeView, setActiveView] = useState<string>('breakdown')
+  const [activeView, setActiveView] = useState<string>('breakdown')
 
   // Helper function to check if a workroom name is valid (not "Location #" or similar)
   const isValidWorkroomName = (name: string): boolean => {
@@ -68,15 +65,7 @@ export default function Dashboard() {
                 activeView === 'labor' ? 'sidebar-nav-button--active' : ''
               }`}
             >
-              Total Sales &amp; Vendor Debit
-            </button>
-            <button
-              onClick={() => setActiveView('performance')}
-              className={`sidebar-nav-button ${
-                activeView === 'performance' ? 'sidebar-nav-button--active' : ''
-              }`}
-            >
-              Performance Index
+              Sales &amp; Vendor Debit
             </button>
                 <button
                   onClick={() => setActiveView('store')}
@@ -108,17 +97,6 @@ export default function Dashboard() {
               </select>
             </div>
 
-            {activeView === 'performance' && (
-              <label className="sidebar-checkbox-row cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={excludeCycleTime}
-                  onChange={(e) => setExcludeCycleTime(e.target.checked)}
-                  className="w-4 h-4"
-                />
-                <span>Exclude Cycle Time</span>
-              </label>
-            )}
           </div>
         </aside>
 
@@ -136,14 +114,6 @@ export default function Dashboard() {
           {activeView === 'labor' && (
             <div className="mt-8 pt-8 border-t border-gray-200">
               <LaborVendorReport selectedWorkroom={selectedWorkroom} />
-            </div>
-          )}
-          {activeView === 'performance' && (
-            <div className="mt-8 pt-8 border-t border-gray-200">
-              <PerformanceIndex
-                selectedWorkroom={selectedWorkroom}
-                excludeCycleTime={excludeCycleTime}
-              />
             </div>
           )}
           {activeView === 'store' && (

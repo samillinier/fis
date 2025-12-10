@@ -68,15 +68,7 @@ export default function Sidebar({
                   isActive('/labor') ? 'sidebar-nav-button--active' : ''
                 }`}
               >
-                Total Sales &amp; Vendor Debit
-              </Link>
-              <Link
-                href="/performance"
-                className={`sidebar-nav-button ${
-                  isActive('/performance') ? 'sidebar-nav-button--active' : ''
-                }`}
-              >
-                Performance Index
+                Sales &amp; Vendor Debit
               </Link>
               <Link
                 href="/store"
@@ -107,17 +99,6 @@ export default function Sidebar({
         </nav>
 
         <div className="sidebar-filters">
-          {pathname === '/performance' && setExcludeCycleTime && (
-            <label className="sidebar-checkbox-row cursor-pointer">
-              <input
-                type="checkbox"
-                checked={excludeCycleTime}
-                onChange={(e) => setExcludeCycleTime(e.target.checked)}
-                className="w-4 h-4"
-              />
-              <span>Exclude Cycle Time</span>
-            </label>
-          )}
 
           {/* Export Button */}
           <ExportButton />

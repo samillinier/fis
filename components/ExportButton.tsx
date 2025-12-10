@@ -18,8 +18,7 @@ export default function ExportButton() {
       const titles: Record<string, string> = {
         '/': 'Visual Breakdown',
         '/analytics': 'Workroom Data',
-        '/labor': 'Total Sales & Vendor Debit',
-        '/performance': 'Performance Index',
+        '/labor': 'Sales & Vendor Debit',
         '/store': 'Store Overview',
         '/workroom-summary': 'Workroom Summary',
         '/survey-misc': 'Survey Misc',
@@ -31,8 +30,7 @@ export default function ExportButton() {
     { path: '/', title: 'Visual Breakdown' },
     { path: '/analytics', title: 'Workroom Data' },
     { path: '/sales', title: 'Sales by Workroom' },
-    { path: '/labor', title: 'Total Sales & Vendor Debit' },
-    { path: '/performance', title: 'Performance Index' },
+    { path: '/labor', title: 'Sales & Vendor Debit' },
     { path: '/store', title: 'Store Overview' },
     { path: '/workroom-summary', title: 'Workroom Summary' },
   ]

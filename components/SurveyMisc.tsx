@@ -233,68 +233,123 @@ export default function SurveyMisc() {
         </div>
       ) : (
         <>
-          {/* Global dashboard cards (based on entire imported file, not filters) */}
-          {rows.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-              {(() => {
-                const totalSurveys = rows.reduce((sum, r) => sum + r.surveyCount, 0)
-                const ltrWeighted =
-                  rows.reduce((sum, r) => sum + r.ltrAvg * r.surveyCount, 0) / (totalSurveys || 1)
-                const craftWeighted =
-                  rows.reduce((sum, r) => sum + r.craftAvg * r.surveyCount, 0) / (totalSurveys || 1)
-                const profWeighted =
-                  rows.reduce((sum, r) => sum + r.profAvg * r.surveyCount, 0) / (totalSurveys || 1)
+          {/* Dashboard - Direct from Excel File Data */}
+          {(() => {
+            // Use raw column L values directly from Excel file (stored during upload)
+            // This ensures we're using the exact values from the Excel file, not processed data
+            const columnLValues = data.rawColumnLValues || []
+            
+            // Fallback: if raw values not available, extract from survey records
+            const surveyRecords = data.workrooms.filter((w) => 
+              (w.ltrScore != null || w.craftScore != null || w.profScore != null || 
+               w.surveyDate != null || w.surveyComment != null) &&
+              !((w.sales != null || w.laborPO != null || w.vendorDebit != null) &&
+                !(w.ltrScore != null || w.craftScore != null || w.profScore != null))
+            )
+            
+            // Use raw values if available, otherwise fallback to extracted values
+            const finalColumnLValues = columnLValues.length > 0 
+              ? columnLValues 
+              : surveyRecords
+                  .map((w) => w.ltrScore)
+                  .filter((score): score is number => 
+                    score != null && typeof score === 'number' && !isNaN(score)
+                  )
 
-                const uniqueWorkroomKeys = new Set(rows.map((r) => r.workroom))
+            // Calculate statistics directly from Excel file column L values
+            // Use actual total rows from Excel file (stored during upload)
+            const totalRows = data.excelFileTotalRows || surveyRecords.length
+            const rowsWithLTR = finalColumnLValues.length
+            const avgLTR = finalColumnLValues.length > 0
+              ? finalColumnLValues.reduce((sum, val) => sum + val, 0) / finalColumnLValues.length
+              : null
+            const minLTR = finalColumnLValues.length > 0 ? Math.min(...finalColumnLValues) : null
+            const maxLTR = finalColumnLValues.length > 0 ? Math.max(...finalColumnLValues) : null
 
-                const cards = [
-                  {
-                    label: 'Total Surveys (All Workrooms)',
-                    value: totalSurveys,
-                    sub: 'Based on all imported survey records',
-                  },
-                  {
-                    label: 'Avg LTR Score (All Workrooms)',
-                    value: isNaN(ltrWeighted) ? null : ltrWeighted,
-                    sub: 'Weighted by survey count',
-                  },
-                  {
-                    label: 'Avg Craft Score (All Workrooms)',
-                    value: isNaN(craftWeighted) ? null : craftWeighted,
-                    sub: 'Across the entire file',
-                  },
-                  {
-                    label: 'Avg Prof Score (All Workrooms)',
-                    value: isNaN(profWeighted) ? null : profWeighted,
-                    sub: `${uniqueWorkroomKeys.size} workrooms represented`,
-                  },
-                ]
+            // Count workrooms
+            const uniqueWorkrooms = new Set(surveyRecords.map((w) => w.name).filter(Boolean))
 
-                return cards.map((card) => (
-                  <div
-                    key={card.label}
-                    className="bg-white border border-gray-200 rounded-lg shadow-sm px-4 py-3"
-                  >
-                    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                      {card.label}
-                    </div>
-                    <div className="text-2xl font-bold text-gray-900 mb-1">
-                      {typeof card.value === 'number' ? (
-                        <CountUpNumber
-                          value={card.value}
-                          duration={1.2}
-                          decimals={card.label.startsWith('Total') ? 0 : 1}
-                        />
-                      ) : (
-                        '—'
-                      )}
-                    </div>
-                    <div className="text-xs text-gray-500">{card.sub}</div>
+            // Get Craft scores DIRECTLY from Excel file (raw data stored during upload)
+            const craftScores = data.rawCraftValues || []
+            const avgCraft = craftScores.length > 0
+              ? craftScores.reduce((sum, val) => sum + val, 0) / craftScores.length
+              : null
+
+            // Get Labor Categories DIRECTLY from Excel file (raw data stored during upload)
+            const laborCategories = data.rawLaborCategories || []
+            const categoryCounts = new Map<string, number>()
+            laborCategories.forEach((category) => {
+              categoryCounts.set(category, (categoryCounts.get(category) || 0) + 1)
+            })
+            const topCategory = Array.from(categoryCounts.entries())
+              .sort((a, b) => b[1] - a[1])[0]
+
+            return (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-lg shadow-sm px-4 py-4">
+                  <div className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1">
+                    Excel File Rows
                   </div>
-                ))
-              })()}
-            </div>
-          )}
+                  <div className="text-3xl font-bold text-blue-900 mb-1">
+                    <CountUpNumber value={totalRows} duration={1.2} decimals={0} />
+                  </div>
+                  <div className="text-xs text-blue-600">
+                    {rowsWithLTR} rows with LTR data
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-lg shadow-sm px-4 py-4">
+                  <div className="text-xs font-semibold text-green-700 uppercase tracking-wide mb-1">
+                    Average LTR (Column L)
+                  </div>
+                  <div className="text-3xl font-bold text-green-900 mb-1">
+                    {avgLTR != null ? (
+                      <CountUpNumber value={avgLTR} duration={1.2} decimals={2} />
+                    ) : (
+                      '—'
+                    )}
+                  </div>
+                  <div className="text-xs text-green-600">
+                    From {rowsWithLTR} values in column L
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-lg shadow-sm px-4 py-4">
+                  <div className="text-xs font-semibold text-purple-700 uppercase tracking-wide mb-1">
+                    Average Craft Score
+                  </div>
+                  <div className="text-3xl font-bold text-purple-900 mb-1">
+                    {avgCraft != null ? (
+                      <CountUpNumber value={avgCraft} duration={1.2} decimals={2} />
+                    ) : (
+                      '—'
+                    )}
+                  </div>
+                  <div className="text-xs text-purple-600">
+                    From {craftScores.length} values in Excel file
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 rounded-lg shadow-sm px-4 py-4">
+                  <div className="text-xs font-semibold text-orange-700 uppercase tracking-wide mb-1">
+                    Top Labor Category
+                  </div>
+                  <div className="text-2xl font-bold text-orange-900 mb-1">
+                    {topCategory ? (
+                      <>
+                        {topCategory[0]}
+                      </>
+                    ) : (
+                      '—'
+                    )}
+                  </div>
+                  <div className="text-xs text-orange-600">
+                    {topCategory ? `${topCategory[1]} surveys` : 'No data'}
+                  </div>
+                </div>
+              </div>
+            )
+          })()}
 
           {/* Filters */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

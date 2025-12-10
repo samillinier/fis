@@ -59,8 +59,8 @@ export default function LaborVendorReport({ selectedWorkroom }: LaborVendorRepor
   return (
     <div className="space-y-6">
       <div className="mb-6">
-        <h2 className="text-3xl font-bold mb-2">Total Sales and Vendor Debit $ by Workroom</h2>
-        <p className="text-gray-600">Total sales and vendor debit costs per workroom</p>
+        <h2 className="text-3xl font-bold mb-2">Sales and Vendor Debit $ by Workroom</h2>
+        <p className="text-gray-600">Sales and vendor debit costs per workroom</p>
       </div>
 
       <div className="flex items-center justify-end mb-6 space-x-4">
@@ -103,7 +103,7 @@ export default function LaborVendorReport({ selectedWorkroom }: LaborVendorRepor
         ) : (
           <div style={{ height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', color: '#6b7280' }}>
             <p style={{ fontSize: '1rem', fontWeight: 500, marginBottom: '0.5rem' }}>No Cost Data Available</p>
-            <p style={{ fontSize: '0.875rem' }}>Upload a T1/T2 scorecard file with Total Sales and Vendor Debit data to see cost breakdowns.</p>
+            <p style={{ fontSize: '0.875rem' }}>Upload a T1/T2 scorecard file with Sales and Vendor Debit data to see cost breakdowns.</p>
           </div>
         )}
       </div>
