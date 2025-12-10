@@ -5,7 +5,7 @@ import Sidebar from '@/components/Sidebar'
 import NotificationContainer from '@/components/NotificationContainer'
 import { useFilters } from '@/components/FilterContext'
 import { useAuth } from '@/components/AuthContext'
-import { LogOut, User } from 'lucide-react'
+import { LogOut, User, UserCog } from 'lucide-react'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -13,12 +13,16 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const { selectedWorkroom, setSelectedWorkroom, excludeCycleTime, setExcludeCycleTime } = useFilters()
-  const { user, logout } = useAuth()
+  const { user, logout, isAdmin, accessRequests } = useAuth()
   const router = useRouter()
 
   const handleLogout = () => {
     logout()
     router.push('/signin')
+  }
+
+  const handleProfile = () => {
+    router.push('/profile')
   }
 
   return (
@@ -37,23 +41,50 @@ export default function Layout({ children }: LayoutProps) {
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             {user && (
               <div className="user-menu-container">
-                <div className="user-name-display" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#374151', fontSize: '1rem', cursor: 'pointer' }}>
+                <div
+                  className="user-name-display"
+                  onClick={isAdmin ? handleProfile : undefined}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    color: '#374151',
+                    fontSize: '1rem',
+                    cursor: isAdmin ? 'pointer' : 'default',
+                  }}
+                >
                   {user.photoUrl ? (
-                    <img 
-                      src={user.photoUrl} 
+                    <img
+                      src={user.photoUrl}
                       alt={user.name || user.email}
                       className="user-profile-photo"
                     />
                   ) : (
                     <User size={28} />
                   )}
-                  <span style={{ fontSize: '1rem', fontWeight: 500 }}>{user.name || user.email}</span>
-                  <svg className="dropdown-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M2 4L6 8L10 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <span style={{ fontSize: '1rem', fontWeight: 500 }}>
+                    {user.name || user.email}
+                  </span>
+                  <svg
+                    className="dropdown-arrow"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 12 12"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M2 4L6 8L10 4"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
                 </div>
                 <div className="logout-dropdown-menu">
                   <button
+                    type="button"
                     onClick={handleLogout}
                     className="logout-button-hover"
                   >
@@ -76,6 +107,14 @@ export default function Layout({ children }: LayoutProps) {
         />
 
         <main className="dashboard-main">
+          {isAdmin && accessRequests.length > 0 && (
+            <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-amber-900 shadow-sm">
+              <div className="font-semibold">New access requests</div>
+              <div className="text-sm">
+                {accessRequests.length} pending request{accessRequests.length > 1 ? 's' : ''}. Open Profile to review.
+              </div>
+            </div>
+          )}
           {children}
         </main>
       </div>
@@ -90,4 +129,3 @@ export default function Layout({ children }: LayoutProps) {
     </div>
   )
 }
-

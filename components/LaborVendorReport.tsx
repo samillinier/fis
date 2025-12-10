@@ -59,13 +59,13 @@ export default function LaborVendorReport({ selectedWorkroom }: LaborVendorRepor
   return (
     <div className="space-y-6">
       <div className="mb-6">
-        <h2 className="text-3xl font-bold mb-2">Labor PO $ and Vendor Debit $ by Workroom</h2>
-        <p className="text-gray-600">Labor purchase orders and vendor debit costs per workroom</p>
+        <h2 className="text-3xl font-bold mb-2">Total Sales and Vendor Debit $ by Workroom</h2>
+        <p className="text-gray-600">Total sales and vendor debit costs per workroom</p>
       </div>
 
       <div className="flex items-center justify-end mb-6 space-x-4">
         <div className="bg-black text-white px-4 py-2 rounded-lg">
-          <div className="text-sm text-gray-300">Total Labor PO</div>
+          <div className="text-sm text-gray-300">Total Sales</div>
           <div className="text-lg font-semibold">${totalLaborPO.toLocaleString()}</div>
         </div>
         <div className="bg-gray-800 text-white px-4 py-2 rounded-lg">
@@ -96,14 +96,14 @@ export default function LaborVendorReport({ selectedWorkroom }: LaborVendorRepor
               }}
             />
             <Legend />
-            <Bar dataKey="laborPO" fill="#0f766e" name="Labor PO ($)" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="laborPO" fill="#0f766e" name="Total Sales ($)" radius={[4, 4, 0, 0]} />
             <Bar dataKey="vendorDebit" fill="#f97316" name="Vendor Debit ($)" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
         ) : (
           <div style={{ height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', color: '#6b7280' }}>
             <p style={{ fontSize: '1rem', fontWeight: 500, marginBottom: '0.5rem' }}>No Cost Data Available</p>
-            <p style={{ fontSize: '0.875rem' }}>Upload a T1/T2 scorecard file with Labor PO and Vendor Debit data to see cost breakdowns.</p>
+            <p style={{ fontSize: '0.875rem' }}>Upload a T1/T2 scorecard file with Total Sales and Vendor Debit data to see cost breakdowns.</p>
           </div>
         )}
       </div>

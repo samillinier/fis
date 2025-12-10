@@ -1,0 +1,41 @@
+Section,Metric,Formula / Calculation,Notes
+Visual Breakdown,LTR %,(Labor PO / Sales) * 100,Shows labor cost as % of sales
+Visual Breakdown,Total Cost,Labor PO + Vendor Debit,Used across breakdowns
+Visual Breakdown,Workroom Share,Workroom records / Total records,Records limited to filtered selection
+Visual Breakdown,Category Totals,"Sum of Sales, Labor PO, Vendor Debit (filtered)",Feeds bar/pie charts
+Visual Breakdown,Store Totals,"Per store: sum Sales, sum Total Cost, record count",Sorted by sales (top 15)
+Visual Breakdown,WPI (with Sales),"Efficiency = Sales / Total Cost; MarginRate = (Sales - Total Cost) / Total Cost; CycleTimeFactor = max(0, 1 - CycleTime/30); WPI = min(100, Efficiency * 10 * (0.7 + 0.3 * CycleTimeFactor) * (1 + MarginRate))",If no cycle time: WPI = min(100, Efficiency * 10 * (1 + MarginRate))
+Visual Breakdown,WPI (no Sales),"AvgCostPerRecord = Total Cost / Records; CostEfficiency = clamp(0,100,150 - (AvgCostPerRecord / 100)); LaborBonus = (Labor PO / Total Cost) * 30; CycleTimeBonus = max(0, (30 - CycleTime)/2); StoreBonus = min(#stores * 3, 20); RecordBonus = min(records/10, 15); WPI = min(100, 0.4*CostEfficiency + LaborBonus + CycleTimeBonus + StoreBonus + RecordBonus)",Covers cost/ops when sales missing
+Data Upload,Parsed Fields (visual),"Workroom, Store/Location, Sales, Labor PO, Vendor Debit, Cycle Time",From Visual/Labor uploads (Excel/CSV/JSON)
+Data Upload,Parsed Fields (survey),"Workroom, Store, Survey Date, Survey Comment, Labor Category, LTR/Craft/Prof scores, RHIS, Time To Complete, Project Value, Installer Knowledge",From Survey uploads (Excel/CSV/JSON)
+Survey / Scores,LTR Average,Average of LTR scores per workroom/period when present,Shown in survey-related views
+Survey / Scores,Score Totals,"Per survey row: LTR, Craft, Prof, RHIS, Time To Complete, Project Value, Installer Knowledge captured as-is",Used for survey insights tables
+Survey / Scores,Survey Counts,# survey records per workroom/period,Used for counts in survey views
+Performance Index,Total Cost,Labor PO + Vendor Debit,Base cost measure
+Performance Index,Efficiency,Sales / Total Cost (if total cost > 0),Driving factor for index
+Performance Index,Performance Index (no cycle),"min(100, Efficiency * 10)",When cycle time excluded or missing
+Performance Index,Performance Index (with cycle),"min(100, Efficiency * 10 * (0.7 + 0.3 * (1 - CycleTime/30)))",Penalizes high cycle time
+Performance Index,Average Performance,Mean of all calculated indices,Displayed in header
+Historical Analytics,Sales/Labor/Vendor Totals,Sums across selected period (weekly averages; monthly/yearly totals),Aggregated per workroom
+Historical Analytics,LTR Average,sum(ltrScore)/count(ltrScore) for entries with LTR,Per workroom
+Historical Analytics,Records Count,# records with visual data (sales/labor/vendor) per workroom,Used for filtering survey-only rows
+Historical Analytics,Per-period Display,"Weekly: averages per entry; Monthly/Yearly: totals",Shown in charts/tables
+Auth & Roles,Authorized User Check,"User email must be in allow-list; isActive !== false",Local allow-list enforced on login
+Auth & Roles,Role Enforcement,"Sidebar admin-only pages hidden for non-admin; ProtectedRoute redirects non-admins away from admin pages",Visual Breakdown remains accessible to all authenticated users
+Auth & Roles,Access Requests,"If not allowed, an access request is stored (email, name, source, timestamp)",Shown in Profile > Access Requests for admin approval
+Activity Log,Recorded Actions,"Updated dashboard data; Cleared dashboard data; Saved historical snapshot; Deleted historical entry; Cleared all historical data",Stored locally with user email/name and timestamp
+Section,Metric,Formula / Calculation,Notes
+Visual Breakdown,LTR %,(Labor PO / Sales) * 100,Shows labor cost as % of sales
+Visual Breakdown,Total Cost,Labor PO + Vendor Debit,Used across breakdowns
+Visual Breakdown,Workroom Share,Workroom records / Total records,Records limited to filtered selection
+Visual Breakdown,Category Totals,"Sum of Sales, Labor PO, Vendor Debit (filtered)",Feeds bar/pie charts
+Visual Breakdown,Store Totals,"Per store: sum Sales, sum Total Cost, record count",Sorted by sales (top 15)
+Visual Breakdown,WPI (with Sales),"Efficiency = Sales / Total Cost; MarginRate = (Sales - Total Cost) / Total Cost; CycleTimeFactor = max(0, 1 - CycleTime/30); WPI = min(100, Efficiency * 10 * (0.7 + 0.3 * CycleTimeFactor) * (1 + MarginRate))",If no cycle time: WPI = min(100, Efficiency * 10 * (1 + MarginRate))
+Visual Breakdown,WPI (no Sales),"AvgCostPerRecord = Total Cost / Records; CostEfficiency = clamp(0,100,150 - (AvgCostPerRecord / 100)); LaborBonus = (Labor PO / Total Cost) * 30; CycleTimeBonus = max(0, (30 - CycleTime)/2); StoreBonus = min(#stores * 3, 20); RecordBonus = min(records/10, 15); WPI = min(100, 0.4*CostEfficiency + LaborBonus + CycleTimeBonus + StoreBonus + RecordBonus)",Covers cost/ops when sales missing
+Data Upload,Parsed Fields (visual),"Workroom, Store/Location, Sales, Labor PO, Vendor Debit, Cycle Time",From Visual/Labor uploads (Excel/CSV/JSON)
+Data Upload,Parsed Fields (survey),"Workroom, Store, Survey Date, Survey Comment, Labor Category, LTR/Craft/Prof scores, RHIS, Time To Complete, Project Value, Installer Knowledge",From Survey uploads (Excel/CSV/JSON)
+Auth & Roles,Authorized User Check,"User email must be in allow-list; isActive !== false",Local allow-list enforced on login
+Auth & Roles,Role Enforcement,"Sidebar admin-only pages hidden for non-admin; ProtectedRoute redirects non-admins away from admin pages",Visual Breakdown remains accessible to all authenticated users
+Auth & Roles,Access Requests,"If not allowed, an access request is stored (email, name, source, timestamp)",Shown in Profile > Access Requests for admin approval
+Activity Log,Recorded Actions,"Updated dashboard data; Cleared dashboard data; Saved historical snapshot; Deleted historical entry; Cleared all historical data",Stored locally with user email/name and timestamp
+

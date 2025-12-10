@@ -7,15 +7,44 @@ interface User {
   email: string
   name: string
   photoUrl?: string
+  role?: 'admin' | 'user'
+  lastLoginAt?: string
+}
+
+interface AuthorizedUser {
+  email: string
+  name?: string
+  role?: 'admin' | 'user'
+  isActive?: boolean
+  createdAt?: string
+  createdBy?: string
+  lastLoginAt?: string
+}
+
+interface AccessRequest {
+  email: string
+  name?: string
+  requestedAt: string
+  source: 'microsoft' | 'signup' | 'login'
 }
 
 interface AuthContextType {
   user: User | null
   isAuthenticated: boolean
-  login: (email: string, password: string) => Promise<boolean>
-  signup: (name: string, email: string, password: string) => Promise<boolean>
+  isAuthorized: boolean
+  isAdmin: boolean
+  authorizedUsers: AuthorizedUser[]
+  accessRequests: AccessRequest[]
+  addAuthorizedUser: (email: string, name?: string) => boolean
+  removeAuthorizedUser: (email: string) => boolean
+  approveAccessRequest: (email: string) => boolean
+  rejectAccessRequest: (email: string) => void
+  setUserRole: (email: string, role: 'admin' | 'user') => boolean
+  requestAccess: (email: string, name?: string, source?: 'microsoft' | 'signup' | 'login') => boolean
+  login: (email: string, password: string) => Promise<{ success: boolean; needsAccess?: { email: string; name?: string } }>
+  signup: (name: string, email: string, password: string) => Promise<{ success: boolean; needsAccess?: { email: string; name?: string } }>
   logout: () => void
-  loginWithMicrosoft: () => Promise<boolean>
+  loginWithMicrosoft: () => Promise<{ success: boolean; needsAccess?: { email: string; name?: string } }>
   isLoading: boolean
 }
 
@@ -25,10 +54,80 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [msalInstance, setMsalInstance] = useState<PublicClientApplication | null>(null)
+  const [authorizedUsers, setAuthorizedUsers] = useState<AuthorizedUser[]>([])
+  const [accessRequests, setAccessRequests] = useState<AccessRequest[]>([])
+
+  const SUPER_ADMIN_EMAIL = 'sbiru@fiscorponline.com'
+
+  const saveAuthorizedUsers = (users: AuthorizedUser[]) => {
+    setAuthorizedUsers(users)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('fis-authorized-users', JSON.stringify(users))
+    }
+  }
+
+  const saveAccessRequests = (requests: AccessRequest[]) => {
+    setAccessRequests(requests)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('fis-access-requests', JSON.stringify(requests))
+    }
+  }
+
+  const ensureSuperAdmin = (list: AuthorizedUser[]): AuthorizedUser[] => {
+    const normalizedSuper = SUPER_ADMIN_EMAIL.toLowerCase()
+
+    const updatedList = list.map((u) =>
+      u.email.toLowerCase() === normalizedSuper
+        ? {
+            ...u,
+            role: 'admin',
+            isActive: true,
+          }
+        : u
+    )
+
+    if (updatedList.some((u) => u.email.toLowerCase() === normalizedSuper)) {
+      return updatedList
+    }
+
+    const now = new Date().toISOString()
+    return [
+      {
+        email: SUPER_ADMIN_EMAIL,
+        role: 'admin',
+        isActive: true,
+        createdAt: now,
+      },
+      ...updatedList,
+    ]
+  }
 
   useEffect(() => {
-    // Check for existing session on mount
     if (typeof window !== 'undefined') {
+      const storedAuthorized = localStorage.getItem('fis-authorized-users')
+      if (storedAuthorized) {
+        try {
+          const parsed = ensureSuperAdmin(JSON.parse(storedAuthorized))
+          setAuthorizedUsers(parsed)
+        } catch (error) {
+          console.error('Error parsing authorized users:', error)
+          saveAuthorizedUsers(ensureSuperAdmin([]))
+        }
+      } else {
+        saveAuthorizedUsers(ensureSuperAdmin([]))
+      }
+
+      const storedRequests = localStorage.getItem('fis-access-requests')
+      if (storedRequests) {
+        try {
+          const parsed: AccessRequest[] = JSON.parse(storedRequests)
+          setAccessRequests(parsed)
+        } catch (error) {
+          console.error('Error parsing access requests:', error)
+          saveAccessRequests([])
+        }
+      }
+
       const storedUser = localStorage.getItem('fis-user')
       if (storedUser) {
         try {
@@ -42,38 +141,231 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false)
   }, [])
 
-  const login = async (email: string, password: string): Promise<boolean> => {
-    // Simulate API call - in production, this would call your backend
+  const isAdmin =
+    user?.email?.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase() || user?.role === 'admin'
+
+  const isAuthorized =
+    !!user &&
+    authorizedUsers.some((u) => {
+      if (u.email.toLowerCase() !== (user?.email || '').toLowerCase()) return false
+      return u.isActive !== false
+    })
+
+  const addAuthorizedUser = (email: string, name?: string): boolean => {
+    if (!isAdmin) return false
+    const normalizedEmail = email.trim().toLowerCase()
+    if (!normalizedEmail) return false
+    const exists = authorizedUsers.some((u) => u.email.toLowerCase() === normalizedEmail)
+    if (exists) return false
+
+    const now = new Date().toISOString()
+    const createdBy = user?.email
+
+    const updated: AuthorizedUser[] = [
+      ...authorizedUsers,
+      {
+        email: normalizedEmail,
+        name: name?.trim(),
+        role: 'user',
+        isActive: true,
+        createdAt: now,
+        createdBy,
+      },
+    ]
+    saveAuthorizedUsers(ensureSuperAdmin(updated))
+    return true
+  }
+
+  const approveAccessRequest = (email: string): boolean => {
+    const normalizedEmail = email.trim().toLowerCase()
+    const request = accessRequests.find(
+      (r) => r.email.toLowerCase() === normalizedEmail
+    )
+
+    const success = addAuthorizedUser(email, request?.name)
+    if (!success) return false
+
+    const remaining = accessRequests.filter(
+      (r) => r.email.toLowerCase() !== normalizedEmail
+    )
+    saveAccessRequests(remaining)
+    return true
+  }
+
+  const rejectAccessRequest = (email: string) => {
+    const normalizedEmail = email.trim().toLowerCase()
+    const remaining = accessRequests.filter(
+      (r) => r.email.toLowerCase() !== normalizedEmail
+    )
+    saveAccessRequests(remaining)
+  }
+
+  const requestAccess = (email: string, name?: string, source: 'microsoft' | 'signup' | 'login' = 'login'): boolean => {
+    const normalizedEmail = email.trim().toLowerCase()
+    if (!normalizedEmail) return false
+
+    const now = new Date().toISOString()
+    const existingIndex = accessRequests.findIndex(
+      (r) => r.email.toLowerCase() === normalizedEmail
+    )
+
+    let updated: AccessRequest[]
+    if (existingIndex >= 0) {
+      updated = accessRequests.map((r, idx) =>
+        idx === existingIndex
+          ? {
+              ...r,
+              name: r.name || name,
+              requestedAt: now,
+              source,
+            }
+          : r
+      )
+    } else {
+      updated = [
+        ...accessRequests,
+        {
+          email: normalizedEmail,
+          name: name?.trim(),
+          requestedAt: now,
+          source,
+        },
+      ]
+    }
+    saveAccessRequests(updated)
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(
+        'fis-latest-access-request',
+        JSON.stringify({
+          email: normalizedEmail,
+          name: name?.trim(),
+          requestedAt: now,
+          source,
+        })
+      )
+    }
+    return true
+  }
+
+  const removeAuthorizedUser = (email: string): boolean => {
+    if (!isAdmin) return false
+    const normalizedEmail = email.toLowerCase()
+    if (normalizedEmail === SUPER_ADMIN_EMAIL.toLowerCase()) return false
+    const updated = authorizedUsers.filter((u) => u.email.toLowerCase() !== normalizedEmail)
+    saveAuthorizedUsers(ensureSuperAdmin(updated))
+    return true
+  }
+
+  const setUserRole = (email: string, role: 'admin' | 'user'): boolean => {
+    if (!isAdmin) return false
+    const normalizedEmail = email.trim().toLowerCase()
+    if (!normalizedEmail) return false
+
+    let found = false
+    const updated = authorizedUsers.map((u) => {
+      if (u.email.toLowerCase() !== normalizedEmail) return u
+
+      found = true
+
+      // Super admin is always admin
+      if (u.email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase()) {
+        return {
+          ...u,
+          role: 'admin',
+        }
+      }
+
+      return {
+        ...u,
+        role,
+      }
+    })
+
+    if (!found) return false
+    saveAuthorizedUsers(ensureSuperAdmin(updated))
+    return true
+  }
+
+  const markUserLogin = (email: string) => {
+    const normalized = email.toLowerCase()
+    const now = new Date().toISOString()
+    const updated = authorizedUsers.map((u) =>
+      u.email.toLowerCase() === normalized
+        ? {
+            ...u,
+            lastLoginAt: now,
+          }
+        : u
+    )
+    saveAuthorizedUsers(ensureSuperAdmin(updated))
+
+    setUser((prev) =>
+      prev && prev.email.toLowerCase() === normalized
+        ? {
+            ...prev,
+            lastLoginAt: now,
+          }
+        : prev
+    )
+  }
+
+  const login = async (email: string, password: string): Promise<{ success: boolean; needsAccess?: { email: string; name?: string } }> => {
     await new Promise((resolve) => setTimeout(resolve, 500))
 
-    // Simple validation - in production, validate against your backend
     const storedUsers = localStorage.getItem('fis-users')
     if (storedUsers) {
       const users = JSON.parse(storedUsers)
       const foundUser = users.find((u: any) => u.email === email && u.password === password)
       if (foundUser) {
-        const userData = { email: foundUser.email, name: foundUser.name }
+        const authorizedEntry = authorizedUsers.find(
+          (u) => u.email.toLowerCase() === foundUser.email.toLowerCase()
+        )
+        if (!authorizedEntry || authorizedEntry.isActive === false) {
+          // Return info that user needs to request access
+          return {
+            success: false,
+            needsAccess: {
+              email: foundUser.email,
+              name: foundUser.name,
+            },
+          }
+        }
+
+        const isSuperAdmin =
+          foundUser.email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase()
+        const now = new Date().toISOString()
+        const userData: User = {
+          email: foundUser.email,
+          name: foundUser.name,
+          role: isSuperAdmin ? 'admin' : authorizedEntry.role || 'user',
+          lastLoginAt: now,
+        }
         setUser(userData)
         localStorage.setItem('fis-user', JSON.stringify(userData))
-        return true
+        markUserLogin(foundUser.email)
+        return { success: true }
       }
     }
-    return false
+    return { success: false }
   }
 
-  const loginWithMicrosoft = async (): Promise<boolean> => {
+  const loginWithMicrosoft = async (): Promise<{ success: boolean; needsAccess?: { email: string; name?: string } }> => {
     if (typeof window === 'undefined') return false
 
     try {
       const clientId = process.env.NEXT_PUBLIC_MSAL_CLIENT_ID
-      // Use 'common' to allow multi-tenant access (users from any Azure AD tenant)
       const tenantId = process.env.NEXT_PUBLIC_MSAL_TENANT_ID || 'common'
 
       if (!clientId) {
-        const errorMsg = 'Microsoft login is not configured. Please set NEXT_PUBLIC_MSAL_CLIENT_ID in Vercel environment variables.'
+        const errorMsg =
+          'Microsoft login is not configured. Please set NEXT_PUBLIC_MSAL_CLIENT_ID in Vercel environment variables.'
         console.error(errorMsg)
-        alert(errorMsg + '\n\nCheck: Vercel Dashboard → Settings → Environment Variables')
-        return false
+        alert(
+          errorMsg +
+            '\n\nCheck: Vercel Dashboard → Settings → Environment Variables'
+        )
+        return { success: false }
       }
 
       let instance = msalInstance
@@ -82,7 +374,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           auth: {
             clientId,
             authority: `https://login.microsoftonline.com/${tenantId}`,
-            redirectUri: typeof window !== 'undefined' ? window.location.origin + '/signin' : '/signin',
+            redirectUri:
+              typeof window !== 'undefined'
+                ? window.location.origin + '/signin'
+                : '/signin',
           },
         })
         await instance.initialize()
@@ -91,16 +386,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const accounts = instance.getAllAccounts()
       let result: AuthenticationResult
-      
+
       if (accounts.length > 0) {
-        // Silent token acquisition
         try {
           result = await instance.acquireTokenSilent({
             scopes: ['User.Read'],
             account: accounts[0],
           })
         } catch (error) {
-          // Fall back to popup if silent fails
           result = await instance.loginPopup({
             scopes: ['User.Read'],
           })
@@ -112,42 +405,78 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           })
         } catch (popupError: any) {
           console.error('Popup login error:', popupError)
-          
-          // Check for specific errors
-          if (popupError.errorCode === 'popup_window_error' || popupError.message?.includes('popup')) {
-            alert('Popup was blocked. Please allow popups for this site and try again.')
-            return false
+
+          if (
+            popupError.errorCode === 'popup_window_error' ||
+            popupError.message?.includes('popup')
+          ) {
+            alert(
+              'Popup was blocked. Please allow popups for this site and try again.'
+            )
+            return { success: false }
           }
-          
-          if (popupError.errorCode?.includes('AADSTS500113') || popupError.message?.includes('reply address')) {
-            const redirectUri = window.location.origin + '/signin'
-            alert(`Redirect URI not configured in Azure Portal.\n\nPlease add this URI to Azure:\n${redirectUri}\n\nSee: Azure Portal → App Registrations → "FIS POD" → Authentication`)
-            return false
+
+          if (
+            popupError.errorCode?.includes('AADSTS500113') ||
+            popupError.message?.includes('reply address')
+          ) {
+            const redirectUri =
+              typeof window !== 'undefined'
+                ? window.location.origin + '/signin'
+                : '/signin'
+            alert(
+              `Redirect URI not configured in Azure Portal.\n\nPlease add this URI to Azure:\n${redirectUri}\n\nSee: Azure Portal → App Registrations → "FIS POD" → Authentication`
+            )
+            return { success: false }
           }
-          
-          alert(`Sign-in failed: ${popupError.message || popupError.errorCode || 'Unknown error'}\n\nCheck browser console (F12) for details.`)
-          return false
+
+          alert(
+            `Sign-in failed: ${
+              popupError.message || popupError.errorCode || 'Unknown error'
+            }\n\nCheck browser console (F12) for details.`
+          )
+          return { success: false }
         }
       }
 
       const account: AccountInfo | null = result.account
       if (account) {
+        const authorizedEntry = authorizedUsers.find(
+          (u) => u.email.toLowerCase() === account.username.toLowerCase()
+        )
+        if (!authorizedEntry || authorizedEntry.isActive === false) {
+          // Return info that user needs to request access
+          return {
+            success: false,
+            needsAccess: {
+              email: account.username,
+              name: account.name || account.username,
+            },
+          }
+        }
+
+        const isSuperAdmin =
+          account.username.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase()
+        const now = new Date().toISOString()
         const userData: User = {
           email: account.username,
-          name: account.name || account.username,
+          name: authorizedEntry.name || account.name || account.username,
+          role: authorizedEntry.role || (isSuperAdmin ? 'admin' : 'user'),
+          lastLoginAt: now,
         }
-        
-        // Fetch profile photo from Microsoft Graph
+
         try {
-          const photoResponse = await fetch('https://graph.microsoft.com/v1.0/me/photo/$value', {
-            headers: {
-              'Authorization': `Bearer ${result.accessToken}`,
-            },
-          })
-          
+          const photoResponse = await fetch(
+            'https://graph.microsoft.com/v1.0/me/photo/$value',
+            {
+              headers: {
+                Authorization: `Bearer ${result.accessToken}`,
+              },
+            }
+          )
+
           if (photoResponse.ok) {
             const photoBlob = await photoResponse.blob()
-            // Convert blob to base64 for storage
             const base64String = await new Promise<string>((resolve, reject) => {
               const reader = new FileReader()
               reader.onloadend = () => resolve(reader.result as string)
@@ -158,58 +487,91 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         } catch (error) {
           console.log('Could not fetch profile photo:', error)
-          // Continue without photo if fetch fails
         }
-        
+
         setUser(userData)
         localStorage.setItem('fis-user', JSON.stringify(userData))
-        return true
+        markUserLogin(account.username)
+        return { success: true }
       }
-      return false
+      return { success: false }
     } catch (error: any) {
       console.error('Microsoft login failed:', error)
-      
-      // Provide helpful error messages
-      if (error.errorCode?.includes('AADSTS500113') || error.message?.includes('reply address')) {
-        const redirectUri = typeof window !== 'undefined' ? window.location.origin + '/signin' : '/signin'
-        alert(`Redirect URI not configured!\n\nAdd this to Azure Portal:\n${redirectUri}\n\nGo to: Azure Portal → App Registrations → "FIS POD" → Authentication → Single-page application`)
-      } else if (error.errorCode === 'popup_window_error' || error.message?.includes('popup')) {
+
+      if (
+        error.errorCode?.includes('AADSTS500113') ||
+        error.message?.includes('reply address')
+      ) {
+        const redirectUri =
+          typeof window !== 'undefined'
+            ? window.location.origin + '/signin'
+            : '/signin'
+        alert(
+          `Redirect URI not configured!\n\nAdd this to Azure Portal:\n${redirectUri}\n\nGo to: Azure Portal → App Registrations → "FIS POD" → Authentication → Single-page application`
+        )
+      } else if (
+        error.errorCode === 'popup_window_error' ||
+        error.message?.includes('popup')
+      ) {
         alert('Popup was blocked. Please allow popups for this site.')
       } else {
-        alert(`Sign-in error: ${error.message || error.errorCode || 'Unknown error'}\n\nCheck browser console (F12) for details.`)
+        alert(
+          `Sign-in error: ${
+            error.message || error.errorCode || 'Unknown error'
+          }\n\nCheck browser console (F12) for details.`
+        )
       }
-      
-      return false
+
+      return { success: false }
     }
   }
 
-  const signup = async (name: string, email: string, password: string): Promise<boolean> => {
-    // Simulate API call
+  const signup = async (name: string, email: string, password: string): Promise<{ success: boolean; needsAccess?: { email: string; name?: string } }> => {
     await new Promise((resolve) => setTimeout(resolve, 500))
 
-    // Store user data - in production, this would call your backend
     const storedUsers = localStorage.getItem('fis-users')
     const users = storedUsers ? JSON.parse(storedUsers) : []
-    
-    // Check if user already exists
+
     if (users.some((u: any) => u.email === email)) {
       return false
     }
 
-    // Add new user
     users.push({ name, email, password })
     localStorage.setItem('fis-users', JSON.stringify(users))
 
-    // Auto-login after signup
-    const userData = { email, name }
+    const authorizedEntry = authorizedUsers.find(
+      (u) => u.email.toLowerCase() === email.toLowerCase()
+    )
+    if (!authorizedEntry || authorizedEntry.isActive === false) {
+      // Return info that user needs to request access
+      return {
+        success: false,
+        needsAccess: {
+          email,
+          name,
+        },
+      }
+    }
+
+    const isSuperAdmin = email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase()
+    const now = new Date().toISOString()
+    const userData: User = {
+      email,
+      name,
+      role: isSuperAdmin ? 'admin' : authorizedEntry.role || 'user',
+      lastLoginAt: now,
+    }
     setUser(userData)
     localStorage.setItem('fis-user', JSON.stringify(userData))
-    return true
+    markUserLogin(email)
+    return { success: true }
   }
 
   const logout = () => {
     setUser(null)
-    localStorage.removeItem('fis-user')
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('fis-user')
+    }
   }
 
   return (
@@ -217,6 +579,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         isAuthenticated: !!user,
+        isAuthorized,
+        isAdmin,
+        authorizedUsers,
+        accessRequests,
+        addAuthorizedUser,
+        removeAuthorizedUser,
+        approveAccessRequest,
+        rejectAccessRequest,
+        setUserRole,
+        requestAccess,
         login,
         signup,
         logout,
@@ -236,4 +608,5 @@ export function useAuth() {
   }
   return context
 }
+
 

@@ -128,7 +128,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
       color: '#000000',
     },
     {
-      name: 'Labor PO',
+      name: 'Total Sales',
       value: filteredData.reduce((sum, w) => sum + (w.laborPO || 0), 0),
       color: '#666666',
     },
@@ -506,7 +506,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
         operationalRisks.push(`Extended cycle time (${w.cycleTime.toFixed(0)} days)`)
       }
       if (avgLaborPOPerStore > 5000) {
-        operationalRisks.push('High Labor PO per store')
+        operationalRisks.push('High Total Sales per store')
       }
       
       // Financial Risk Rating
@@ -788,35 +788,51 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
           <h3 className="compact-section-title mb-4">Operational Metrics</h3>
           {(() => {
             // Calculate all metrics once
-            const jobsCompleted = filteredData.length
-            const jobsPending = filteredData.length > 0 ? Math.max(0, Math.floor(filteredData.length * 0.12)) : 0
-            const returnRedoJobs = filteredData.length > 0 ? Math.max(0, Math.floor(filteredData.length * 0.04)) : 0
+            // Jobs Completed: Sum of values from column T (Completed column)
+            const jobsCompleted = filteredData.reduce((sum, w) => {
+              const completedValue = w.completed != null && w.completed !== undefined ? Number(w.completed) : 0
+              return sum + completedValue
+            }, 0)
             
-            // Installation Quality
-            const avgCycleTime = filteredData.length > 0 
-              ? filteredData.reduce((sum, w) => sum + (w.cycleTime || 0), 0) / filteredData.length 
-              : 0
-            const installationQualityScore = avgCycleTime > 0 ? Math.max(75, 95 - (avgCycleTime / 2)) : 90
-            
-            // Customer Satisfaction
-            const totalSales = filteredData.reduce((sum, w) => sum + (w.sales || 0), 0)
-            const totalCost = filteredData.reduce((sum, w) => sum + (w.laborPO || 0) + (w.vendorDebit || 0), 0)
-            const marginRate = totalCost > 0 ? ((totalSales - totalCost) / totalCost) * 100 : 0
-            const customerSatisfactionScore = Math.min(100, Math.max(75, 82 + (marginRate / 5)))
-            
-            // Average Labor Hours
-            const laborData = filteredData.filter((w) => w.laborPO && w.laborPO > 0)
-            const avgLaborHours = laborData.length > 0
-              ? laborData.reduce((sum, w) => sum + ((w.laborPO || 0) / 50), 0) / laborData.length
+            // Average Cycle Time: Average of values from column AC
+            const cycleTimeData = filteredData.filter((w) => w.cycleTime != null && w.cycleTime !== undefined && w.cycleTime > 0)
+            const avgCycleTime = cycleTimeData.length > 0
+              ? cycleTimeData.reduce((sum, w) => sum + (w.cycleTime || 0), 0) / cycleTimeData.length
               : 0
             
-            // On-Time Completion Rate
-            const avgCycleTimeForRate = filteredData.length > 0
-              ? filteredData.reduce((sum, w) => sum + (w.cycleTime || 10), 0) / filteredData.length
-              : 10
-            const onTimeCompletionRate = avgCycleTimeForRate > 0 
-              ? Math.min(98, Math.max(80, 88 - (avgCycleTimeForRate * 0.8))) 
-              : 90
+            // Average Jobs Work Cycle Time: Average of values from column X
+            const jobsWorkCycleTimeData = filteredData.filter((w) => w.jobsWorkCycleTime != null && w.jobsWorkCycleTime !== undefined && w.jobsWorkCycleTime > 0)
+            const avgJobsWorkCycleTime = jobsWorkCycleTimeData.length > 0
+              ? jobsWorkCycleTimeData.reduce((sum, w) => sum + (w.jobsWorkCycleTime || 0), 0) / jobsWorkCycleTimeData.length
+              : 0
+            
+            // Average Reschedule Rate: Average of values from column AD
+            // Include all records with rescheduleRate data (including 0, 0.1, etc.)
+            const rescheduleRateData = filteredData.filter((w) => {
+              const value = w.rescheduleRate
+              return value != null && value !== undefined && !isNaN(Number(value))
+            })
+            const avgRescheduleRate = rescheduleRateData.length > 0
+              ? rescheduleRateData.reduce((sum, w) => sum + Number(w.rescheduleRate || 0), 0) / rescheduleRateData.length
+              : 0
+            
+            // Average Get it Right: Average of values from column AQ
+            const getItRightData = filteredData.filter((w) => {
+              const value = w.getItRight
+              return value != null && value !== undefined && !isNaN(Number(value))
+            })
+            const avgGetItRight = getItRightData.length > 0
+              ? getItRightData.reduce((sum, w) => sum + Number(w.getItRight || 0), 0) / getItRightData.length
+              : 0
+            
+            // Average Details Cycle Time: Average of values from column S
+            const detailsCycleTimeData = filteredData.filter((w) => {
+              const value = w.detailsCycleTime
+              return value != null && value !== undefined && !isNaN(Number(value))
+            })
+            const avgDetailsCycleTime = detailsCycleTimeData.length > 0
+              ? detailsCycleTimeData.reduce((sum, w) => sum + Number(w.detailsCycleTime || 0), 0) / detailsCycleTimeData.length
+              : 0
 
             return (
               <div style={{ 
@@ -833,32 +849,15 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   </div>
                 </div>
 
-                {/* Jobs Pending */}
+                {/* Work Cycle Time */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Jobs Pending</div>
+                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Work Cycle Time</div>
                   <div className="text-xl font-bold text-gray-900">
-                    <CountUpNumber value={jobsPending} duration={1500} decimals={0} />
-                  </div>
-                </div>
-
-                {/* Return/Redo Jobs */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Return/Redo Jobs</div>
-                  <div className="text-xl font-bold text-gray-900">
-                    <CountUpNumber value={returnRedoJobs} duration={1500} decimals={0} />
-                  </div>
-                </div>
-
-                {/* Installation Quality */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Installation Quality</div>
-                  <div className="text-xl font-bold text-gray-900">
-                    {filteredData.length > 0 ? (
+                    {avgCycleTime > 0 ? (
                       <CountUpNumber 
-                        value={installationQualityScore} 
+                        value={avgCycleTime} 
                         duration={1500} 
                         decimals={1} 
-                        suffix="%" 
                       />
                     ) : (
                       '—'
@@ -866,16 +865,15 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   </div>
                 </div>
 
-                {/* Customer Satisfaction */}
+                {/* Jobs Work Cycle Time */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Customer Satisfaction</div>
+                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Jobs Work Cycle Time</div>
                   <div className="text-xl font-bold text-gray-900">
-                    {filteredData.length > 0 ? (
+                    {avgJobsWorkCycleTime > 0 ? (
                       <CountUpNumber 
-                        value={customerSatisfactionScore} 
+                        value={avgJobsWorkCycleTime} 
                         duration={1500} 
                         decimals={1} 
-                        suffix="%" 
                       />
                     ) : (
                       '—'
@@ -883,16 +881,15 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   </div>
                 </div>
 
-                {/* Average Labor Hours */}
+                {/* Reschedule Rate */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Average Labor Hours</div>
+                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Reschedule Rate</div>
                   <div className="text-xl font-bold text-gray-900">
-                    {laborData.length > 0 ? (
+                    {avgRescheduleRate > 0 ? (
                       <CountUpNumber 
-                        value={avgLaborHours} 
+                        value={avgRescheduleRate} 
                         duration={1500} 
                         decimals={1} 
-                        suffix=" hrs" 
                       />
                     ) : (
                       '—'
@@ -900,16 +897,31 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   </div>
                 </div>
 
-                {/* On-Time Completion Rate */}
+                {/* Get it Right */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">On-Time Completion Rate</div>
+                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Get it Right</div>
                   <div className="text-xl font-bold text-gray-900">
-                    {filteredData.length > 0 ? (
+                    {getItRightData.length > 0 ? (
                       <CountUpNumber 
-                        value={onTimeCompletionRate} 
+                        value={avgGetItRight} 
                         duration={1500} 
                         decimals={1} 
-                        suffix="%" 
+                      />
+                    ) : (
+                      '—'
+                    )}
+                  </div>
+                </div>
+
+                {/* Details Cycle Time */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Details Cycle Time</div>
+                  <div className="text-xl font-bold text-gray-900">
+                    {detailsCycleTimeData.length > 0 ? (
+                      <CountUpNumber 
+                        value={avgDetailsCycleTime} 
+                        duration={1500} 
+                        decimals={1} 
                       />
                     ) : (
                       '—'
@@ -928,11 +940,11 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
         <section className="compact-section">
           <div className="compact-section-header">
             <h3 className="compact-section-title">Workrooms Most Responsible for Moving Your Business</h3>
-            <p className="text-xs text-gray-500 mt-1">Top Load (Labor PO $ Average) - Top 4 Workrooms</p>
+            <p className="text-xs text-gray-500 mt-1">Top Load (Total Sales Average) - Top 4 Workrooms</p>
           </div>
 
           <div className="compact-chart-container">
-            <h4 className="text-xs font-semibold mb-3 text-gray-700 uppercase tracking-wider">Labor PO $ Distribution</h4>
+            <h4 className="text-xs font-semibold mb-3 text-gray-700 uppercase tracking-wider">Total Sales Distribution</h4>
             {topLoadWorkrooms.length > 0 ? (
               <ResponsiveContainer width="100%" height={240}>
                 <PieChart>
@@ -976,7 +988,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                 <thead>
                   <tr>
                     <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Workroom</th>
-                    <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Avg Labor PO $</th>
+                    <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Avg Total Sales</th>
                     <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Records</th>
                   </tr>
                 </thead>
@@ -1032,7 +1044,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Workroom</th>
                   <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Stores</th>
                   <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>LTR%</th>
-                  <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Labor PO $</th>
+                  <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Total Sales</th>
                   <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Vendor Debits</th>
                   <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>WPI Score</th>
                 </tr>
@@ -1095,7 +1107,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
         <div className="compact-section-header">
           <h3 className="compact-section-title">Comprehensive Workroom Analysis Dashboard</h3>
           <p className="text-xs text-gray-500 mt-1">
-            Store Mix • LTR Performance • Labor PO Volume • Vendor Debit Exposure • Weighted Performance Score • Operational Risks • Financial Risk Rating • Fix This Now
+            Store Mix • LTR Performance • Total Sales Volume • Vendor Debit Exposure • Weighted Performance Score • Operational Risks • Financial Risk Rating • Fix This Now
           </p>
         </div>
 
@@ -1107,7 +1119,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', position: 'sticky', left: 0, backgroundColor: '#ffffff', zIndex: 10 }}>Workroom</th>
                   <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Store Mix</th>
                   <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>LTR Performance</th>
-                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Labor PO Volume</th>
+                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Total Sales Volume</th>
                   <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Vendor Debit Exposure</th>
                   <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Weighted Score</th>
                   <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Operational Risks</th>
@@ -1248,7 +1260,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
         <div className="compact-section-header">
           <h3 className="compact-section-title">Workroom Performance Index (WPI) by Workroom</h3>
           <p className="text-xs text-gray-500 mt-1">
-            Weighted using: 50% LTR • 30% Labor PO $ • 20% Vendor Debit discipline
+            Weighted using: 50% LTR • 30% Total Sales • 20% Vendor Debit discipline
           </p>
         </div>
 
@@ -1343,7 +1355,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   <tr>
                     <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'left' }}>Workroom</th>
                     <th align="center" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>WPI</th>
-                    <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Avg Labor PO $</th>
+                    <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Avg Total Sales</th>
                     <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Avg Vendor Debits</th>
                   </tr>
                 </thead>
@@ -1387,9 +1399,9 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
       {/* Average Labour PO $ by Workroom */}
       <section className="compact-section" style={{ marginTop: '1.5rem' }}>
         <div className="compact-section-header">
-          <h3 className="compact-section-title">Average Labour PO $ by Workroom</h3>
+          <h3 className="compact-section-title">Average Total Sales by Workroom</h3>
           <p className="text-xs text-gray-500 mt-1">
-            Average Labor PO per record across all workrooms
+            Average Total Sales per record across all workrooms
           </p>
         </div>
 
@@ -1416,7 +1428,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   interval={0}
                 />
                 <YAxis
-                  label={{ value: 'Avg Labor PO $', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#374151', fontSize: '0.75rem' } }}
+                  label={{ value: 'Avg Total Sales', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#374151', fontSize: '0.75rem' } }}
                   tick={{ fontSize: '0.7rem', fill: '#374151' }}
                   tickFormatter={(value) => `$${value.toLocaleString()}`}
                 />
@@ -1437,10 +1449,10 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                             Records: {data.records}
                           </p>
                           <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#1f2937', marginTop: '0.25rem' }}>
-                            Avg Labor PO $: {formatCurrency(data.avgLaborPO)}
+                            Avg Total Sales: {formatCurrency(data.avgLaborPO)}
                           </p>
                           <p style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>
-                            Total Labor PO $: {formatCurrency(data.totalLaborPO)}
+                            Total Sales: {formatCurrency(data.totalLaborPO)}
                           </p>
                         </div>
                       )
@@ -1469,7 +1481,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
             </ResponsiveContainer>
           ) : (
             <div style={{ textAlign: 'center', padding: '4rem 1rem', color: '#6b7280', fontSize: '0.875rem' }}>
-              Upload a T1/T2 scorecard to see average Labor PO by workroom.
+              Upload a T1/T2 scorecard to see average Total Sales by workroom.
             </div>
           )}
         </div>
@@ -1749,7 +1761,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   backgroundColor: '#f9fafb',
                   borderRadius: '0.375rem',
                 }}>
-                  <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: 500 }}>Labor PO Volume</div>
+                  <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: 500 }}>Total Sales Volume</div>
                   <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827', marginBottom: '0.25rem' }}>
                     {formatCurrency(selectedRiskWorkroom.laborPOVolume?.value || 0)}
                   </div>

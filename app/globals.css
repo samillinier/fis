@@ -657,3 +657,16 @@ body {
   margin-bottom: 1rem;
 }
 
+
+.profile-button {
+  color: #1f2937;
+  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+  border: 1px solid #e5e7eb;
+}
+
+.profile-button:hover {
+  color: #111827;
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  border-color: #d1d5db;
+  box-shadow: 0 12px 30px -8px rgba(0, 0, 0, 0.12);
+}

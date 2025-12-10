@@ -72,7 +72,7 @@ export default function StoreOverview() {
                 <th className="px-4 py-3 text-left font-semibold">Store #</th>
                 <th className="px-4 py-3 text-left font-semibold">Workroom</th>
                 <th className="px-4 py-3 text-right font-semibold">Sales</th>
-                <th className="px-4 py-3 text-right font-semibold">Labor PO</th>
+                <th className="px-4 py-3 text-right font-semibold">Total Sales</th>
                 <th className="px-4 py-3 text-right font-semibold">Vendor Debit</th>
                 <th className="px-4 py-3 text-right font-semibold">Total Cost</th>
               </tr>

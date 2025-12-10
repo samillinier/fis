@@ -3,6 +3,7 @@
 
 import type { DashboardData, WorkroomData } from '@/context/DataContext'
 import type { HistoricalDataEntry } from '@/data/historicalDataStorage'
+import { recordActivity } from '@/lib/activityLog'
 
 // Get user ID from auth
 function getUserId(): string | null {
@@ -64,6 +65,9 @@ export async function saveDashboardData(data: DashboardData): Promise<boolean> {
   // Always save to localStorage as backup
   saveToLocalStorage(data)
 
+  // Record who changed the dashboard data
+  recordActivity('Updated dashboard data')
+
   const authHeader = getAuthHeader()
   if (!authHeader) {
     // No auth - localStorage only
@@ -110,6 +114,9 @@ export async function clearDashboardData(): Promise<boolean> {
   if (typeof window !== 'undefined') {
     localStorage.removeItem('fis-dashboard-data')
   }
+
+  // Record clear action
+  recordActivity('Cleared dashboard data')
 
   const authHeader = getAuthHeader()
   if (!authHeader) {
@@ -206,6 +213,9 @@ export async function saveHistoricalData(
   // Always save to localStorage as backup
   saveHistoricalToLocalStorage(entry)
 
+  // Record snapshot save
+  recordActivity('Saved historical snapshot')
+
   const authHeader = getAuthHeader()
   if (!authHeader) {
     return entry
@@ -263,6 +273,9 @@ export async function deleteHistoricalData(id: string): Promise<boolean> {
     }
   }
 
+  // Record deletion
+  recordActivity('Deleted historical entry', `id=${id}`)
+
   const authHeader = getAuthHeader()
   if (!authHeader) {
     return true
@@ -293,6 +306,9 @@ export async function clearAllHistoricalData(): Promise<boolean> {
   if (typeof window !== 'undefined') {
     localStorage.removeItem('fis-historical-data')
   }
+
+  // Record clear all
+  recordActivity('Cleared all historical data')
 
   const authHeader = getAuthHeader()
   if (!authHeader) {

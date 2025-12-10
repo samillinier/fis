@@ -85,7 +85,7 @@ export default function SummaryPanel() {
 
         <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
           <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-            Total Labor PO
+            Total Sales
           </div>
           <div className="mt-2 text-2xl font-bold">
             {formatCurrency(summary.totalLaborPO)}

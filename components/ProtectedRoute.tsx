@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from './AuthContext'
 
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading } = useAuth()
+  const { isAuthenticated, isLoading, isAdmin } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
 
@@ -23,8 +23,25 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     // Redirect to sign in if not authenticated
     if (!isAuthenticated) {
       router.push('/signin')
+      return
     }
-  }, [isAuthenticated, isLoading, router, pathname])
+
+    // Restrict certain routes for non-admin users
+    if (!isAdmin) {
+      const adminOnlyPaths = [
+        '/analytics',
+        '/labor',
+        '/performance',
+        '/store',
+        '/workroom-summary',
+        '/survey-misc',
+        '/profile',
+      ]
+      if (adminOnlyPaths.includes(pathname)) {
+        router.push('/')
+      }
+    }
+  }, [isAuthenticated, isAdmin, isLoading, router, pathname])
 
   // Don't render children if not authenticated (except on auth pages)
   if (!isLoading && !isAuthenticated && pathname !== '/signin' && pathname !== '/signup') {

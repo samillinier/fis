@@ -256,7 +256,7 @@ export default function HistoricalAnalytics() {
     return comprehensiveAnalysisData.slice(0, 15).map((w) => ({
       workroom: w.name,
       'WPI Score': w.weightedPerformanceScore,
-      'Labor PO $': w.laborPO,
+      'Total Sales': w.laborPO,
       'Vendor Debit $': Math.abs(w.vendorDebit),
       'Sales $': w.sales,
       'LTR': w.avgLTR || null, // Only use survey LTR data, no fallback
@@ -854,7 +854,7 @@ export default function HistoricalAnalytics() {
                     }`}
                   >
                     <div className="font-semibold text-gray-900 mb-1">Visual Data</div>
-                    <div className="text-xs text-gray-600">Sales, Labor PO, Vendor Debit, Cycle Time</div>
+                    <div className="text-xs text-gray-600">Sales, Total Sales, Vendor Debit, Cycle Time</div>
                   </button>
                   <button
                     onClick={() => setUploadAnswers({ ...uploadAnswers, dataType: 'survey' })}
@@ -1073,11 +1073,11 @@ export default function HistoricalAnalytics() {
               <div className="text-sm font-medium text-green-100">Total records across all workrooms</div>
             </div>
 
-            {/* Labor PO $ Card */}
+            {/* Total Sales Card */}
             <div className="bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl p-6 shadow-lg transform transition-transform hover:scale-105 border-2 border-purple-400">
               <div className="mb-3">
                 <div className="text-xs font-bold text-purple-100 uppercase tracking-wider">
-                  Labor PO $
+                  Total Sales
                 </div>
               </div>
               <div className="text-4xl font-bold text-white mb-2">
@@ -1085,7 +1085,7 @@ export default function HistoricalAnalytics() {
                   comprehensiveAnalysisData.reduce((sum, w) => sum + w.laborPO, 0)
                 )}
               </div>
-              <div className="text-sm font-medium text-purple-100">Total Labor PO across all workrooms</div>
+              <div className="text-sm font-medium text-purple-100">Total Sales across all workrooms</div>
             </div>
 
             {/* Vendor Debits Card */}
@@ -1254,7 +1254,7 @@ export default function HistoricalAnalytics() {
                 <Tooltip formatter={(value: number) => value.toFixed(1)} />
                 <Legend wrapperStyle={{ fontSize: 11 }} />
                 <Bar dataKey="WPI Score" fill="#3b82f6" />
-                <Bar dataKey="Labor PO $" fill="#10b981" />
+                <Bar dataKey="Total Sales" fill="#10b981" />
                 <Bar dataKey="Vendor Debit $" fill="#ef4444" />
                 {period !== 'weekly' && <Bar dataKey="Sales $" fill="#f59e0b" />}
               </BarChart>
@@ -1271,7 +1271,7 @@ export default function HistoricalAnalytics() {
               Comprehensive Workroom Analysis Dashboard ({period} view)
             </h3>
             <p className="text-xs text-gray-500 mt-1">
-              Store Mix • LTR Performance • Labor PO Volume • Vendor Debit Exposure • Weighted Performance Score • Operational Risks • Financial Risk Rating
+              Store Mix • LTR Performance • Total Sales Volume • Vendor Debit Exposure • Weighted Performance Score • Operational Risks • Financial Risk Rating
             </p>
           </div>
           <div className="overflow-x-auto" style={{ maxHeight: '600px', overflowY: 'auto' }}>
@@ -1281,7 +1281,7 @@ export default function HistoricalAnalytics() {
                   <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', position: 'sticky', left: 0, backgroundColor: '#ffffff', zIndex: 10 }}>Workroom</th>
                   <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Store Mix</th>
                   <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>LTR Performance</th>
-                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Labor PO Volume</th>
+                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Total Sales Volume</th>
                   <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Vendor Debit Exposure</th>
                   <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Weighted Score</th>
                   <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Operational Risks</th>
@@ -1347,7 +1347,7 @@ export default function HistoricalAnalytics() {
                     else ltrRating = 'Critical'
                   }
 
-                  // Labor PO Volume
+                  // Total Sales Volume
                   let laborPOVolume = 'Low'
                   if (laborPOContribution >= 15) laborPOVolume = 'Very High'
                   else if (laborPOContribution >= 10) laborPOVolume = 'High'

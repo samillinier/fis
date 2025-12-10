@@ -27,6 +27,11 @@ export interface WorkroomData {
   craftScore?: number
   profScore?: number
   professionalScore?: number
+  completed?: number
+  jobsWorkCycleTime?: number
+  rescheduleRate?: number
+  getItRight?: number
+  detailsCycleTime?: number
   [key: string]: any
 }
 

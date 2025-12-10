@@ -68,7 +68,7 @@ export default function Dashboard() {
                 activeView === 'labor' ? 'sidebar-nav-button--active' : ''
               }`}
             >
-              Labor PO &amp; Vendor Debit
+              Total Sales &amp; Vendor Debit
             </button>
             <button
               onClick={() => setActiveView('performance')}

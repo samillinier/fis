@@ -95,9 +95,26 @@ export default function DualFileUpload() {
     const vendorDebitIdx = headers.findIndex(
       (h) => typeof h === 'string' && (h.includes('vendor debits') || h.includes('vendor debit'))
     )
-    const cycleTimeIdx = headers.findIndex(
+    // Use column AC (index 28) for Cycle Time data
+    // Column AC is the 29th column (A=0, B=1, ..., AC=28)
+    const cycleTimeIdx = headers.length > 28 ? 28 : headers.findIndex(
       (h) => typeof h === 'string' && h.includes('cycle time')
     )
+    // Use column T (index 19) for Completed data in Excel files
+    // Column T is the 20th column (A=0, B=1, ..., T=19)
+    const completedIdx = headers.length > 19 ? 19 : -1
+    // Use column X (index 23) for Jobs Work Cycle Time data
+    // Column X is the 24th column (A=0, B=1, ..., X=23)
+    const jobsWorkCycleTimeIdx = headers.length > 23 ? 23 : -1
+    // Use column AD (index 29) for Reschedule Rate data
+    // Column AD is the 30th column (A=0, B=1, ..., AD=29)
+    const rescheduleRateIdx = headers.length > 29 ? 29 : -1
+    // Use column AQ (index 42) for Get it Right data
+    // Column AQ is the 43rd column (A=0, B=1, ..., AQ=42)
+    const getItRightIdx = headers.length > 42 ? 42 : -1
+    // Use column S (index 18) for Details Cycle Time data
+    // Column S is the 19th column (A=0, B=1, ..., S=18)
+    const detailsCycleTimeIdx = headers.length > 18 ? 18 : -1
 
     const workrooms: WorkroomData[] = []
 
@@ -140,6 +157,43 @@ export default function DualFileUpload() {
 
       if (cycleTimeIdx >= 0 && row[cycleTimeIdx] != null && row[cycleTimeIdx] !== '') {
         workroom.cycleTime = Number(row[cycleTimeIdx]) || 0
+      }
+
+      if (completedIdx >= 0 && row[completedIdx] != null && row[completedIdx] !== '') {
+        const completedValue = Number(row[completedIdx])
+        // Store the value even if it's 0.0 (we want to sum all values including zeros)
+        if (!isNaN(completedValue)) {
+          workroom.completed = completedValue
+        }
+      }
+
+      if (jobsWorkCycleTimeIdx >= 0 && row[jobsWorkCycleTimeIdx] != null && row[jobsWorkCycleTimeIdx] !== '') {
+        const jobsWorkCycleTimeValue = Number(row[jobsWorkCycleTimeIdx])
+        if (!isNaN(jobsWorkCycleTimeValue)) {
+          workroom.jobsWorkCycleTime = jobsWorkCycleTimeValue
+        }
+      }
+
+      if (rescheduleRateIdx >= 0 && row[rescheduleRateIdx] != null && row[rescheduleRateIdx] !== '') {
+        const rescheduleRateValue = Number(row[rescheduleRateIdx])
+        // Store the value even if it's 0 or 0.1 (we want to include all values in the average)
+        if (!isNaN(rescheduleRateValue)) {
+          workroom.rescheduleRate = rescheduleRateValue
+        }
+      }
+
+      if (getItRightIdx >= 0 && row[getItRightIdx] != null && row[getItRightIdx] !== '') {
+        const getItRightValue = Number(row[getItRightIdx])
+        if (!isNaN(getItRightValue)) {
+          workroom.getItRight = getItRightValue
+        }
+      }
+
+      if (detailsCycleTimeIdx >= 0 && row[detailsCycleTimeIdx] != null && row[detailsCycleTimeIdx] !== '') {
+        const detailsCycleTimeValue = Number(row[detailsCycleTimeIdx])
+        if (!isNaN(detailsCycleTimeValue)) {
+          workroom.detailsCycleTime = detailsCycleTimeValue
+        }
       }
 
       workrooms.push(workroom)
@@ -512,7 +566,7 @@ export default function DualFileUpload() {
           Visual Data
         </label>
         <p className="text-xs text-gray-500 mb-2">
-          Sales, Labor PO, Vendor Debit, Cycle Time, Workroom/Store info
+          Sales, Total Sales, Vendor Debit, Cycle Time, Workroom/Store info
         </p>
         <div className="flex items-center gap-2">
           <input
