@@ -96,19 +96,24 @@ export default function FileUpload() {
         // Use column T (index 19) for Completed data in Excel files
         // Column T is the 20th column (A=0, B=1, ..., T=19)
         const completedIdx = headers.length > 19 ? 19 : -1
-        // Use column X (index 23) for Jobs Work Cycle Time data
-        // Column X is the 24th column (A=0, B=1, ..., X=23)
-        const jobsWorkCycleTimeIdx = headers.length > 23 ? 23 : -1
+        // Job Cycle Time breakdown (columns U–Y)
+        // U=20, V=21, W=22, X=23 (Total Detail), Y=24 (Total Jobs)
+        // Column S (index 18) for Details Cycle Time
+        const rtsSchedDetailsIdx = headers.length > 20 ? 20 : -1
+        const schedStartDetailsIdx = headers.length > 21 ? 21 : -1
+        const startDocsSubDetailsIdx = headers.length > 22 ? 22 : -1
+        const detailsCycleTimeIdx = headers.length > 18 ? 18 : -1 // Column S
+        const totalDetailCycleTimeIdx = headers.length > 23 ? 23 : -1 // Column X
+        const rtsSchedJobsIdx = -1
+        const schedStartJobsIdx = -1
+        const startCompleteJobsIdx = -1
+        const jobsWorkCycleTimeIdx = headers.length > 24 ? 24 : -1
         // Use column AD (index 29) for Reschedule Rate data
         // Column AD is the 30th column (A=0, B=1, ..., AD=29)
         const rescheduleRateIdx = headers.length > 29 ? 29 : -1
         // Use column AQ (index 42) for Get it Right data
         // Column AQ is the 43rd column (A=0, B=1, ..., AQ=42)
         const getItRightIdx = headers.length > 42 ? 42 : -1
-        // Use column S (index 18) for Details Cycle Time data
-        // Column S is the 19th column (A=0, B=1, ..., S=18)
-        const detailsCycleTimeIdx = headers.length > 18 ? 18 : -1
-        
         // Survey-related columns
         const surveyDateIdx = headers.findIndex(
           (h) => {
@@ -251,11 +256,41 @@ export default function FileUpload() {
               workroom.completed = completedValue
             }
           }
+          if (rtsSchedDetailsIdx >= 0 && row[rtsSchedDetailsIdx] != null && row[rtsSchedDetailsIdx] !== '') {
+            const val = Number(row[rtsSchedDetailsIdx])
+            if (!isNaN(val)) workroom.rtsSchedDetails = val
+          }
+          if (schedStartDetailsIdx >= 0 && row[schedStartDetailsIdx] != null && row[schedStartDetailsIdx] !== '') {
+            const val = Number(row[schedStartDetailsIdx])
+            if (!isNaN(val)) workroom.schedStartDetails = val
+          }
+          if (startDocsSubDetailsIdx >= 0 && row[startDocsSubDetailsIdx] != null && row[startDocsSubDetailsIdx] !== '') {
+            const val = Number(row[startDocsSubDetailsIdx])
+            if (!isNaN(val)) workroom.startDocsSubDetails = val
+          }
+          if (detailsCycleTimeIdx >= 0 && row[detailsCycleTimeIdx] != null && row[detailsCycleTimeIdx] !== '') {
+            const val = Number(row[detailsCycleTimeIdx])
+            if (!isNaN(val)) workroom.detailsCycleTime = val
+          }
+          if (totalDetailCycleTimeIdx >= 0 && row[totalDetailCycleTimeIdx] != null && row[totalDetailCycleTimeIdx] !== '') {
+            const val = Number(row[totalDetailCycleTimeIdx])
+            if (!isNaN(val)) workroom.totalDetailCycleTime = val
+          }
+          if (rtsSchedJobsIdx >= 0 && row[rtsSchedJobsIdx] != null && row[rtsSchedJobsIdx] !== '') {
+            const val = Number(row[rtsSchedJobsIdx])
+            if (!isNaN(val)) workroom.rtsSchedJobs = val
+          }
+          if (schedStartJobsIdx >= 0 && row[schedStartJobsIdx] != null && row[schedStartJobsIdx] !== '') {
+            const val = Number(row[schedStartJobsIdx])
+            if (!isNaN(val)) workroom.schedStartJobs = val
+          }
+          if (startCompleteJobsIdx >= 0 && row[startCompleteJobsIdx] != null && row[startCompleteJobsIdx] !== '') {
+            const val = Number(row[startCompleteJobsIdx])
+            if (!isNaN(val)) workroom.startCompleteJobs = val
+          }
           if (jobsWorkCycleTimeIdx >= 0 && row[jobsWorkCycleTimeIdx] != null && row[jobsWorkCycleTimeIdx] !== '') {
-            const jobsWorkCycleTimeValue = Number(row[jobsWorkCycleTimeIdx])
-            if (!isNaN(jobsWorkCycleTimeValue)) {
-              workroom.jobsWorkCycleTime = jobsWorkCycleTimeValue
-            }
+            const val = Number(row[jobsWorkCycleTimeIdx])
+            if (!isNaN(val)) workroom.jobsWorkCycleTime = val
           }
           if (rescheduleRateIdx >= 0 && row[rescheduleRateIdx] != null && row[rescheduleRateIdx] !== '') {
             const rescheduleRateValue = Number(row[rescheduleRateIdx])

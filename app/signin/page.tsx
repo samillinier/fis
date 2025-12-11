@@ -129,8 +129,8 @@ export default function SignInPage() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => {
-                    const success = requestAccess(needsAccess.email, needsAccess.name, 'microsoft')
+                  onClick={async () => {
+                    const success = await requestAccess(needsAccess.email, needsAccess.name, 'microsoft')
                     if (success) {
                       setAccessRequested(true)
                       showNotification('Access request sent successfully!', 'success')

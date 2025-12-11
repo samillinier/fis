@@ -78,6 +78,32 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
   const { data } = useData()
   const [selectedRiskWorkroom, setSelectedRiskWorkroom] = useState<any | null>(null)
   const [isRiskDialogOpen, setIsRiskDialogOpen] = useState(false)
+  const [isJobCycleDialogOpen, setIsJobCycleDialogOpen] = useState(false)
+
+  const jobCycleSections = [
+    {
+      title: 'Details Cycle',
+      rows: [
+        'RTS - Sched (Details)',
+        'Sched - Start (Details)',
+        'Start - Docs Sub (Details)',
+        'Total Detail Cycle time',
+      ],
+    },
+    {
+      title: 'Jobs Cycle',
+      rows: [
+        'RTS - Sched (Jobs)',
+        'Sched - Start (Jobs)',
+        'Start - Complete (Jobs)',
+        'Total Jobs Cycle time',
+      ],
+    },
+  ]
+
+  const handleJobCycleInfo = () => {
+    setIsJobCycleDialogOpen(true)
+  }
 
   // Normalize workroom names in the data
   const normalizedData = data.workrooms.map((w) => ({
@@ -89,6 +115,53 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
   if (selectedWorkroom !== 'all') {
     filteredData = filteredData.filter((w) => w.name === selectedWorkroom)
   }
+
+  const jobCycleMetrics = useMemo(() => {
+    // Only use records with visual data (exclude survey-only records)
+    const visualDataOnly = filteredData.filter((w) => {
+      const hasVisualData = (w.sales && w.sales > 0) || (w.laborPO && w.laborPO > 0) || (w.vendorDebit && w.vendorDebit !== 0)
+      return hasVisualData
+    })
+    
+    const averageForKey = (key: string): number | null => {
+      const nums = visualDataOnly
+        .map((w) => Number(w[key]))
+        .filter((n) => !isNaN(n))
+      if (nums.length === 0) return null
+      const sum = nums.reduce((acc, n) => acc + n, 0)
+      return sum / nums.length
+    }
+
+    const details = [
+      { label: 'Ready to Schedule → Scheduled', value: averageForKey('rtsSchedDetails'), description: 'Time from Ready to Schedule notification to scheduled date' },
+      { label: 'Scheduled → Installation Started', value: averageForKey('schedStartDetails'), description: 'Time from scheduled date to when installation begins' },
+      { label: 'Installation Started → Documents Submitted', value: averageForKey('startDocsSubDetails'), description: 'Time from installation start to completion documentation submitted' },
+    ]
+    const jobs = [
+      { label: 'RTS - Sched (Jobs)', value: averageForKey('rtsSchedJobs') },
+      { label: 'Sched - Start (Jobs)', value: averageForKey('schedStartJobs') },
+      { label: 'Start - Complete (Jobs)', value: averageForKey('startCompleteJobs') },
+    ]
+
+    // Total Detail Cycle comes directly from column X (totalDetailCycleTime)
+    const detailsTotal = averageForKey('totalDetailCycleTime')
+
+    const jobsTotal =
+      averageForKey('jobsWorkCycleTime') ??
+      (() => {
+        const vals = jobs.map((d) => d.value).filter((v): v is number => v != null)
+        if (vals.length === jobs.length) return vals.reduce((a, b) => a + b, 0)
+        return null
+      })()
+
+    return {
+      details: [...details, { label: 'Total Detail Cycle time', value: detailsTotal }],
+      jobs: [...jobs, { label: 'Total Jobs Cycle time', value: jobsTotal }],
+    }
+  }, [filteredData])
+
+  const formatMetricValue = (value: number | null, decimals = 1) =>
+    value == null ? '—' : value.toFixed(decimals)
 
   const workroomMap = new Map<string, number>()
   filteredData.forEach((w) => {
@@ -840,21 +913,26 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
               })
             }
             
-            // Average Cycle Time: Average of values from column AC
-            const cycleTimeData = filteredData.filter((w) => w.cycleTime != null && w.cycleTime !== undefined && w.cycleTime > 0)
+            // Average Cycle Time: Average of values from column AC (ONLY from visual data, NOT survey)
+            const cycleTimeData = visualDataRecords.filter((w) => w.cycleTime != null && w.cycleTime !== undefined && w.cycleTime > 0)
             const avgCycleTime = cycleTimeData.length > 0
               ? cycleTimeData.reduce((sum, w) => sum + (w.cycleTime || 0), 0) / cycleTimeData.length
               : 0
             
-            // Average Jobs Work Cycle Time: Average of values from column X
-            const jobsWorkCycleTimeData = filteredData.filter((w) => w.jobsWorkCycleTime != null && w.jobsWorkCycleTime !== undefined && w.jobsWorkCycleTime > 0)
+            // Average Jobs Work Cycle Time: Average of values from column X (ONLY from visual data, NOT survey)
+            const jobsWorkCycleTimeData = visualDataRecords.filter((w) => {
+              const value = w.jobsWorkCycleTime ?? jobCycleMetrics.jobs.at(-1)?.value
+              return value != null && value !== undefined && !isNaN(Number(value)) && Number(value) > 0
+            })
             const avgJobsWorkCycleTime = jobsWorkCycleTimeData.length > 0
-              ? jobsWorkCycleTimeData.reduce((sum, w) => sum + (w.jobsWorkCycleTime || 0), 0) / jobsWorkCycleTimeData.length
+              ? jobsWorkCycleTimeData.reduce((sum, w) => {
+                  const value = w.jobsWorkCycleTime ?? jobCycleMetrics.jobs.at(-1)?.value ?? 0
+                  return sum + Number(value)
+                }, 0) / jobsWorkCycleTimeData.length
               : 0
             
-            // Average Reschedule Rate: Average of values from column AD
-            // Include all records with rescheduleRate data (including 0, 0.1, etc.)
-            const rescheduleRateData = filteredData.filter((w) => {
+            // Average Reschedule Rate: Average of values from column AD (ONLY from visual data, NOT survey)
+            const rescheduleRateData = visualDataRecords.filter((w) => {
               const value = w.rescheduleRate
               return value != null && value !== undefined && !isNaN(Number(value))
             })
@@ -862,8 +940,8 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
               ? rescheduleRateData.reduce((sum, w) => sum + Number(w.rescheduleRate || 0), 0) / rescheduleRateData.length
               : 0
             
-            // Average Get it Right: Average of values from column AQ
-            const getItRightData = filteredData.filter((w) => {
+            // Average Get it Right: Average of values from column AQ (ONLY from visual data, NOT survey)
+            const getItRightData = visualDataRecords.filter((w) => {
               const value = w.getItRight
               return value != null && value !== undefined && !isNaN(Number(value))
             })
@@ -871,13 +949,20 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
               ? getItRightData.reduce((sum, w) => sum + Number(w.getItRight || 0), 0) / getItRightData.length
               : 0
             
-            // Average Details Cycle Time: Average of values from column S
-            const detailsCycleTimeData = filteredData.filter((w) => {
-              const value = w.detailsCycleTime
-              return value != null && value !== undefined && !isNaN(Number(value))
+            // Average Details Cycle Time: Average of values from column S (ONLY from visual data, NOT survey)
+            const detailsCycleTimeData = visualDataRecords.filter((w) => {
+              return w.detailsCycleTime != null && w.detailsCycleTime !== undefined && !isNaN(Number(w.detailsCycleTime)) && Number(w.detailsCycleTime) > 0
             })
             const avgDetailsCycleTime = detailsCycleTimeData.length > 0
               ? detailsCycleTimeData.reduce((sum, w) => sum + Number(w.detailsCycleTime || 0), 0) / detailsCycleTimeData.length
+              : 0
+            
+            // Average Total Detail Cycle Time: Average of values from column X (ONLY from visual data, NOT survey)
+            const totalDetailCycleTimeData = visualDataRecords.filter((w) => {
+              return w.totalDetailCycleTime != null && w.totalDetailCycleTime !== undefined && !isNaN(Number(w.totalDetailCycleTime)) && Number(w.totalDetailCycleTime) > 0
+            })
+            const avgTotalDetailCycleTime = totalDetailCycleTimeData.length > 0
+              ? totalDetailCycleTimeData.reduce((sum, w) => sum + Number(w.totalDetailCycleTime || 0), 0) / totalDetailCycleTimeData.length
               : 0
 
             return (
@@ -898,13 +983,16 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                 {/* Details Cycle Time */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                   <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Details Cycle Time</div>
-                  <div className="text-xl font-bold text-gray-900">
+                  <div className="text-xl font-bold text-gray-900" style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
                     {detailsCycleTimeData.length > 0 ? (
-                      <CountUpNumber 
-                        value={avgDetailsCycleTime} 
-                        duration={1500} 
-                        decimals={1} 
-                      />
+                      <>
+                        <CountUpNumber 
+                          value={avgDetailsCycleTime} 
+                          duration={1500} 
+                          decimals={1} 
+                        />
+                        <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#6b7280' }}>days</span>
+                      </>
                     ) : (
                       '—'
                     )}
@@ -912,15 +1000,30 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                 </div>
 
                 {/* Job Cycle Time */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                <div
+                  style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', cursor: 'pointer' }}
+                  role="button"
+                  tabIndex={0}
+                  onClick={handleJobCycleInfo}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      handleJobCycleInfo()
+                    }
+                  }}
+                  aria-label="View Job Cycle Time details"
+                >
                   <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Job Cycle Time</div>
-                  <div className="text-xl font-bold text-gray-900">
-                    {avgJobsWorkCycleTime > 0 ? (
-                      <CountUpNumber 
-                        value={avgJobsWorkCycleTime} 
-                        duration={1500} 
-                        decimals={1} 
-                      />
+                  <div className="text-xl font-bold text-gray-900" style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
+                    {avgTotalDetailCycleTime > 0 ? (
+                      <>
+                        <CountUpNumber 
+                          value={avgTotalDetailCycleTime} 
+                          duration={1500} 
+                          decimals={1} 
+                        />
+                        <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#6b7280' }}>days</span>
+                      </>
                     ) : (
                       '—'
                     )}
@@ -930,13 +1033,16 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                 {/* Work Order Cycle Time */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                   <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Work Order Cycle Time</div>
-                  <div className="text-xl font-bold text-gray-900">
+                  <div className="text-xl font-bold text-gray-900" style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
                     {avgCycleTime > 0 ? (
-                      <CountUpNumber 
-                        value={avgCycleTime} 
-                        duration={1500} 
-                        decimals={1} 
-                      />
+                      <>
+                        <CountUpNumber 
+                          value={avgCycleTime} 
+                          duration={1500} 
+                          decimals={1} 
+                        />
+                        <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#6b7280' }}>days</span>
+                      </>
                     ) : (
                       '—'
                     )}
@@ -2037,6 +2143,254 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+      {isJobCycleDialogOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Job cycle time details"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(17, 24, 39, 0.35)',
+            backdropFilter: 'blur(2px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1rem',
+            zIndex: 60,
+          }}
+          onClick={() => setIsJobCycleDialogOpen(false)}
+        >
+          <div
+            style={{
+              maxWidth: '760px',
+              width: '100%',
+              background: 'white',
+              borderRadius: '16px',
+              boxShadow: '0 20px 60px rgba(15, 23, 42, 0.2)',
+              border: '1px solid #e5e7eb',
+              overflow: 'hidden',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '1rem 1.25rem',
+                borderBottom: '1px solid #f1f5f9',
+              }}
+            >
+              <div>
+                <div style={{ fontSize: '0.75rem', color: '#6b7280', letterSpacing: '0.04em' }}>
+                  JOB CYCLE TIME
+                </div>
+                <div style={{ fontSize: '1.125rem', fontWeight: 700, color: '#0f172a' }}>
+                  Stage-by-stage breakdown
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsJobCycleDialogOpen(false)}
+                aria-label="Close job cycle time details"
+                style={{
+                  border: '1px solid #e5e7eb',
+                  background: 'white',
+                  borderRadius: '9999px',
+                  padding: '0.35rem 0.75rem',
+                  fontSize: '0.875rem',
+                  color: '#0f172a',
+                  cursor: 'pointer',
+                  boxShadow: '0 6px 18px rgba(15, 23, 42, 0.08)',
+                }}
+              >
+                Close
+              </button>
+            </div>
+
+            <div style={{ padding: '1.25rem 1.25rem 1.5rem', display: 'grid', gap: '1rem' }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                  gap: '0.75rem',
+                }}
+              >
+                <div
+                  style={{
+                    border: '1px solid #e2e8f0',
+                    background: '#f8fafc',
+                    borderRadius: '12px',
+                    padding: '0.9rem 1rem',
+                    boxShadow: '0 10px 22px rgba(15, 23, 42, 0.08)',
+                  }}
+                >
+                  <div style={{ fontSize: '0.75rem', color: '#1d4ed8', fontWeight: 700, letterSpacing: '0.04em' }}>
+                    Total Detail Cycle
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.3rem', marginTop: '0.5rem' }}>
+                    <div style={{ fontSize: '2.25rem', fontWeight: 800, color: '#0f172a' }}>
+                      {formatMetricValue(jobCycleMetrics.details.at(-1)?.value)}
+                    </div>
+                    <span style={{ fontSize: '0.9rem', color: '#475569' }}>days</span>
+                  </div>
+                </div>
+                <div
+                  style={{
+                    border: '1px solid #e2e8f0',
+                    background: '#fdfaf6',
+                    borderRadius: '12px',
+                    padding: '0.9rem 1rem',
+                    boxShadow: '0 10px 22px rgba(15, 23, 42, 0.08)',
+                  }}
+                >
+                  <div style={{ fontSize: '0.75rem', color: '#b45309', fontWeight: 700, letterSpacing: '0.04em' }}>
+                    Total Jobs Cycle
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.3rem', marginTop: '0.5rem' }}>
+                    <div style={{ fontSize: '2.25rem', fontWeight: 800, color: '#0f172a' }}>
+                      {formatMetricValue(jobCycleMetrics.jobs.at(-1)?.value)}
+                    </div>
+                    <span style={{ fontSize: '0.9rem', color: '#475569' }}>days</span>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+                  gap: '1rem',
+                }}
+              >
+                {[{ title: 'Details Cycle', items: jobCycleMetrics.details }].map(
+                  (section) => (
+                    <div
+                      key={section.title}
+                      style={{
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '14px',
+                        padding: '1rem 1.1rem',
+                        background: '#f8fafc',
+                        boxShadow: '0 12px 30px rgba(15, 23, 42, 0.06)',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          marginBottom: '0.65rem',
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontSize: '0.8rem',
+                            fontWeight: 800,
+                            color: '#0f172a',
+                            letterSpacing: '0.02em',
+                          }}
+                        >
+                          {section.title}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: '0.7rem',
+                            color: '#475569',
+                            padding: '0.25rem 0.55rem',
+                            borderRadius: '999px',
+                            background: '#e2e8f0',
+                            fontWeight: 600,
+                          }}
+                        >
+                          {section.items.filter((i) => i.value != null).length} / {section.items.length} populated
+                        </div>
+                      </div>
+                      <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'grid', gap: '0.55rem' }}>
+                        {section.items.map((item) => (
+                          <li
+                            key={item.label}
+                            style={{
+                              padding: '0.85rem 1rem',
+                              borderRadius: '12px',
+                              background: 'white',
+                              border: '1px solid #e2e8f0',
+                              boxShadow: '0 6px 16px rgba(15, 23, 42, 0.05)',
+                              color: '#0f172a',
+                              display: 'flex',
+                              alignItems: 'flex-start',
+                              justifyContent: 'space-between',
+                              gap: '0.75rem',
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem', minWidth: 0, flex: 1 }}>
+                              <span
+                                style={{
+                                  width: '9px',
+                                  height: '9px',
+                                  borderRadius: '9999px',
+                                  background: '#2563eb',
+                                  boxShadow: '0 0 0 4px rgba(37, 99, 235, 0.12)',
+                                  flexShrink: 0,
+                                  marginTop: '0.25rem',
+                                }}
+                              />
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', minWidth: 0 }}>
+                                <span style={{ fontSize: '0.92rem', fontWeight: 600, color: '#0f172a' }}>
+                                  {item.label}
+                                </span>
+                                {item.description && (
+                                  <span style={{ fontSize: '0.75rem', color: '#6b7280', lineHeight: '1.3' }}>
+                                    {item.description}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.2rem', flexShrink: 0 }}>
+                              <span style={{ fontWeight: 800, color: '#0f172a', fontSize: '1.1rem' }}>
+                                {formatMetricValue(item.value)}
+                              </span>
+                              {item.value != null && (
+                                <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>days</span>
+                              )}
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )
+                )}
+              </div>
+
+              <div
+                style={{
+                  marginTop: '1.25rem',
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setIsJobCycleDialogOpen(false)}
+                  style={{
+                    background: '#0f172a',
+                    color: 'white',
+                    border: 'none',
+                    padding: '0.6rem 1.2rem',
+                    borderRadius: '10px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    boxShadow: '0 10px 20px rgba(15, 23, 42, 0.25)',
+                  }}
+                >
+                  Got it
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

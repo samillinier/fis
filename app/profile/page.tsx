@@ -56,12 +56,12 @@ export default function ProfilePage() {
     [authorizedUsers]
   )
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!newEmail.trim()) {
       showNotification('Email is required', 'error')
       return
     }
-    const success = addAuthorizedUser(newEmail, newName)
+    const success = await addAuthorizedUser(newEmail, newName)
     if (success) {
       showNotification('User added to allowlist', 'success')
       setNewEmail('')
@@ -71,8 +71,8 @@ export default function ProfilePage() {
     }
   }
 
-  const handleRemove = (email: string) => {
-    const success = removeAuthorizedUser(email)
+  const handleRemove = async (email: string) => {
+    const success = await removeAuthorizedUser(email)
     if (success) {
       showNotification('User removed from allowlist', 'success')
     } else {
@@ -80,8 +80,8 @@ export default function ProfilePage() {
     }
   }
 
-  const handleApproveRequest = (email: string) => {
-    const success = approveAccessRequest(email)
+  const handleApproveRequest = async (email: string) => {
+    const success = await approveAccessRequest(email)
     if (success) {
       showNotification('User approved and can now sign in.', 'success')
     } else {
@@ -89,13 +89,13 @@ export default function ProfilePage() {
     }
   }
 
-  const handleRejectRequest = (email: string) => {
-    rejectAccessRequest(email)
+  const handleRejectRequest = async (email: string) => {
+    await rejectAccessRequest(email)
     showNotification('Request removed.', 'success')
   }
 
-  const handleRoleChange = (email: string, role: 'admin' | 'user') => {
-    const success = setUserRole(email, role)
+  const handleRoleChange = async (email: string, role: 'admin' | 'user') => {
+    const success = await setUserRole(email, role)
     if (success) {
       showNotification('Role updated.', 'success')
     } else {

@@ -28,10 +28,18 @@ export interface WorkroomData {
   profScore?: number
   professionalScore?: number
   completed?: number
+  // Job cycle time breakdown (Excel columns U–Y)
+  rtsSchedDetails?: number
+  schedStartDetails?: number
+  startDocsSubDetails?: number
+  detailsCycleTime?: number // Column S (index 18) - Details Cycle Time
+  totalDetailCycleTime?: number // Column X (index 23) - Total Detail Cycle
+  rtsSchedJobs?: number
+  schedStartJobs?: number
+  startCompleteJobs?: number
   jobsWorkCycleTime?: number
   rescheduleRate?: number
   getItRight?: number
-  detailsCycleTime?: number
   company?: string
   installerName?: string
   [key: string]: any
