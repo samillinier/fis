@@ -13,6 +13,7 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  Cell,
 } from 'recharts'
 
 const isValidWorkroomName = (name: string): boolean => {
@@ -23,6 +24,11 @@ const isValidWorkroomName = (name: string): boolean => {
     normalizedName !== '' &&
     !normalizedName.includes('location #')
   )
+}
+
+const cleanStoreName = (storeName: string | null | undefined): string => {
+  if (!storeName) return '—'
+  return storeName.replace(/^LOWE'S OF\s+/i, '').trim() || '—'
 }
 
 interface WorkroomSurveyRow {
@@ -36,6 +42,7 @@ interface WorkroomSurveyRow {
   profAvg: number
   company?: string
   installerName?: string
+  poNumber?: string | number
 }
 
 export default function SurveyMisc() {
@@ -43,6 +50,9 @@ export default function SurveyMisc() {
   const [selectedWorkroom, setSelectedWorkroom] = useState<string>('all')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [selectedMetric, setSelectedMetric] = useState<'all' | 'ltr' | 'craft' | 'prof'>('all')
+  const [sortBy, setSortBy] = useState<'none' | 'top' | 'bottom'>('none')
+  const [sortMetric, setSortMetric] = useState<'ltr' | 'craft' | 'prof'>('ltr')
+  const [sortCount, setSortCount] = useState<number>(10)
   const [selectedRow, setSelectedRow] = useState<WorkroomSurveyRow | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
@@ -90,6 +100,7 @@ export default function SurveyMisc() {
       const storeName = getStoreName(w.store as any)
       const company = w.company || (w as any).company || ''
       const installerName = w.installerName || (w as any).installerName || ''
+      const poNumber = w.poNumber || (w as any).poNumber || ''
       const key = `${storeNumber}|||${workroomName}|||${laborCategory}`
       const existing =
         map.get(key) || {
@@ -103,6 +114,7 @@ export default function SurveyMisc() {
           profAvg: 0,
           company: '',
           installerName: '',
+          poNumber: '',
           ltrSum: 0,
           craftSum: 0,
           profSum: 0,
@@ -128,6 +140,13 @@ export default function SurveyMisc() {
           existing.installerName = installerName.trim()
         }
       }
+      // Keep poNumber value - use first non-empty value found
+      // Always update if we have a non-empty poNumber value and existing is empty
+      if (poNumber && poNumber !== '' && String(poNumber).trim() !== '') {
+        if (!existing.poNumber || existing.poNumber === '' || String(existing.poNumber).trim() === '') {
+          existing.poNumber = String(poNumber).trim()
+        }
+      }
 
       map.set(key, existing)
     })
@@ -144,6 +163,7 @@ export default function SurveyMisc() {
         profAvg: r.count > 0 ? r.profSum / r.count : 0,
         company: r.company,
         installerName: r.installerName,
+        poNumber: r.poNumber,
       }))
       .sort((a, b) => {
         // Sort primarily by numeric store number when possible, then by workroom
@@ -221,11 +241,49 @@ export default function SurveyMisc() {
     return { rows, chartData, aggregatedChartData, uniqueWorkrooms, uniqueCategories }
   }, [data.workrooms])
 
-  const filteredRows = rows.filter((row) => {
-    const matchesWorkroom = selectedWorkroom === 'all' || row.workroom === selectedWorkroom
-    const matchesCategory = selectedCategory === 'all' || row.laborCategory === selectedCategory
-    return matchesWorkroom && matchesCategory
-  })
+  const filteredRows = useMemo(() => {
+    let filtered = rows.filter((row) => {
+      const matchesWorkroom = selectedWorkroom === 'all' || row.workroom === selectedWorkroom
+      const matchesCategory = selectedCategory === 'all' || row.laborCategory === selectedCategory
+      return matchesWorkroom && matchesCategory
+    })
+
+    // Apply top/bottom sorting if enabled
+    if (sortBy !== 'none') {
+      // Get the appropriate score based on sortMetric
+      const getScore = (row: WorkroomSurveyRow): number => {
+        if (sortMetric === 'ltr') {
+          // Use individual LTR if surveyCount < 2, otherwise use average
+          if (row.surveyCount < 2) {
+            const matchingRecord = data.workrooms.find((w) => {
+              const matchesWorkroom = w.name === row.workroom
+              const matchesStore = String(w.store) === row.storeNumber
+              const matchesCategory = (w.laborCategory || (w as any).category || 'N/A') === row.laborCategory
+              return matchesWorkroom && matchesStore && matchesCategory && w.ltrScore != null
+            })
+            return matchingRecord?.ltrScore ?? 0
+          }
+          return row.ltrAvg
+        } else if (sortMetric === 'craft') {
+          return row.craftAvg
+        } else {
+          return row.profAvg
+        }
+      }
+
+      // Sort by the selected metric
+      filtered = [...filtered].sort((a, b) => {
+        const scoreA = getScore(a)
+        const scoreB = getScore(b)
+        return sortBy === 'top' ? scoreB - scoreA : scoreA - scoreB
+      })
+
+      // Limit to top/bottom N
+      filtered = filtered.slice(0, sortCount)
+    }
+
+    return filtered
+  }, [rows, selectedWorkroom, selectedCategory, sortBy, sortMetric, sortCount, data.workrooms])
 
   // Use aggregated chart data for the bar chart (grouped by workroom only)
   const filteredChartData = aggregatedChartData.filter((row) => {
@@ -374,7 +432,7 @@ export default function SurveyMisc() {
           })()}
 
           {/* Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div>
               <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
                 Workroom
@@ -425,6 +483,7 @@ export default function SurveyMisc() {
               </select>
             </div>
           </div>
+
 
           {/* Chart */}
           <section className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 mt-2">
@@ -482,15 +541,43 @@ export default function SurveyMisc() {
                       }}
                     />
                     <Legend wrapperStyle={{ fontSize: 11 }} />
-                    {/* Colorful bars for clearer separation */}
+                    {/* Color-coded bars: Grade-based colors (green/yellow/red) for all metrics */}
+                    {/* The legend shows which metric each bar represents */}
                     {(selectedMetric === 'all' || selectedMetric === 'ltr') && (
-                      <Bar dataKey="ltrAvg" name="LTR Avg" fill="#3b82f6" /> // blue
+                      <Bar dataKey="ltrAvg" name="LTR Avg" fill="#3b82f6" radius={[4, 4, 0, 0]}>
+                        {filteredChartData.map((entry, index) => {
+                          // Grade-based colors with blue border for LTR identification
+                          let fillColor = '#10b981' // green - excellent (> 9)
+                          if (entry.ltrAvg > 9) fillColor = '#10b981' // green - excellent
+                          else if (entry.ltrAvg >= 7) fillColor = '#fbbf24' // yellow - moderate
+                          else fillColor = '#ef4444' // red - needs improvement
+                          return <Cell key={`cell-ltr-${index}`} fill={fillColor} stroke="#3b82f6" strokeWidth={2} />
+                        })}
+                      </Bar>
                     )}
                     {(selectedMetric === 'all' || selectedMetric === 'craft') && (
-                      <Bar dataKey="craftAvg" name="Craft Avg" fill="#10b981" /> // green
+                      <Bar dataKey="craftAvg" name="Craft Avg" fill="#10b981" radius={[4, 4, 0, 0]}>
+                        {filteredChartData.map((entry, index) => {
+                          // Grade-based colors with green border for Craft identification
+                          let fillColor = '#10b981' // green - excellent (> 9)
+                          if (entry.craftAvg > 9) fillColor = '#10b981' // green - excellent
+                          else if (entry.craftAvg >= 7) fillColor = '#fbbf24' // yellow - moderate
+                          else fillColor = '#ef4444' // red - needs improvement
+                          return <Cell key={`cell-craft-${index}`} fill={fillColor} stroke="#10b981" strokeWidth={2} />
+                        })}
+                      </Bar>
                     )}
                     {(selectedMetric === 'all' || selectedMetric === 'prof') && (
-                      <Bar dataKey="profAvg" name="Prof Avg" fill="#ef4444" /> // red
+                      <Bar dataKey="profAvg" name="Prof Avg" fill="#ef4444" radius={[4, 4, 0, 0]}>
+                        {filteredChartData.map((entry, index) => {
+                          // Grade-based colors with red border for Prof identification
+                          let fillColor = '#10b981' // green - excellent (> 9)
+                          if (entry.profAvg > 9) fillColor = '#10b981' // green - excellent
+                          else if (entry.profAvg >= 7) fillColor = '#fbbf24' // yellow - moderate
+                          else fillColor = '#ef4444' // red - needs improvement
+                          return <Cell key={`cell-prof-${index}`} fill={fillColor} stroke="#ef4444" strokeWidth={2} />
+                        })}
+                      </Bar>
                     )}
                   </BarChart>
                 </ResponsiveContainer>
@@ -513,13 +600,64 @@ export default function SurveyMisc() {
                 {/* Removed combinations badge to simplify header */}
               </div>
 
+              {/* Sorting Controls */}
+              <div className="px-4 py-3 border-b border-gray-200">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
+                      Sort By
+                    </label>
+                    <select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value as 'none' | 'top' | 'bottom')}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                    >
+                      <option value="none">No Sorting</option>
+                      <option value="top">Top</option>
+                      <option value="bottom">Bottom</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
+                      Metric
+                    </label>
+                    <select
+                      value={sortMetric}
+                      onChange={(e) => setSortMetric(e.target.value as 'ltr' | 'craft' | 'prof')}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                    >
+                      <option value="ltr">LTR</option>
+                      <option value="craft">Craft</option>
+                      <option value="prof">Prof</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
+                      Count
+                    </label>
+                    <select
+                      value={sortCount}
+                      onChange={(e) => setSortCount(Number(e.target.value))}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                    >
+                      <option value={5}>Top/Bottom 5</option>
+                      <option value={10}>Top/Bottom 10</option>
+                      <option value={20}>Top/Bottom 20</option>
+                      <option value={50}>Top/Bottom 50</option>
+                      <option value={100}>Top/Bottom 100</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
               <div className="professional-table-container">
                 <table className="professional-table professional-table-zebra">
                   <thead>
                     <tr>
+                      <th>PO Number</th>
                       <th>Workroom</th>
-                      <th>Store #</th>
-                      <th>Store Name</th>
+                      <th>Company</th>
+                      <th>Installer Name</th>
                       <th>Labor Category</th>
                       <th style={{ textAlign: 'right' }}>Surveys</th>
                       <th style={{ textAlign: 'right' }}>LTR Avg</th>
@@ -544,6 +682,23 @@ export default function SurveyMisc() {
                         return score.toFixed(1)
                       }
 
+                      // Get first individual LTR score if surveyCount < 2, otherwise use average
+                      const ltrDisplayValue = (() => {
+                        if (row.surveyCount >= 2) {
+                          // Show average for 2 or more surveys
+                          return row.ltrAvg !== 0 ? row.ltrAvg : null
+                        } else {
+                          // Show individual LTR score for single survey
+                          const matchingRecord = data.workrooms.find((w) => {
+                            const matchesWorkroom = w.name === row.workroom
+                            const matchesStore = String(w.store) === row.storeNumber
+                            const matchesCategory = (w.laborCategory || (w as any).category || 'N/A') === row.laborCategory
+                            return matchesWorkroom && matchesStore && matchesCategory && w.ltrScore != null
+                          })
+                          return matchingRecord?.ltrScore ?? null
+                        }
+                      })()
+
                       return (
                         <tr 
                           key={`${row.storeNumber}-${row.workroom}-${row.laborCategory}`}
@@ -559,18 +714,19 @@ export default function SurveyMisc() {
                             e.currentTarget.style.backgroundColor = ''
                           }}
                         >
+                          <td style={{ fontWeight: 'normal' }}>{row.poNumber || '—'}</td>
                           <td>{row.workroom}</td>
-                          <td>{row.storeNumber || '—'}</td>
-                          <td>{row.storeName || '—'}</td>
+                          <td>{row.company || '—'}</td>
+                          <td>{row.installerName || '—'}</td>
                           <td>{row.laborCategory}</td>
                           <td style={{ textAlign: 'right' }}>{row.surveyCount}</td>
                           <td style={{ textAlign: 'right' }}>
-                            {row.ltrAvg !== 0 ? (
+                            {ltrDisplayValue != null ? (
                               <span
-                                className={`badge-pill ${getScoreBadge(row.ltrAvg)}`}
+                                className={`badge-pill ${getScoreBadge(ltrDisplayValue)}`}
                                 style={{ fontSize: '0.75rem', padding: '0.15rem 0.5rem' }}
                               >
-                                {formatScore(row.ltrAvg)}
+                                {formatScore(ltrDisplayValue)}
                               </span>
                             ) : (
                               '—'
@@ -605,7 +761,7 @@ export default function SurveyMisc() {
                     })}
                     {filteredRows.length === 0 && (
                       <tr>
-                        <td colSpan={8} style={{ textAlign: 'center', padding: '1.5rem', color: '#9ca3af' }}>
+                        <td colSpan={9} style={{ textAlign: 'center', padding: '1.5rem', color: '#9ca3af' }}>
                           No survey metrics for the selected filters.
                         </td>
                       </tr>
@@ -678,7 +834,7 @@ export default function SurveyMisc() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', fontSize: '0.875rem' }}>
                 <div>
                   <span style={{ fontWeight: 600, color: '#6b7280' }}>Store Name:</span>
-                  <span style={{ marginLeft: '0.5rem', color: '#111827' }}>{selectedRow.storeName || '—'}</span>
+                  <span style={{ marginLeft: '0.5rem', color: '#111827' }}>{cleanStoreName(selectedRow.storeName)}</span>
                 </div>
                 <div>
                   <span style={{ fontWeight: 600, color: '#6b7280' }}>Labor Category:</span>

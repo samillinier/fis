@@ -96,24 +96,41 @@ export default function FileUpload() {
         // Use column T (index 19) for Completed data in Excel files
         // Column T is the 20th column (A=0, B=1, ..., T=19)
         const completedIdx = headers.length > 19 ? 19 : -1
+        // Details Cycle Time breakdown (columns P–T)
+        // P=15, Q=16, R=17, S=18 (Total Provider Cycle Time), T=19 (Completed)
+        const detailsRtsSchedIdx = headers.length > 15 ? 15 : -1 // Column P - RTS - Sch (Details)
+        const detailsSchedStartIdx = headers.length > 16 ? 16 : -1 // Column Q - Sch - Start (Details)
+        const detailsStartDocsSubIdx = headers.length > 17 ? 17 : -1 // Column R - Start - Docs Sub (Details)
+        const detailsCycleTimeIdx = headers.length > 18 ? 18 : -1 // Column S - Details Cycle Time (Total Provider Cycle Time)
+        // completedIdx is Column T (index 19) - Completed
         // Job Cycle Time breakdown (columns U–Y)
         // U=20, V=21, W=22, X=23 (Total Detail), Y=24 (Total Jobs)
         // Column S (index 18) for Details Cycle Time
         const rtsSchedDetailsIdx = headers.length > 20 ? 20 : -1
         const schedStartDetailsIdx = headers.length > 21 ? 21 : -1
         const startDocsSubDetailsIdx = headers.length > 22 ? 22 : -1
-        const detailsCycleTimeIdx = headers.length > 18 ? 18 : -1 // Column S
         const totalDetailCycleTimeIdx = headers.length > 23 ? 23 : -1 // Column X
         const rtsSchedJobsIdx = -1
         const schedStartJobsIdx = -1
         const startCompleteJobsIdx = -1
         const jobsWorkCycleTimeIdx = headers.length > 24 ? 24 : -1
-        // Use column AD (index 29) for Reschedule Rate data
-        // Column AD is the 30th column (A=0, B=1, ..., AD=29)
-        const rescheduleRateIdx = headers.length > 29 ? 29 : -1
-        // Use column AQ (index 42) for Get it Right data
-        // Column AQ is the 43rd column (A=0, B=1, ..., AQ=42)
-        const getItRightIdx = headers.length > 42 ? 42 : -1
+        // Work Order Cycle Time breakdown (columns Z–AC)
+        // Z=25, AA=26, AB=27, AC=28 (0-based)
+        const workOrderStage1Idx = headers.length > 25 ? 25 : -1 // Column Z
+        const workOrderStage2Idx = headers.length > 26 ? 26 : -1 // Column AA
+        const workOrderStage3Idx = headers.length > 27 ? 27 : -1 // Column AB
+        const totalWorkOrderCycleTimeIdx = headers.length > 28 ? 28 : -1 // Column AC
+        // Reschedule Rate breakdown (columns AD–AH)
+        // AD=29, AE=30, AF=31, AG=32, AH=33 (0-based)
+        const rescheduleRateIdx = headers.length > 29 ? 29 : -1 // Column AD - Reschedule Rate
+        const rescheduleRateLYIdx = headers.length > 30 ? 30 : -1 // Column AE - Reschedule Rate Last Year
+        const detailRateIdx = headers.length > 31 ? 31 : -1 // Column AF - Detail Reschedule Rate
+        const jobRateIdx = headers.length > 32 ? 32 : -1 // Column AG - Job Reschedule Rate
+        const workOrderRateIdx = headers.length > 33 ? 33 : -1 // Column AH - Work Order Reschedule Rate
+        // Get it Right breakdown (columns AQ–AR)
+        // AQ=42, AR=43 (0-based)
+        const getItRightIdx = headers.length > 42 ? 42 : -1 // Column AQ - Get it Right
+        const getItRightLYIdx = headers.length > 43 ? 43 : -1 // Column AR - Get it Right Last Year
         // Survey-related columns
         const surveyDateIdx = headers.findIndex(
           (h) => {
@@ -256,6 +273,23 @@ export default function FileUpload() {
               workroom.completed = completedValue
             }
           }
+          // Details Cycle Time breakdown (columns P–S)
+          if (detailsRtsSchedIdx >= 0 && row[detailsRtsSchedIdx] != null && row[detailsRtsSchedIdx] !== '') {
+            const val = Number(row[detailsRtsSchedIdx])
+            if (!isNaN(val)) workroom.detailsRtsSched = val
+          }
+          if (detailsSchedStartIdx >= 0 && row[detailsSchedStartIdx] != null && row[detailsSchedStartIdx] !== '') {
+            const val = Number(row[detailsSchedStartIdx])
+            if (!isNaN(val)) workroom.detailsSchedStart = val
+          }
+          if (detailsStartDocsSubIdx >= 0 && row[detailsStartDocsSubIdx] != null && row[detailsStartDocsSubIdx] !== '') {
+            const val = Number(row[detailsStartDocsSubIdx])
+            if (!isNaN(val)) workroom.detailsStartDocsSub = val
+          }
+          if (detailsCycleTimeIdx >= 0 && row[detailsCycleTimeIdx] != null && row[detailsCycleTimeIdx] !== '') {
+            const val = Number(row[detailsCycleTimeIdx])
+            if (!isNaN(val)) workroom.detailsCycleTime = val
+          }
           if (rtsSchedDetailsIdx >= 0 && row[rtsSchedDetailsIdx] != null && row[rtsSchedDetailsIdx] !== '') {
             const val = Number(row[rtsSchedDetailsIdx])
             if (!isNaN(val)) workroom.rtsSchedDetails = val
@@ -292,11 +326,43 @@ export default function FileUpload() {
             const val = Number(row[jobsWorkCycleTimeIdx])
             if (!isNaN(val)) workroom.jobsWorkCycleTime = val
           }
+          if (workOrderStage1Idx >= 0 && row[workOrderStage1Idx] != null && row[workOrderStage1Idx] !== '') {
+            const val = Number(row[workOrderStage1Idx])
+            if (!isNaN(val)) workroom.workOrderStage1 = val
+          }
+          if (workOrderStage2Idx >= 0 && row[workOrderStage2Idx] != null && row[workOrderStage2Idx] !== '') {
+            const val = Number(row[workOrderStage2Idx])
+            if (!isNaN(val)) workroom.workOrderStage2 = val
+          }
+          if (workOrderStage3Idx >= 0 && row[workOrderStage3Idx] != null && row[workOrderStage3Idx] !== '') {
+            const val = Number(row[workOrderStage3Idx])
+            if (!isNaN(val)) workroom.workOrderStage3 = val
+          }
+          if (totalWorkOrderCycleTimeIdx >= 0 && row[totalWorkOrderCycleTimeIdx] != null && row[totalWorkOrderCycleTimeIdx] !== '') {
+            const val = Number(row[totalWorkOrderCycleTimeIdx])
+            if (!isNaN(val)) workroom.totalWorkOrderCycleTime = val
+          }
           if (rescheduleRateIdx >= 0 && row[rescheduleRateIdx] != null && row[rescheduleRateIdx] !== '') {
             const rescheduleRateValue = Number(row[rescheduleRateIdx])
             if (!isNaN(rescheduleRateValue)) {
               workroom.rescheduleRate = rescheduleRateValue
             }
+          }
+          if (rescheduleRateLYIdx >= 0 && row[rescheduleRateLYIdx] != null && row[rescheduleRateLYIdx] !== '') {
+            const val = Number(row[rescheduleRateLYIdx])
+            if (!isNaN(val)) workroom.rescheduleRateLY = val
+          }
+          if (detailRateIdx >= 0 && row[detailRateIdx] != null && row[detailRateIdx] !== '') {
+            const val = Number(row[detailRateIdx])
+            if (!isNaN(val)) workroom.detailRate = val
+          }
+          if (jobRateIdx >= 0 && row[jobRateIdx] != null && row[jobRateIdx] !== '') {
+            const val = Number(row[jobRateIdx])
+            if (!isNaN(val)) workroom.jobRate = val
+          }
+          if (workOrderRateIdx >= 0 && row[workOrderRateIdx] != null && row[workOrderRateIdx] !== '') {
+            const val = Number(row[workOrderRateIdx])
+            if (!isNaN(val)) workroom.workOrderRate = val
           }
           if (getItRightIdx >= 0 && row[getItRightIdx] != null && row[getItRightIdx] !== '') {
             const getItRightValue = Number(row[getItRightIdx])
@@ -304,11 +370,20 @@ export default function FileUpload() {
               workroom.getItRight = getItRightValue
             }
           }
+          if (getItRightLYIdx >= 0 && row[getItRightLYIdx] != null && row[getItRightLYIdx] !== '') {
+            const val = Number(row[getItRightLYIdx])
+            if (!isNaN(val)) workroom.getItRightLY = val
+          }
           if (detailsCycleTimeIdx >= 0 && row[detailsCycleTimeIdx] != null && row[detailsCycleTimeIdx] !== '') {
             const detailsCycleTimeValue = Number(row[detailsCycleTimeIdx])
             if (!isNaN(detailsCycleTimeValue)) {
               workroom.detailsCycleTime = detailsCycleTimeValue
             }
+          }
+
+          // Read column J (index 9) for PO Number
+          if (row.length > 9 && row[9] != null && row[9] !== '') {
+            workroom.poNumber = String(row[9]).trim()
           }
 
           // Add survey data if available
@@ -417,15 +492,30 @@ export default function FileUpload() {
         // Use column X (index 23) for Jobs Work Cycle Time data in CSV files
         // Column X is the 24th column (A=0, B=1, ..., X=23)
         const jobsWorkCycleTimeIdx = headers.length > 23 ? 23 : -1
-        // Use column AD (index 29) for Reschedule Rate data in CSV files
-        // Column AD is the 30th column (A=0, B=1, ..., AD=29)
-        const rescheduleRateIdx = headers.length > 29 ? 29 : -1
-        // Use column AQ (index 42) for Get it Right data in CSV files
-        // Column AQ is the 43rd column (A=0, B=1, ..., AQ=42)
-        const getItRightIdx = headers.length > 42 ? 42 : -1
-        // Use column S (index 18) for Details Cycle Time data in CSV files
-        // Column S is the 19th column (A=0, B=1, ..., S=18)
-        const detailsCycleTimeIdx = headers.length > 18 ? 18 : -1
+        // Reschedule Rate breakdown (columns AD–AH) for CSV files
+        // AD=29, AE=30, AF=31, AG=32, AH=33 (0-based)
+        const rescheduleRateIdx = headers.length > 29 ? 29 : -1 // Column AD - Reschedule Rate
+        const rescheduleRateLYIdx = headers.length > 30 ? 30 : -1 // Column AE - Reschedule Rate Last Year
+        const detailRateIdx = headers.length > 31 ? 31 : -1 // Column AF - Detail Reschedule Rate
+        const jobRateIdx = headers.length > 32 ? 32 : -1 // Column AG - Job Reschedule Rate
+        const workOrderRateIdx = headers.length > 33 ? 33 : -1 // Column AH - Work Order Reschedule Rate
+        // Get it Right breakdown (columns AQ–AR) for CSV files
+        // AQ=42, AR=43 (0-based)
+        const getItRightIdx = headers.length > 42 ? 42 : -1 // Column AQ - Get it Right
+        const getItRightLYIdx = headers.length > 43 ? 43 : -1 // Column AR - Get it Right Last Year
+        // Details Cycle Time breakdown (columns P–T) for CSV files
+        // P=15, Q=16, R=17, S=18 (Total Provider Cycle Time), T=19 (Completed)
+        const detailsRtsSchedIdx = headers.length > 15 ? 15 : -1 // Column P - RTS - Sch (Details)
+        const detailsSchedStartIdx = headers.length > 16 ? 16 : -1 // Column Q - Sch - Start (Details)
+        const detailsStartDocsSubIdx = headers.length > 17 ? 17 : -1 // Column R - Start - Docs Sub (Details)
+        const detailsCycleTimeIdx = headers.length > 18 ? 18 : -1 // Column S - Details Cycle Time (Total Provider Cycle Time)
+        // completedIdx is Column T (index 19) - Completed
+        // Work Order Cycle Time breakdown (columns Z–AC) for CSV files
+        // Z=25, AA=26, AB=27, AC=28 (0-based)
+        const workOrderStage1Idx = headers.length > 25 ? 25 : -1 // Column Z
+        const workOrderStage2Idx = headers.length > 26 ? 26 : -1 // Column AA
+        const workOrderStage3Idx = headers.length > 27 ? 27 : -1 // Column AB
+        const totalWorkOrderCycleTimeIdx = headers.length > 28 ? 28 : -1 // Column AC
         
         // Survey-related columns for CSV
         const surveyDateIdx = headers.findIndex(
@@ -497,6 +587,23 @@ export default function FileUpload() {
               workroom.completed = completedValue
             }
           }
+          // Details Cycle Time breakdown (columns P–S) for CSV
+          if (detailsRtsSchedIdx >= 0 && values[detailsRtsSchedIdx] != null && values[detailsRtsSchedIdx] !== '') {
+            const val = Number(values[detailsRtsSchedIdx])
+            if (!isNaN(val)) workroom.detailsRtsSched = val
+          }
+          if (detailsSchedStartIdx >= 0 && values[detailsSchedStartIdx] != null && values[detailsSchedStartIdx] !== '') {
+            const val = Number(values[detailsSchedStartIdx])
+            if (!isNaN(val)) workroom.detailsSchedStart = val
+          }
+          if (detailsStartDocsSubIdx >= 0 && values[detailsStartDocsSubIdx] != null && values[detailsStartDocsSubIdx] !== '') {
+            const val = Number(values[detailsStartDocsSubIdx])
+            if (!isNaN(val)) workroom.detailsStartDocsSub = val
+          }
+          if (detailsCycleTimeIdx >= 0 && values[detailsCycleTimeIdx] != null && values[detailsCycleTimeIdx] !== '') {
+            const val = Number(values[detailsCycleTimeIdx])
+            if (!isNaN(val)) workroom.detailsCycleTime = val
+          }
           if (jobsWorkCycleTimeIdx >= 0 && values[jobsWorkCycleTimeIdx] != null && values[jobsWorkCycleTimeIdx] !== '') {
             const jobsWorkCycleTimeValue = Number(values[jobsWorkCycleTimeIdx])
             if (!isNaN(jobsWorkCycleTimeValue)) {
@@ -509,11 +616,31 @@ export default function FileUpload() {
               workroom.rescheduleRate = rescheduleRateValue
             }
           }
+          if (rescheduleRateLYIdx >= 0 && values[rescheduleRateLYIdx] != null && values[rescheduleRateLYIdx] !== '') {
+            const val = Number(values[rescheduleRateLYIdx])
+            if (!isNaN(val)) workroom.rescheduleRateLY = val
+          }
+          if (detailRateIdx >= 0 && values[detailRateIdx] != null && values[detailRateIdx] !== '') {
+            const val = Number(values[detailRateIdx])
+            if (!isNaN(val)) workroom.detailRate = val
+          }
+          if (jobRateIdx >= 0 && values[jobRateIdx] != null && values[jobRateIdx] !== '') {
+            const val = Number(values[jobRateIdx])
+            if (!isNaN(val)) workroom.jobRate = val
+          }
+          if (workOrderRateIdx >= 0 && values[workOrderRateIdx] != null && values[workOrderRateIdx] !== '') {
+            const val = Number(values[workOrderRateIdx])
+            if (!isNaN(val)) workroom.workOrderRate = val
+          }
           if (getItRightIdx >= 0 && values[getItRightIdx] != null && values[getItRightIdx] !== '') {
             const getItRightValue = Number(values[getItRightIdx])
             if (!isNaN(getItRightValue)) {
               workroom.getItRight = getItRightValue
             }
+          }
+          if (getItRightLYIdx >= 0 && values[getItRightLYIdx] != null && values[getItRightLYIdx] !== '') {
+            const val = Number(values[getItRightLYIdx])
+            if (!isNaN(val)) workroom.getItRightLY = val
           }
           if (detailsCycleTimeIdx >= 0 && values[detailsCycleTimeIdx] != null && values[detailsCycleTimeIdx] !== '') {
             const detailsCycleTimeValue = Number(values[detailsCycleTimeIdx])
@@ -521,8 +648,29 @@ export default function FileUpload() {
               workroom.detailsCycleTime = detailsCycleTimeValue
             }
           }
+          if (workOrderStage1Idx >= 0 && values[workOrderStage1Idx] != null && values[workOrderStage1Idx] !== '') {
+            const val = Number(values[workOrderStage1Idx])
+            if (!isNaN(val)) workroom.workOrderStage1 = val
+          }
+          if (workOrderStage2Idx >= 0 && values[workOrderStage2Idx] != null && values[workOrderStage2Idx] !== '') {
+            const val = Number(values[workOrderStage2Idx])
+            if (!isNaN(val)) workroom.workOrderStage2 = val
+          }
+          if (workOrderStage3Idx >= 0 && values[workOrderStage3Idx] != null && values[workOrderStage3Idx] !== '') {
+            const val = Number(values[workOrderStage3Idx])
+            if (!isNaN(val)) workroom.workOrderStage3 = val
+          }
+          if (totalWorkOrderCycleTimeIdx >= 0 && values[totalWorkOrderCycleTimeIdx] != null && values[totalWorkOrderCycleTimeIdx] !== '') {
+            const val = Number(values[totalWorkOrderCycleTimeIdx])
+            if (!isNaN(val)) workroom.totalWorkOrderCycleTime = val
+          }
 
           // Add survey data if available
+          // Read column J (index 9) for PO Number in CSV
+          if (values.length > 9 && values[9] != null && values[9] !== '') {
+            workroom.poNumber = String(values[9]).trim()
+          }
+
           if (surveyDateIdx >= 0 && values[surveyDateIdx]) {
             workroom.surveyDate = values[surveyDateIdx].trim()
           }

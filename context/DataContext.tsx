@@ -28,18 +28,35 @@ export interface WorkroomData {
   profScore?: number
   professionalScore?: number
   completed?: number
+  // Details Cycle Time breakdown (Excel columns P–T)
+  detailsRtsSched?: number // Column P (index 15) - RTS - Sch (Details)
+  detailsSchedStart?: number // Column Q (index 16) - Sch - Start (Details)
+  detailsStartDocsSub?: number // Column R (index 17) - Start - Docs Sub (Details)
+  detailsCycleTime?: number // Column S (index 18) - Details Cycle Time (Total Provider Cycle Time)
+  // completed is Column T (index 19) - Completed
   // Job cycle time breakdown (Excel columns U–Y)
   rtsSchedDetails?: number
   schedStartDetails?: number
   startDocsSubDetails?: number
-  detailsCycleTime?: number // Column S (index 18) - Details Cycle Time
   totalDetailCycleTime?: number // Column X (index 23) - Total Detail Cycle
   rtsSchedJobs?: number
   schedStartJobs?: number
   startCompleteJobs?: number
   jobsWorkCycleTime?: number
-  rescheduleRate?: number
-  getItRight?: number
+  // Work Order Cycle Time breakdown (Excel columns Z–AC)
+  workOrderStage1?: number // Column Z (index 25)
+  workOrderStage2?: number // Column AA (index 26)
+  workOrderStage3?: number // Column AB (index 27)
+  totalWorkOrderCycleTime?: number // Column AC (index 28) - Total Work Order Cycle Time
+  rescheduleRate?: number // Column AD (index 29) - Reschedule Rate
+  // Reschedule Rate breakdown (Excel columns AD–AH)
+  rescheduleRateLY?: number // Column AE (index 30) - Reschedule Rate Last Year
+  detailRate?: number // Column AF (index 31) - Detail Reschedule Rate
+  jobRate?: number // Column AG (index 32) - Job Reschedule Rate
+  workOrderRate?: number // Column AH (index 33) - Work Order Reschedule Rate
+  getItRight?: number // Column AQ (index 42) - Get it Right
+  getItRightLY?: number // Column AR (index 43) - Get it Right Last Year
+  poNumber?: string | number // Column J (index 9) - PO Number
   company?: string
   installerName?: string
   [key: string]: any

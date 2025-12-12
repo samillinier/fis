@@ -78,7 +78,13 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
   const { data } = useData()
   const [selectedRiskWorkroom, setSelectedRiskWorkroom] = useState<any | null>(null)
   const [isRiskDialogOpen, setIsRiskDialogOpen] = useState(false)
+  const [isDetailsCycleDialogOpen, setIsDetailsCycleDialogOpen] = useState(false)
   const [isJobCycleDialogOpen, setIsJobCycleDialogOpen] = useState(false)
+  const [isWorkOrderCycleDialogOpen, setIsWorkOrderCycleDialogOpen] = useState(false)
+  const [isRescheduleRateDialogOpen, setIsRescheduleRateDialogOpen] = useState(false)
+  const [isGetItRightDialogOpen, setIsGetItRightDialogOpen] = useState(false)
+  const [selectedStore, setSelectedStore] = useState<any | null>(null)
+  const [isStoreDetailsDialogOpen, setIsStoreDetailsDialogOpen] = useState(false)
 
   const jobCycleSections = [
     {
@@ -105,6 +111,22 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
     setIsJobCycleDialogOpen(true)
   }
 
+  const handleWorkOrderCycleInfo = () => {
+    setIsWorkOrderCycleDialogOpen(true)
+  }
+
+  const handleRescheduleRateInfo = () => {
+    setIsRescheduleRateDialogOpen(true)
+  }
+
+  const handleDetailsCycleInfo = () => {
+    setIsDetailsCycleDialogOpen(true)
+  }
+
+  const handleGetItRightInfo = () => {
+    setIsGetItRightDialogOpen(true)
+  }
+
   // Normalize workroom names in the data
   const normalizedData = data.workrooms.map((w) => ({
     ...w,
@@ -115,6 +137,41 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
   if (selectedWorkroom !== 'all') {
     filteredData = filteredData.filter((w) => w.name === selectedWorkroom)
   }
+
+  const detailsCycleMetrics = useMemo(() => {
+    // Only use records with visual data (exclude survey-only records)
+    const visualDataOnly = filteredData.filter((w) => {
+      const hasVisualData = (w.sales && w.sales > 0) || (w.laborPO && w.laborPO > 0) || (w.vendorDebit && w.vendorDebit !== 0)
+      return hasVisualData
+    })
+    
+    const averageForKey = (key: string): number | null => {
+      const nums = visualDataOnly
+        .map((w) => Number(w[key]))
+        .filter((n) => !isNaN(n))
+      if (nums.length === 0) return null
+      const sum = nums.reduce((acc, n) => acc + n, 0)
+      return sum / nums.length
+    }
+
+    const stages = [
+      { label: 'Ready to Schedule → Scheduled', value: averageForKey('detailsRtsSched'), description: 'Time from Ready to Schedule notification to scheduled date' },
+      { label: 'Scheduled → Installation Started', value: averageForKey('detailsSchedStart'), description: 'Time from scheduled date to when installation begins' },
+      { label: 'Installation Started → Documents Submitted', value: averageForKey('detailsStartDocsSub'), description: 'Time from installation start to completion documentation submitted' },
+    ]
+
+    // Total Provider Cycle Time comes directly from column S (detailsCycleTime)
+    const totalProviderCycleTime = averageForKey('detailsCycleTime')
+    
+    // Completed comes from column T
+    const completed = averageForKey('completed')
+
+    return {
+      stages,
+      totalProviderCycleTime,
+      completed,
+    }
+  }, [filteredData])
 
   const jobCycleMetrics = useMemo(() => {
     // Only use records with visual data (exclude survey-only records)
@@ -157,6 +214,91 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
     return {
       details: [...details, { label: 'Total Detail Cycle time', value: detailsTotal }],
       jobs: [...jobs, { label: 'Total Jobs Cycle time', value: jobsTotal }],
+    }
+  }, [filteredData])
+
+  const workOrderCycleMetrics = useMemo(() => {
+    // Only use records with visual data (exclude survey-only records)
+    const visualDataOnly = filteredData.filter((w) => {
+      const hasVisualData = (w.sales && w.sales > 0) || (w.laborPO && w.laborPO > 0) || (w.vendorDebit && w.vendorDebit !== 0)
+      return hasVisualData
+    })
+    
+    const averageForKey = (key: string): number | null => {
+      const nums = visualDataOnly
+        .map((w) => Number(w[key]))
+        .filter((n) => !isNaN(n))
+      if (nums.length === 0) return null
+      const sum = nums.reduce((acc, n) => acc + n, 0)
+      return sum / nums.length
+    }
+
+    const stages = [
+      { label: 'Ready to Schedule → Scheduled', value: averageForKey('workOrderStage1'), description: 'Time from Ready-To-Schedule date to Scheduled Start date' },
+      { label: 'Scheduled → Work Started', value: averageForKey('workOrderStage2'), description: 'Time from Scheduled Start date to when work actually begins' },
+      { label: 'Work Started → Completed', value: averageForKey('workOrderStage3'), description: 'Time from work start to Work Order Completion' },
+    ]
+
+    // Total Provider Cycle Time comes directly from column AC (totalWorkOrderCycleTime)
+    const total = averageForKey('totalWorkOrderCycleTime')
+
+    return {
+      stages: [...stages, { label: 'Total Provider Cycle Time', value: total }],
+    }
+  }, [filteredData])
+
+  const rescheduleRateMetrics = useMemo(() => {
+    // Only use records with visual data (exclude survey-only records)
+    const visualDataOnly = filteredData.filter((w) => {
+      const hasVisualData = (w.sales && w.sales > 0) || (w.laborPO && w.laborPO > 0) || (w.vendorDebit && w.vendorDebit !== 0)
+      return hasVisualData
+    })
+    
+    const averageForKey = (key: string): number | null => {
+      const nums = visualDataOnly
+        .map((w) => Number(w[key]))
+        .filter((n) => !isNaN(n))
+      if (nums.length === 0) return null
+      const sum = nums.reduce((acc, n) => acc + n, 0)
+      return sum / nums.length
+    }
+
+    const rates = [
+      { label: 'Reschedule Rate', value: averageForKey('rescheduleRate'), description: 'Overall reschedule rate percentage' },
+      { label: 'Reschedule Rate LY', value: averageForKey('rescheduleRateLY'), description: 'Reschedule rate from last year for comparison' },
+      { label: 'Detail Rate', value: averageForKey('detailRate'), description: 'Reschedule rate for detail work orders' },
+      { label: 'Job Rate', value: averageForKey('jobRate'), description: 'Reschedule rate for job work orders' },
+      { label: 'Work Order Rate', value: averageForKey('workOrderRate'), description: 'Reschedule rate for work order cycle' },
+    ]
+
+    return {
+      rates,
+    }
+  }, [filteredData])
+
+  const getItRightMetrics = useMemo(() => {
+    // Only use records with visual data (exclude survey-only records)
+    const visualDataOnly = filteredData.filter((w) => {
+      const hasVisualData = (w.sales && w.sales > 0) || (w.laborPO && w.laborPO > 0) || (w.vendorDebit && w.vendorDebit !== 0)
+      return hasVisualData
+    })
+    
+    const averageForKey = (key: string): number | null => {
+      const nums = visualDataOnly
+        .map((w) => Number(w[key]))
+        .filter((n) => !isNaN(n))
+      if (nums.length === 0) return null
+      const sum = nums.reduce((acc, n) => acc + n, 0)
+      return sum / nums.length
+    }
+
+    const rates = [
+      { label: 'Get it Right', value: averageForKey('getItRight'), description: 'Percentage of work orders completed correctly on first attempt' },
+      { label: 'Get it Right LY', value: averageForKey('getItRightLY'), description: 'Get it Right percentage from last year for comparison' },
+    ]
+
+    return {
+      rates,
     }
   }, [filteredData])
 
@@ -259,7 +401,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
   // Top Performing Workrooms - ranked by WPI Score
   const performingWorkroomsMap = new Map<
     string,
-    { name: string; sales: number; laborPO: number; vendorDebit: number; stores: Set<string>; records: number; cycleTime?: number; jobsWorkCycleTime?: number; jobsWorkCycleTimeCount: number; rescheduleRate: number; rescheduleRateCount: number }
+    { name: string; sales: number; laborPO: number; vendorDebit: number; stores: Set<string>; records: number; cycleTime?: number; jobsWorkCycleTime?: number; jobsWorkCycleTimeCount: number; rescheduleRate: number; rescheduleRateCount: number; detailsCycleTime?: number; detailsCycleTimeCount: number; completed?: number }
   >()
 
   filteredData.forEach((w) => {
@@ -275,6 +417,9 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
       jobsWorkCycleTimeCount: 0,
       rescheduleRate: 0,
       rescheduleRateCount: 0,
+      detailsCycleTime: 0,
+      detailsCycleTimeCount: 0,
+      completed: 0,
     }
     let jobsWorkCycleTime = existing.jobsWorkCycleTime || 0
     let jobsWorkCycleTimeCount = existing.jobsWorkCycleTimeCount || 0
@@ -287,6 +432,12 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
     if (w.rescheduleRate != null && w.rescheduleRate !== undefined && !isNaN(Number(w.rescheduleRate))) {
       rescheduleRate += Number(w.rescheduleRate)
       rescheduleRateCount += 1
+    }
+    let detailsCycleTime = existing.detailsCycleTime || 0
+    let detailsCycleTimeCount = existing.detailsCycleTimeCount || 0
+    if (w.detailsCycleTime != null && w.detailsCycleTime !== undefined && w.detailsCycleTime > 0) {
+      detailsCycleTime += w.detailsCycleTime
+      detailsCycleTimeCount += 1
     }
     existing.stores.add(String(w.store))
     performingWorkroomsMap.set(w.name, {
@@ -301,6 +452,9 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
       jobsWorkCycleTimeCount,
       rescheduleRate,
       rescheduleRateCount,
+      detailsCycleTime,
+      detailsCycleTimeCount,
+      completed: (existing.completed || 0) + (w.completed || 0),
     })
   })
 
@@ -479,29 +633,6 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
              w.name.trim() !== ''
     })
 
-  // Average Vendor Debits $ by Workroom
-  const avgVendorDebitByWorkroom = Array.from(performingWorkroomsMap.values())
-    .map((w) => {
-      const avgVendorDebit = w.records > 0 ? w.vendorDebit / w.records : 0
-      return {
-        name: w.name,
-        avgVendorDebit,
-        totalVendorDebit: w.vendorDebit,
-        records: w.records,
-        stores: w.stores.size,
-      }
-    })
-    .sort((a, b) => Math.abs(b.avgVendorDebit) - Math.abs(a.avgVendorDebit)) // Sort by absolute value since debits can be negative
-    .filter((w) => {
-      // Filter out invalid workroom names like "Location #"
-      const name = w.name.toLowerCase().trim()
-      return name !== 'location #' && 
-             name !== 'location' && 
-             name !== '' && 
-             !name.includes('location #') &&
-             w.name.trim() !== ''
-    })
-
   // Calculate LTR score from survey data for each workroom
   const surveyLTRMap = new Map<string, { sum: number; count: number }>()
   filteredData.forEach((w) => {
@@ -513,6 +644,133 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
       })
     }
   })
+
+  // Top Performing Stores - Aggregate by store (combining visual and survey data)
+  const storesMap = new Map<string, {
+    store: string | number
+    sales: number
+    laborPO: number
+    vendorDebit: number
+    records: number
+    ltrScores: number[]
+    workrooms: Set<string>
+  }>()
+
+  filteredData.forEach((w) => {
+    const storeKey = String(w.store || '').trim()
+    if (!storeKey || storeKey === '' || storeKey.toLowerCase() === 'location #') return
+
+    const existing = storesMap.get(storeKey) || {
+      store: storeKey,
+      sales: 0,
+      laborPO: 0,
+      vendorDebit: 0,
+      records: 0,
+      ltrScores: [],
+      workrooms: new Set<string>(),
+    }
+
+    // Visual data
+    if (w.sales && w.sales > 0) existing.sales += w.sales
+    if (w.laborPO && w.laborPO > 0) existing.laborPO += w.laborPO
+    if (w.vendorDebit) existing.vendorDebit += w.vendorDebit
+    if (w.completed) existing.records += w.completed
+
+    // Survey data
+    if (w.ltrScore != null && w.ltrScore !== undefined && !isNaN(w.ltrScore)) {
+      existing.ltrScores.push(w.ltrScore)
+    }
+
+    if (w.name) existing.workrooms.add(w.name)
+
+    storesMap.set(storeKey, existing)
+  })
+
+  // Helper to clean store name (remove "Lowe's" and similar)
+  const cleanStoreName = (storeNumber: string | number): string => {
+    const storeNum = String(storeNumber)
+    try {
+      const fullName = getStoreName(storeNum)
+      if (!fullName) return storeNum
+      // Remove "LOWE'S OF", "LOWES OF", "LOWE'S", etc.
+      let cleaned = fullName.replace(/^LOWE'?S\s+(OF\s+)?/i, '')
+      // Remove trailing state codes
+      cleaned = cleaned.replace(/,\s*[A-Z]{2}$/, '')
+      return cleaned.trim() || storeNum
+    } catch {
+      return storeNum
+    }
+  }
+
+  const allPerformingStores = Array.from(storesMap.values())
+    .map((store) => {
+      const totalCost = store.laborPO + Math.abs(store.vendorDebit)
+      const avgLTR = store.ltrScores.length > 0
+        ? store.ltrScores.reduce((sum, score) => sum + score, 0) / store.ltrScores.length
+        : null
+
+      // Calculate performance score (similar to WPI)
+      // LTR Score (50% weight)
+      let ltrScore = 0
+      if (avgLTR != null && avgLTR > 0) {
+        if (avgLTR > 9.0) ltrScore = 100
+        else if (avgLTR >= 8.0) ltrScore = 80
+        else if (avgLTR >= 7.0) ltrScore = 60
+        else if (avgLTR >= 6.0) ltrScore = 40
+        else ltrScore = 20
+      } else {
+        ltrScore = 50 // Neutral if no survey data
+      }
+
+      // Labor PO Score (30% weight)
+      const maxLaborPO = Math.max(...Array.from(storesMap.values()).map(s => s.laborPO), 1)
+      const laborPOScore = maxLaborPO > 0 ? (store.laborPO / maxLaborPO) * 100 : 0
+
+      // Vendor Debit Discipline Score (20% weight)
+      let vendorDebitDisciplineScore = 100
+      const vendorDebitRatio = totalCost > 0 ? Math.abs(store.vendorDebit) / totalCost : 0
+      if (totalCost > 0) {
+        vendorDebitDisciplineScore = Math.max(0, 100 - (vendorDebitRatio * 200))
+      }
+
+      const performanceScore = (ltrScore * 0.50) + (laborPOScore * 0.30) + (vendorDebitDisciplineScore * 0.20)
+
+      // Categorize store
+      let status = 'Moderate'
+      let statusColor = '#fbbf24'
+      if (performanceScore >= 70) {
+        status = 'Winning'
+        statusColor = '#10b981'
+      } else if (performanceScore < 40) {
+        status = 'Critical'
+        statusColor = '#ef4444'
+      }
+
+      const storeName = cleanStoreName(store.store)
+
+      return {
+        store: store.store,
+        storeName,
+        performanceScore,
+        status,
+        statusColor,
+        avgLTR,
+        totalSales: store.laborPO,
+        sales: store.sales,
+        totalVendorDebit: store.vendorDebit,
+        records: store.records,
+        workroomsCount: store.workrooms.size,
+        workrooms: Array.from(store.workrooms),
+      }
+    })
+    .filter((s) => s.records > 0 || s.avgLTR != null) // Only show stores with data
+    .sort((a, b) => b.performanceScore - a.performanceScore)
+
+  const topPerformingStores = allPerformingStores.slice(0, 10) // Top 10 only
+  const bottomPerformingStores = allPerformingStores
+    .slice()
+    .sort((a, b) => a.performanceScore - b.performanceScore)
+    .slice(0, 10) // Bottom 10 only
 
   // Comprehensive Workroom Analysis Dashboard
   // Maps out: Store mix, LTR performance, Labor PO volume, Vendor debit exposure, 
@@ -526,6 +784,8 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
       const avgLaborPOPerStore = w.stores.size > 0 ? w.laborPO / w.stores.size : 0
       const avgJobsWorkCycleTime = w.jobsWorkCycleTimeCount > 0 ? (w.jobsWorkCycleTime || 0) / w.jobsWorkCycleTimeCount : null
       const avgRescheduleRate = w.rescheduleRateCount > 0 ? (w.rescheduleRate || 0) / w.rescheduleRateCount : null
+      const avgDetailsCycleTime = w.detailsCycleTimeCount > 0 ? (w.detailsCycleTime || 0) / w.detailsCycleTimeCount : null
+      const avgTicketSale = w.records > 0 ? w.laborPO / w.records : 0
       
       // Calculate average LTR score from survey data
       const surveyLTR = surveyLTRMap.get(w.name)
@@ -579,28 +839,142 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
       else if (vendorDebitRatio > 0) vendorDebitExposure = 'Low'
       else vendorDebitExposure = 'None'
       
-      // Calculate weighted WPI for this workroom
+      // Calculate weighted Performance Score using new Core Metrics
+      // LTR Score (50% weight)
       let ltrScore = 0
-      if (ltrPercent > 0) {
+      if (avgLTRFromSurvey != null && avgLTRFromSurvey > 0) {
+        // Use survey LTR score (0-10 scale) converted to 0-100
+        ltrScore = avgLTRFromSurvey * 10
+      } else if (ltrPercent > 0) {
+        // Fallback to calculated LTR% (lower is better)
         if (ltrPercent <= 20) {
-          ltrScore = 100 - (ltrPercent / 20) * 30
+          ltrScore = 100 - (ltrPercent / 20) * 30 // 70-100
         } else if (ltrPercent <= 40) {
-          ltrScore = 70 - ((ltrPercent - 20) / 20) * 70
+          ltrScore = 70 - ((ltrPercent - 20) / 20) * 70 // 0-70
+        } else {
+          ltrScore = 0
         }
       } else {
-        ltrScore = 50
+        ltrScore = 50 // Neutral if no data
       }
       
-      const maxLaborPO = Math.max(...Array.from(performingWorkroomsMap.values()).map(wr => wr.laborPO), 1)
-      const laborPOScore = maxLaborPO > 0 ? (w.laborPO / maxLaborPO) * 100 : 0
+      // Details Cycle Time Score (5% weight)
+      // Lower cycle time is better - score based on days
+      let detailsCycleTimeScore = 50 // Default neutral
+      if (avgDetailsCycleTime != null && avgDetailsCycleTime > 0) {
+        if (avgDetailsCycleTime <= 10) {
+          detailsCycleTimeScore = 100 // Excellent
+        } else if (avgDetailsCycleTime <= 20) {
+          detailsCycleTimeScore = 80 // Good
+        } else if (avgDetailsCycleTime <= 30) {
+          detailsCycleTimeScore = 60 // Moderate
+        } else if (avgDetailsCycleTime <= 40) {
+          detailsCycleTimeScore = 40 // Poor
+        } else {
+          detailsCycleTimeScore = 20 // Critical
+        }
+      }
       
-      let vendorDebitDisciplineScore = 100
+      // Cycle Jobs Score (13% weight)
+      // Lower cycle time is better
+      let cycleJobsScore = 50 // Default neutral
+      if (avgJobsWorkCycleTime != null && avgJobsWorkCycleTime > 0) {
+        if (avgJobsWorkCycleTime <= 5) {
+          cycleJobsScore = 100 // Excellent
+        } else if (avgJobsWorkCycleTime <= 10) {
+          cycleJobsScore = 80 // Good
+        } else if (avgJobsWorkCycleTime <= 15) {
+          cycleJobsScore = 60 // Moderate
+        } else if (avgJobsWorkCycleTime <= 20) {
+          cycleJobsScore = 40 // Poor
+        } else {
+          cycleJobsScore = 20 // Critical
+        }
+      }
+      
+      // Work Order Cycle Time Score (14% weight)
+      // Lower cycle time is better
+      let workOrderCycleTimeScore = 50 // Default neutral
+      if (w.cycleTime != null && w.cycleTime > 0) {
+        if (w.cycleTime <= 15) {
+          workOrderCycleTimeScore = 100 // Excellent
+        } else if (w.cycleTime <= 25) {
+          workOrderCycleTimeScore = 80 // Good
+        } else if (w.cycleTime <= 35) {
+          workOrderCycleTimeScore = 60 // Moderate
+        } else if (w.cycleTime <= 45) {
+          workOrderCycleTimeScore = 40 // Poor
+        } else {
+          workOrderCycleTimeScore = 20 // Critical
+        }
+      }
+      
+      // Reschedule Rate Score (8% weight)
+      // Lower reschedule rate is better
+      let rescheduleRateScore = 50 // Default neutral
+      if (avgRescheduleRate != null && avgRescheduleRate > 0) {
+        if (avgRescheduleRate <= 10) {
+          rescheduleRateScore = 100 // Excellent
+        } else if (avgRescheduleRate <= 20) {
+          rescheduleRateScore = 80 // Good
+        } else if (avgRescheduleRate <= 30) {
+          rescheduleRateScore = 60 // Moderate
+        } else if (avgRescheduleRate <= 40) {
+          rescheduleRateScore = 40 // Poor
+        } else {
+          rescheduleRateScore = 20 // Critical
+        }
+      }
+      
+      // Vendor Debits Score (10% weight)
+      // Lower vendor debit ratio is better
+      let vendorDebitsScore = 100 // Default excellent
       if (totalCost > 0) {
         const vendorDebitRatio = Math.abs(w.vendorDebit) / totalCost
-        vendorDebitDisciplineScore = Math.max(0, 100 - (vendorDebitRatio * 200))
+        if (vendorDebitRatio <= 0.1) {
+          vendorDebitsScore = 100 // Excellent (0-10%)
+        } else if (vendorDebitRatio <= 0.2) {
+          vendorDebitsScore = 80 // Good (10-20%)
+        } else if (vendorDebitRatio <= 0.3) {
+          vendorDebitsScore = 60 // Moderate (20-30%)
+        } else if (vendorDebitRatio <= 0.4) {
+          vendorDebitsScore = 40 // Poor (30-40%)
+        } else {
+          vendorDebitsScore = 20 // Critical (>40%)
+        }
       }
       
-      const weightedPerformanceScore = (ltrScore * 0.50) + (laborPOScore * 0.30) + (vendorDebitDisciplineScore * 0.20)
+      // Calculate weighted Performance Score with new weights
+      const weightedPerformanceScore = 
+        (ltrScore * 0.50) +           // LTR: 50%
+        (detailsCycleTimeScore * 0.05) + // Details Cycle Time: 5%
+        (cycleJobsScore * 0.13) +     // Cycle Jobs: 13%
+        (workOrderCycleTimeScore * 0.14) + // Work Order Cycle Time: 14%
+        (rescheduleRateScore * 0.08) + // Reschedule Rate: 8%
+        (vendorDebitsScore * 0.10)    // Vendor Debits: 10%
+      
+      // Store individual metric scores and values for display
+      const metricScores = {
+        ltr: { score: ltrScore, value: avgLTRFromSurvey != null ? avgLTRFromSurvey : (ltrPercent > 0 ? ltrPercent : null), label: 'LTR' },
+        detailsCycleTime: { score: detailsCycleTimeScore, value: avgDetailsCycleTime, label: 'Details Cycle Time' },
+        cycleJobs: { score: cycleJobsScore, value: avgJobsWorkCycleTime, label: 'Cycle Jobs' },
+        workOrderCycleTime: { score: workOrderCycleTimeScore, value: w.cycleTime, label: 'Work Order Cycle Time' },
+        rescheduleRate: { score: rescheduleRateScore, value: avgRescheduleRate, label: 'Reschedule Rate' },
+        vendorDebits: { score: vendorDebitsScore, value: vendorDebitRatio * 100, label: 'Vendor Debits' }
+      }
+      
+      // Financial Risk Rating - Based on weighted performance score
+      // Determine risk based on weighted performance score thresholds
+      let financialRisk = 'Low'
+      if (weightedPerformanceScore >= 85) {
+        financialRisk = 'Low'
+      } else if (weightedPerformanceScore >= 70) {
+        financialRisk = 'Moderate'
+      } else if (weightedPerformanceScore >= 50) {
+        financialRisk = 'High'
+      } else {
+        financialRisk = 'Critical'
+      }
       
       // Operational Risks
       const operationalRisks: string[] = []
@@ -620,24 +994,16 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
         operationalRisks.push('High Total Sales per store')
       }
       
-      // Financial Risk Rating
-      let financialRisk = 'Low'
+      // Additional risk factors for context
       const riskFactors: string[] = []
-      
-      if (vendorDebitRatio > 0.3) {
+      if (vendorDebitRatio > 0.4) {
         riskFactors.push('High vendor debit exposure')
-        financialRisk = 'High'
       }
       if (ltrPercent > 40 && ltrPercent > 0) {
         riskFactors.push('High LTR%')
-        if (financialRisk === 'Low') financialRisk = 'Moderate'
       }
       if (totalCost > 0 && w.sales > 0 && (w.sales - totalCost) / totalCost < 0.1) {
         riskFactors.push('Low margin rate')
-        if (financialRisk === 'Low') financialRisk = 'Moderate'
-      }
-      if (vendorDebitRatio > 0.4 || (ltrPercent > 50 && ltrPercent > 0)) {
-        financialRisk = 'Critical'
       }
       
       // "Fix this now" bullets - Actionable items
@@ -693,9 +1059,13 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
         jobsWorkCycleTime: avgJobsWorkCycleTime,
         rescheduleRate: avgRescheduleRate,
         sales: w.sales,
+        completed: w.completed,
+        avgTicketSale,
         totalCost,
         avgCostPerRecord,
         avgLTRFromSurvey, // Average LTR score from survey data
+        metricScores, // Individual metric scores and values for display
+        avgDetailsCycleTime, // Average Details Cycle Time for reference
       }
     })
     .sort((a, b) => b.weightedPerformanceScore - a.weightedPerformanceScore)
@@ -719,7 +1089,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
             gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', 
             gap: '1rem',
             width: '100%',
-            gridAutoRows: 'minmax(140px, auto)',
+            gridAutoRows: 'minmax(auto, auto)',
             alignItems: 'stretch'
           }}>
             {comprehensiveAnalysis.map((workroom) => {
@@ -730,25 +1100,20 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
               let borderColor = '#dc2626'
               let shadowColor = 'rgba(0, 0, 0, 0.15)'
               
-              if (workroom.weightedPerformanceScore >= 70) {
+              if (workroom.weightedPerformanceScore >= 85) {
                 backgroundColor = '#22c55e' // Green
                 heatmapLabel = 'Carrying Company'
                 textColor = '#ffffff'
                 borderColor = '#16a34a'
                 shadowColor = 'rgba(34, 197, 94, 0.35)'
-              } else if (workroom.weightedPerformanceScore >= 50) {
+              } else if (workroom.weightedPerformanceScore >= 70) {
                 backgroundColor = '#facc15' // Yellow
                 heatmapLabel = 'Inconsistent'
                 textColor = '#1f2937'
                 borderColor = '#eab308'
                 shadowColor = 'rgba(234, 179, 8, 0.35)'
-              } else if (workroom.weightedPerformanceScore >= 40) {
-                backgroundColor = '#f59e0b' // Orange
-                heatmapLabel = 'Warning'
-                textColor = '#1f2937'
-                borderColor = '#d97706'
-                shadowColor = 'rgba(217, 119, 6, 0.35)'
               }
+              // Below 70 = Red (default, already set above)
 
               // Additional red flags for critical issues
               if (workroom.financialRisk === 'Critical' || 
@@ -762,13 +1127,25 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                 shadowColor = 'rgba(248, 113, 113, 0.35)'
               }
 
+              // Create a subtle diagonal stripe pattern for workroom name section
+              const patternColor = textColor === '#ffffff' 
+                ? 'rgba(255, 255, 255, 0.12)' 
+                : 'rgba(0, 0, 0, 0.06)'
+              const backgroundPattern = `repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                ${patternColor} 10px,
+                ${patternColor} 12px
+              )`
+
               return (
                 <div
                   key={workroom.name}
                   style={{
                     background: backgroundColor,
                     color: textColor,
-                    padding: '1.25rem',
+                    padding: '1rem',
                     borderRadius: '0.75rem',
                     boxShadow: `0 6px 16px ${shadowColor}`,
                     border: `1px solid ${borderColor}`,
@@ -777,8 +1154,6 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                     gap: '0.5rem',
                     cursor: 'pointer',
                     transition: 'transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease',
-                    minHeight: '140px',
-                    height: '100%',
                     justifyContent: 'space-between',
                     position: 'relative'
                   }}
@@ -793,68 +1168,160 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                     e.currentTarget.style.borderColor = borderColor
                   }}
                 >
-                  <div style={{ position: 'relative', zIndex: 1 }}>
-                    <div style={{ fontWeight: 800, fontSize: '1.5rem', lineHeight: '1.3' }}>
-                      {workroom.name}
+                  <div style={{ 
+                    position: 'relative', 
+                    zIndex: 1,
+                    backgroundImage: backgroundPattern,
+                    padding: '0.6rem',
+                    margin: '-1rem -1rem 0.4rem -1rem',
+                    borderRadius: '0.75rem 0.75rem 0 0',
+                    borderBottom: `2px solid ${textColor}30`,
+                    minHeight: '60px'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
+                      <div style={{ 
+                        fontWeight: 800, 
+                        fontSize: '1.5rem', 
+                        lineHeight: '1.2',
+                        flex: '1',
+                        minWidth: 0
+                      }}>
+                        {workroom.name}
+                      </div>
+                      <div style={{ 
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'flex-end',
+                        justifyContent: 'flex-start',
+                        fontSize: '0.7rem',
+                        lineHeight: '1.2',
+                        gap: '0.3rem',
+                        flexShrink: 0,
+                        marginLeft: 'auto',
+                        paddingLeft: '1rem'
+                      }}>
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ 
+                            fontWeight: 700, 
+                            fontSize: '0.75rem',
+                            marginBottom: '0.1rem'
+                          }}>
+                            {workroom.financialRisk}
+                          </div>
+                          <div style={{ 
+                            fontSize: '0.65rem',
+                            opacity: 0.8,
+                            fontWeight: 500
+                          }}>
+                            Risk
+                          </div>
+                        </div>
+                        {workroom.fixNowBullets.length > 0 ? (
+                          <div 
+                            style={{ 
+                              fontSize: '0.7rem', 
+                              opacity: 0.9,
+                              cursor: 'pointer',
+                              padding: '0.15rem 0.4rem',
+                              borderRadius: '0.25rem',
+                              transition: 'background-color 0.2s',
+                              textDecoration: 'underline',
+                              textAlign: 'right',
+                              whiteSpace: 'nowrap',
+                              marginTop: '0.2rem'
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setSelectedRiskWorkroom(workroom)
+                              setIsRiskDialogOpen(true)
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'
+                              e.currentTarget.style.opacity = '1'
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = 'transparent'
+                              e.currentTarget.style.opacity = '0.9'
+                            }}
+                          >
+                            {workroom.fixNowBullets.length} issue{workroom.fixNowBullets.length > 1 ? 's' : ''} to fix
+                          </div>
+                        ) : (
+                          <div style={{ 
+                            fontSize: '0.7rem', 
+                            opacity: 0,
+                            height: '1.2rem'
+                          }}>
+                            &nbsp;
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <div style={{ 
-                    fontSize: '0.7rem', 
+                    fontSize: '0.85rem', 
                     opacity: 0.95, 
-                    marginTop: '0.25rem', 
-                    borderTop: `2px solid ${textColor}40`, 
-                    paddingTop: '0.5rem',
+                    marginTop: '0.2rem', 
+                    paddingTop: '0.3rem',
                     position: 'relative',
                     zIndex: 1,
                     backdropFilter: 'blur(4px)'
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                      <span>WPI Score:</span>
-                      <span style={{ fontWeight: 600 }}>{workroom.weightedPerformanceScore.toFixed(1)}</span>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>WPI Score:</span>
+                      <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>{workroom.weightedPerformanceScore.toFixed(1)}</span>
                     </div>
-                    {workroom.avgLTRFromSurvey !== null && (
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                        <span>LTR:</span>
-                        <span style={{ fontWeight: 600 }}>{workroom.avgLTRFromSurvey.toFixed(1)}</span>
+                    {/* Core Metrics Display */}
+                    <div style={{ marginTop: '0.4rem', paddingTop: '0.4rem', borderTop: `1px solid ${textColor}20` }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>LTR:</span>
+                        <span style={{ fontWeight: 600, fontSize: '0.75rem' }}>
+                          {workroom.metricScores.ltr.value != null 
+                            ? `${workroom.metricScores.ltr.value.toFixed(1)}${workroom.avgLTRFromSurvey != null ? '' : '%'}`
+                            : 'N/A'}
+                        </span>
                       </div>
-                    )}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                      <span>Stores:</span>
-                      <span style={{ fontWeight: 600 }}>{workroom.storeMix.count}</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span>Risk:</span>
-                      <span style={{ fontWeight: 600 }}>{workroom.financialRisk}</span>
-                    </div>
-                    {workroom.fixNowBullets.length > 0 && (
-                      <div 
-                        style={{ 
-                          marginTop: '0.5rem', 
-                          fontSize: '0.65rem', 
-                          opacity: 0.9,
-                          cursor: 'pointer',
-                          padding: '0.25rem 0.5rem',
-                          borderRadius: '0.25rem',
-                          transition: 'background-color 0.2s',
-                          textDecoration: 'underline'
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setSelectedRiskWorkroom(workroom)
-                          setIsRiskDialogOpen(true)
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'
-                          e.currentTarget.style.opacity = '1'
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = 'transparent'
-                          e.currentTarget.style.opacity = '0.9'
-                        }}
-                      >
-                        {workroom.fixNowBullets.length} issue{workroom.fixNowBullets.length > 1 ? 's' : ''} to fix
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Details Cycle:</span>
+                        <span style={{ fontWeight: 600, fontSize: '0.75rem' }}>
+                          {workroom.metricScores.detailsCycleTime.value != null 
+                            ? `${workroom.metricScores.detailsCycleTime.value.toFixed(1)}d`
+                            : 'N/A'}
+                        </span>
                       </div>
-                    )}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Cycle Jobs:</span>
+                        <span style={{ fontWeight: 600, fontSize: '0.75rem' }}>
+                          {workroom.metricScores.cycleJobs.value != null 
+                            ? `${workroom.metricScores.cycleJobs.value.toFixed(1)}d`
+                            : 'N/A'}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>WO Cycle:</span>
+                        <span style={{ fontWeight: 600, fontSize: '0.75rem' }}>
+                          {workroom.metricScores.workOrderCycleTime.value != null 
+                            ? `${workroom.metricScores.workOrderCycleTime.value.toFixed(1)}d`
+                            : 'N/A'}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Reschedule:</span>
+                        <span style={{ fontWeight: 600, fontSize: '0.75rem' }}>
+                          {workroom.metricScores.rescheduleRate.value != null 
+                            ? `${workroom.metricScores.rescheduleRate.value.toFixed(1)}%`
+                            : 'N/A'}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Vendor Debits:</span>
+                        <span style={{ fontWeight: 600, fontSize: '0.75rem' }}>
+                          {workroom.metricScores.vendorDebits.value != null 
+                            ? `${workroom.metricScores.vendorDebits.value.toFixed(1)}%`
+                            : 'N/A'}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )
@@ -964,6 +1431,15 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
             const avgTotalDetailCycleTime = totalDetailCycleTimeData.length > 0
               ? totalDetailCycleTimeData.reduce((sum, w) => sum + Number(w.totalDetailCycleTime || 0), 0) / totalDetailCycleTimeData.length
               : 0
+            
+            // Average LTR: Average from survey data column L (index 11)
+            // ltrScore comes from column L in the survey file
+            const surveyLTRData = filteredData.filter((w) => {
+              return w.ltrScore != null && w.ltrScore !== undefined && !isNaN(Number(w.ltrScore))
+            })
+            const avgLTR = surveyLTRData.length > 0
+              ? surveyLTRData.reduce((sum, w) => sum + Number(w.ltrScore || 0), 0) / surveyLTRData.length
+              : 0
 
             return (
               <div style={{ 
@@ -980,17 +1456,41 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   </div>
                 </div>
 
-                {/* Details Cycle Time */}
+                {/* LTR */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">LTR</div>
+                  <div className="text-xl font-bold text-gray-900">
+                    {avgLTR > 0 ? (
+                      <CountUpNumber value={avgLTR} duration={1500} decimals={1} />
+                    ) : (
+                      '—'
+                    )}
+                  </div>
+                </div>
+
+                {/* Details Cycle Time */}
+                <div
+                  style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', cursor: 'pointer' }}
+                  role="button"
+                  tabIndex={0}
+                  onClick={handleDetailsCycleInfo}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      handleDetailsCycleInfo()
+                    }
+                  }}
+                  aria-label="View Details Cycle Time details"
+                >
                   <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Details Cycle Time</div>
                   <div className="text-xl font-bold text-gray-900" style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
                     {detailsCycleTimeData.length > 0 ? (
                       <>
-                        <CountUpNumber 
-                          value={avgDetailsCycleTime} 
-                          duration={1500} 
-                          decimals={1} 
-                        />
+                      <CountUpNumber 
+                        value={avgDetailsCycleTime} 
+                        duration={1500} 
+                        decimals={1} 
+                      />
                         <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#6b7280' }}>days</span>
                       </>
                     ) : (
@@ -1017,11 +1517,11 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   <div className="text-xl font-bold text-gray-900" style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
                     {avgTotalDetailCycleTime > 0 ? (
                       <>
-                        <CountUpNumber 
+                      <CountUpNumber 
                           value={avgTotalDetailCycleTime} 
-                          duration={1500} 
-                          decimals={1} 
-                        />
+                        duration={1500} 
+                        decimals={1} 
+                      />
                         <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#6b7280' }}>days</span>
                       </>
                     ) : (
@@ -1031,16 +1531,37 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                 </div>
 
                 {/* Work Order Cycle Time */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                <div
+                  style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', cursor: 'pointer' }}
+                  role="button"
+                  tabIndex={0}
+                  onClick={handleWorkOrderCycleInfo}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      handleWorkOrderCycleInfo()
+                    }
+                  }}
+                  aria-label="View Provider Cycle Time details"
+                >
                   <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Work Order Cycle Time</div>
                   <div className="text-xl font-bold text-gray-900" style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
-                    {avgCycleTime > 0 ? (
+                    {workOrderCycleMetrics.stages.at(-1)?.value != null && workOrderCycleMetrics.stages.at(-1)!.value! > 0 ? (
                       <>
                         <CountUpNumber 
-                          value={avgCycleTime} 
+                          value={workOrderCycleMetrics.stages.at(-1)!.value!} 
                           duration={1500} 
                           decimals={1} 
                         />
+                        <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#6b7280' }}>days</span>
+                      </>
+                    ) : avgCycleTime > 0 ? (
+                      <>
+                      <CountUpNumber 
+                        value={avgCycleTime} 
+                        duration={1500} 
+                        decimals={1} 
+                      />
                         <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#6b7280' }}>days</span>
                       </>
                     ) : (
@@ -1050,15 +1571,30 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                 </div>
 
                 {/* Reschedule Rate */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                <div
+                  style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', cursor: 'pointer' }}
+                  role="button"
+                  tabIndex={0}
+                  onClick={handleRescheduleRateInfo}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      handleRescheduleRateInfo()
+                    }
+                  }}
+                  aria-label="View Reschedule Rate details"
+                >
                   <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Reschedule Rate</div>
-                  <div className="text-xl font-bold text-gray-900">
+                  <div className="text-xl font-bold text-gray-900" style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
                     {avgRescheduleRate > 0 ? (
+                      <>
                       <CountUpNumber 
                         value={avgRescheduleRate} 
                         duration={1500} 
                         decimals={1} 
                       />
+                        <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#6b7280' }}>%</span>
+                      </>
                     ) : (
                       '—'
                     )}
@@ -1066,15 +1602,30 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                 </div>
 
                 {/* Get it Right */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                <div
+                  style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', cursor: 'pointer' }}
+                  role="button"
+                  tabIndex={0}
+                  onClick={handleGetItRightInfo}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      handleGetItRightInfo()
+                    }
+                  }}
+                  aria-label="View Get it Right details"
+                >
                   <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Get it Right</div>
-                  <div className="text-xl font-bold text-gray-900">
+                  <div className="text-xl font-bold text-gray-900" style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
                     {getItRightData.length > 0 ? (
+                      <>
                       <CountUpNumber 
                         value={avgGetItRight} 
                         duration={1500} 
                         decimals={1} 
                       />
+                        <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#6b7280' }}>%</span>
+                      </>
                     ) : (
                       '—'
                     )}
@@ -1259,7 +1810,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
         <div className="compact-section-header">
           <h3 className="compact-section-title">Comprehensive Workroom Analysis Dashboard</h3>
           <p className="text-xs text-gray-500 mt-1">
-            LTR Performance • Work Order Cycle Time • Job Cycle Time • Total Sales Volume • Vendor Debit Exposure • Reschedule Rate • Operational Risks • Risk • Weighted Performance Score (Click any row for detailed analysis)
+            LTR Performance • Work Order Cycle Time • Job Cycle Time • Total Sales Volume • Vendor Debit Exposure • Reschedule Rate • Avg Ticket Sale • Risk • Weighted Performance Score (Click any row for detailed analysis)
           </p>
         </div>
 
@@ -1275,7 +1826,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Total Sales Volume</th>
                   <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Vendor Debit Exposure</th>
                   <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Reschedule Rate</th>
-                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Operational Risks</th>
+                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Avg Ticket Sale</th>
                   <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Risk</th>
                   <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Weighted Score</th>
                 </tr>
@@ -1404,20 +1955,18 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                       </td>
                       <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>
                         {workroom.rescheduleRate != null && workroom.rescheduleRate !== undefined ? (
-                          <span style={{ fontWeight: 600, fontSize: '0.7rem' }}>{workroom.rescheduleRate.toFixed(1)}</span>
+                          <span style={{ fontWeight: 600, fontSize: '0.7rem' }}>{workroom.rescheduleRate.toFixed(1)}%</span>
                         ) : (
                           <span style={{ fontSize: '0.65rem', color: '#9ca3af' }}>N/A</span>
                         )}
                       </td>
-                      <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', maxWidth: '150px' }}>
-                        {workroom.operationalRisks.length > 0 ? (
-                          <ul style={{ margin: 0, paddingLeft: '1rem', fontSize: '0.65rem', color: '#dc2626' }}>
-                            {workroom.operationalRisks.map((risk, idx) => (
-                              <li key={idx}>{risk}</li>
-                            ))}
-                          </ul>
+                      <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>
+                        {workroom.avgTicketSale != null && workroom.avgTicketSale > 0 ? (
+                          <span style={{ fontWeight: 600, fontSize: '0.7rem' }}>
+                            ${workroom.avgTicketSale.toFixed(0)}
+                          </span>
                         ) : (
-                          <span style={{ fontSize: '0.65rem', color: '#10b981' }}>✓ No risks</span>
+                          <span style={{ fontSize: '0.65rem', color: '#9ca3af' }}>N/A</span>
                         )}
                       </td>
                       <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>
@@ -1435,7 +1984,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                 })}
                 {comprehensiveAnalysis.length === 0 && (
                   <tr>
-                    <td colSpan={10} style={{ textAlign: 'center', padding: '2rem 0.75rem', color: '#6b7280', fontSize: '0.75rem' }}>
+                    <td colSpan={11} style={{ textAlign: 'center', padding: '2rem 0.75rem', color: '#6b7280', fontSize: '0.75rem' }}>
                       Upload a T1/T2 scorecard to see comprehensive workroom analysis.
                     </td>
                   </tr>
@@ -1514,11 +2063,10 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                     radius={[4, 4, 0, 0]}
                   >
                     {wpiByWorkroom.map((w, index) => {
-                      let fillColor = '#94a3b8' // neutral gray
+                      let fillColor = '#10b981' // green - default for excellent
                       if (w.weightedWPI > 70) fillColor = '#10b981' // green - excellent
-                      else if (w.weightedWPI >= 50) fillColor = '#3b82f6' // blue - good
-                      else if (w.weightedWPI >= 40) fillColor = '#fbbf24' // yellow - warning
-                      else fillColor = '#ef4444' // red - poor
+                      else if (w.weightedWPI >= 40) fillColor = '#fbbf24' // yellow - warning/moderate
+                      else fillColor = '#ef4444' // red - poor/critical
 
                       return <Cell key={`cell-${index}`} fill={fillColor} />
                     })}
@@ -1537,19 +2085,17 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
             <div className="overflow-x-auto" style={{ maxHeight: '600px', overflowY: 'auto' }}>
               <table className="professional-table professional-table-zebra" style={{ fontSize: '0.75rem', width: '100%', tableLayout: 'fixed' }}>
                 <colgroup>
-                  <col style={{ width: '25%' }} />
-                  <col style={{ width: '12%' }} />
-                  <col style={{ width: '21%' }} />
-                  <col style={{ width: '21%' }} />
-                  <col style={{ width: '21%' }} />
+                  <col style={{ width: '30%' }} />
+                  <col style={{ width: '15%' }} />
+                  <col style={{ width: '27.5%' }} />
+                  <col style={{ width: '27.5%' }} />
                 </colgroup>
                 <thead>
                   <tr>
                     <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'left' }}>Workroom</th>
                     <th align="center" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>WPI</th>
                     <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Avg Total Sales</th>
-                    <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Avg Ticket Sale</th>
-                    <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Avg Vendor Debits</th>
+                    <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>Avg Vendor Debits</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1570,9 +2116,6 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                           {formatCurrency(workroom.avgLaborPO)}
                         </td>
                         <td align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
-                          {formatCurrency(workroom.avgTicketSale)}
-                        </td>
-                        <td align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
                           {formatCurrency(workroom.avgVendorDebit)}
                         </td>
                       </tr>
@@ -1580,7 +2123,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   })}
                   {wpiByWorkroom.length === 0 && (
                     <tr>
-                      <td colSpan={5} style={{ textAlign: 'center', padding: '2rem 0.75rem', color: '#6b7280', fontSize: '0.75rem' }}>
+                      <td colSpan={4} style={{ textAlign: 'center', padding: '2rem 0.75rem', color: '#6b7280', fontSize: '0.75rem' }}>
                         Upload a T1/T2 scorecard to see WPI by workroom.
                       </td>
                     </tr>
@@ -1683,25 +2226,31 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
         </div>
       </section>
 
-      {/* AVERAGE VENDOR DEBITS $ BY WORKROOM */}
+      {/* Top Performing Stores */}
       <section className="compact-section" style={{ marginTop: '1.5rem' }}>
         <div className="compact-section-header">
-          <h3 className="compact-section-title">AVERAGE VENDOR DEBITS $ BY WORKROOM</h3>
+          <h3 className="compact-section-title">Top Performing Stores</h3>
           <p className="text-xs text-gray-500 mt-1">
-            Average Vendor Debits per record across all workrooms
+            Top 10 stores based on survey and visual data - Winners vs Critical
           </p>
         </div>
 
+        <div className="analytics-grid-container">
+          {/* BAR CHART */}
         <div className="compact-chart-container" style={{ minHeight: '500px', padding: '1rem' }}>
-          {avgVendorDebitByWorkroom.length > 0 ? (
+            {topPerformingStores.length > 0 ? (
             <ResponsiveContainer width="100%" height={500}>
               <BarChart
-                data={avgVendorDebitByWorkroom.map((w) => ({
-                  name: w.name.length > 15 ? w.name.substring(0, 15) + '...' : w.name,
-                  fullName: w.name,
-                  avgVendorDebit: Number(w.avgVendorDebit.toFixed(2)),
-                  totalVendorDebit: w.totalVendorDebit,
-                  records: w.records,
+                  data={topPerformingStores.map((s) => ({
+                    name: s.storeName.length > 15 ? s.storeName.substring(0, 15) + '...' : s.storeName,
+                    fullName: s.storeName,
+                    storeNumber: s.store,
+                    performanceScore: Number(s.performanceScore.toFixed(1)),
+                    status: s.status,
+                    statusColor: s.statusColor,
+                    avgLTR: s.avgLTR,
+                    totalSales: s.totalSales,
+                    records: s.records,
                 }))}
                 margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
               >
@@ -1715,9 +2264,9 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   interval={0}
                 />
                 <YAxis
-                  label={{ value: 'Avg Vendor Debits $', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#374151', fontSize: '0.75rem' } }}
+                    label={{ value: 'Performance Score', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#374151', fontSize: '0.75rem' } }}
                   tick={{ fontSize: '0.7rem', fill: '#374151' }}
-                  tickFormatter={(value) => `$${value.toLocaleString()}`}
+                    domain={[0, 100]}
                 />
                 <Tooltip
                   content={({ active, payload }) => {
@@ -1731,15 +2280,25 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                           padding: '0.5rem',
                           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                         }}>
-                          <p style={{ fontWeight: 600, marginBottom: '0.25rem', fontSize: '0.75rem' }}>{data.fullName}</p>
+                            <p style={{ fontWeight: 600, marginBottom: '0.25rem', fontSize: '0.75rem' }}>
+                              {data.fullName} (Store {data.storeNumber})
+                            </p>
                           <p style={{ fontSize: '0.7rem', color: '#6b7280' }}>
-                            Records: {data.records}
+                              Status: <span style={{ color: data.statusColor, fontWeight: 600 }}>{data.status}</span>
                           </p>
                           <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#1f2937', marginTop: '0.25rem' }}>
-                            Avg Vendor Debits $: {formatCurrency(data.avgVendorDebit)}
+                              Performance Score: {data.performanceScore.toFixed(1)}
                           </p>
+                            {data.avgLTR != null && (
                           <p style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>
-                            Total Vendor Debits $: {formatCurrency(data.totalVendorDebit)}
+                                Avg LTR: {data.avgLTR.toFixed(1)}
+                              </p>
+                            )}
+                            <p style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                              Total Sales: {formatCurrency(data.totalSales)}
+                            </p>
+                            <p style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                              Records: {data.records}
                           </p>
                         </div>
                       )
@@ -1748,31 +2307,499 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   }}
                 />
                 <Bar
-                  dataKey="avgVendorDebit"
+                    dataKey="performanceScore"
                   fill="#3b82f6"
                   radius={[4, 4, 0, 0]}
                 >
-                  {avgVendorDebitByWorkroom.map((w, index) => {
-                    // Color based on average Vendor Debit value (negative values are red, positive/zero are neutral)
-                    let fillColor = '#94a3b8' // neutral gray
-                    const avg = w.avgVendorDebit
-                    if (avg < -2000) fillColor = '#ef4444' // red - high negative (costing money)
-                    else if (avg < -1000) fillColor = '#f59e0b' // orange - moderate negative
-                    else if (avg < -500) fillColor = '#fbbf24' // yellow - low negative
-                    else if (avg < 0) fillColor = '#e5e7eb' // light gray - very small negative
-                    else if (avg === 0) fillColor = '#10b981' // green - zero (good)
-                    else fillColor = '#3b82f6' // blue - positive (credit)
+                    {topPerformingStores.map((s, index) => (
+                      <Cell key={`cell-${index}`} fill={s.statusColor} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '4rem 1rem', color: '#6b7280', fontSize: '0.875rem' }}>
+                Upload T1/T2 scorecard and survey data to see top performing stores.
+              </div>
+            )}
+          </div>
 
-                    return <Cell key={`cell-${index}`} fill={fillColor} />
+          {/* TABLE */}
+          <div className="compact-table-container" style={{ marginTop: 0, borderTop: 'none', paddingTop: 0 }}>
+            <div className="overflow-x-auto" style={{ maxHeight: '600px', overflowY: 'auto' }}>
+              <table className="professional-table professional-table-zebra" style={{ fontSize: '0.75rem', width: '100%', tableLayout: 'fixed' }}>
+                <colgroup>
+                  <col style={{ width: '15%' }} />
+                  <col style={{ width: '30%' }} />
+                  <col style={{ width: '12%' }} />
+                  <col style={{ width: '15%' }} />
+                  <col style={{ width: '14%' }} />
+                  <col style={{ width: '14%' }} />
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'left' }}>Store</th>
+                    <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'left' }}>Store Name</th>
+                    <th align="center" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Score</th>
+                    <th align="center" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Status</th>
+                    <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Avg LTR</th>
+                    <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Total Sales</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {topPerformingStores.map((store) => {
+                    let scoreBadgeClass = 'badge-neutral'
+                    if (store.performanceScore >= 70) scoreBadgeClass = 'badge-positive'
+                    else if (store.performanceScore < 40) scoreBadgeClass = 'badge-warning'
+
+                    return (
+                      <tr 
+                        key={`store-top-${store.store}`}
+                        onClick={() => {
+                          setSelectedStore(store)
+                          setIsStoreDetailsDialogOpen(true)
+                        }}
+                        style={{ cursor: 'pointer' }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#f9fafb'
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = ''
+                        }}
+                      >
+                        <td style={{ padding: '0.5rem 0.75rem', fontWeight: 600, fontSize: '0.75rem', textAlign: 'left' }}>
+                          {String(store.store)}
+                        </td>
+                        <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.75rem', textAlign: 'left' }}>
+                          {store.storeName}
+                        </td>
+                        <td align="center" style={{ padding: '0.5rem 0.75rem' }}>
+                          <span className={`badge-pill ${scoreBadgeClass}`} style={{ fontSize: '0.65rem', padding: '0.15rem 0.4rem', fontWeight: 600, display: 'inline-block' }}>
+                            {store.performanceScore.toFixed(1)}
+                          </span>
+                        </td>
+                        <td align="center" style={{ padding: '0.5rem 0.75rem' }}>
+                          <span
+                            className="badge-pill"
+                            style={{
+                              fontSize: '0.65rem',
+                              padding: '0.15rem 0.4rem',
+                              fontWeight: 600,
+                              backgroundColor: store.statusColor,
+                              color: store.status === 'Winning' ? '#ffffff' : store.status === 'Critical' ? '#ffffff' : '#1f2937',
+                              display: 'inline-block',
+                            }}
+                          >
+                            {store.status}
+                          </span>
+                        </td>
+                        <td align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                          {store.avgLTR != null ? store.avgLTR.toFixed(1) : '—'}
+                        </td>
+                        <td align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                          {formatCurrency(store.totalSales)}
+                        </td>
+                      </tr>
+                    )
                   })}
+                  {topPerformingStores.length === 0 && (
+                    <tr>
+                      <td colSpan={6} style={{ textAlign: 'center', padding: '2rem 0.75rem', color: '#6b7280', fontSize: '0.75rem' }}>
+                        Upload T1/T2 scorecard and survey data to see top performing stores.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Store Details Dialog - Buy and Sale */}
+      {isStoreDetailsDialogOpen && selectedStore && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Store buy and sale details"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(17, 24, 39, 0.35)',
+            backdropFilter: 'blur(2px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1rem',
+            zIndex: 60,
+          }}
+          onClick={() => setIsStoreDetailsDialogOpen(false)}
+        >
+          <div
+            style={{
+              maxWidth: '600px',
+              width: '100%',
+              background: 'white',
+              borderRadius: '16px',
+              boxShadow: '0 20px 60px rgba(15, 23, 42, 0.2)',
+              border: '1px solid #e5e7eb',
+              overflow: 'hidden',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '1rem 1.25rem',
+                borderBottom: '1px solid #f1f5f9',
+              }}
+            >
+              <div>
+                <div style={{ fontSize: '0.75rem', color: '#6b7280', letterSpacing: '0.04em' }}>
+                  STORE DETAILS
+                </div>
+                <div style={{ fontSize: '1.125rem', fontWeight: 700, color: '#0f172a' }}>
+                  {selectedStore.storeName} (Store {selectedStore.store})
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsStoreDetailsDialogOpen(false)}
+                aria-label="Close store details"
+                style={{
+                  border: '1px solid #e5e7eb',
+                  background: 'white',
+                  borderRadius: '9999px',
+                  padding: '0.35rem 0.75rem',
+                  fontSize: '0.875rem',
+                  color: '#0f172a',
+                  cursor: 'pointer',
+                  boxShadow: '0 6px 18px rgba(15, 23, 42, 0.08)',
+                }}
+              >
+                Close
+              </button>
+            </div>
+
+            <div style={{ padding: '1.25rem 1.25rem 1.5rem', display: 'grid', gap: '1rem' }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                  gap: '1rem',
+                }}
+              >
+                <div
+                  style={{
+                    border: '1px solid #e2e8f0',
+                    background: '#f8fafc',
+                    borderRadius: '12px',
+                    padding: '1rem 1.1rem',
+                    boxShadow: '0 10px 22px rgba(15, 23, 42, 0.08)',
+                  }}
+                >
+                  <div style={{ fontSize: '0.75rem', color: '#1d4ed8', fontWeight: 700, letterSpacing: '0.04em' }}>
+                    Total Sales
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.3rem', marginTop: '0.5rem' }}>
+                    <div style={{ fontSize: '2rem', fontWeight: 800, color: '#0f172a' }}>
+                      {formatCurrency(selectedStore.totalSales || 0)}
+                    </div>
+                  </div>
+                  {selectedStore.sales && selectedStore.sales > 0 && (
+                    <div style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                      Revenue: {formatCurrency(selectedStore.sales)}
+                    </div>
+                  )}
+                </div>
+
+                <div
+                  style={{
+                    border: '1px solid #e2e8f0',
+                    background: '#f8fafc',
+                    borderRadius: '12px',
+                    padding: '1rem 1.1rem',
+                    boxShadow: '0 10px 22px rgba(15, 23, 42, 0.08)',
+                  }}
+                >
+                  <div style={{ fontSize: '0.75rem', color: '#1d4ed8', fontWeight: 700, letterSpacing: '0.04em' }}>
+                    Total Buy (Vendor Debits)
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.3rem', marginTop: '0.5rem' }}>
+                    <div style={{ fontSize: '2rem', fontWeight: 800, color: selectedStore.totalVendorDebit < 0 ? '#ef4444' : '#0f172a' }}>
+                      {formatCurrency(selectedStore.totalVendorDebit || 0)}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                    {selectedStore.totalVendorDebit < 0 ? 'Debit' : selectedStore.totalVendorDebit > 0 ? 'Credit' : 'No debits'}
+                  </div>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '14px',
+                  padding: '1rem 1.1rem',
+                  background: '#f8fafc',
+                  boxShadow: '0 12px 30px rgba(15, 23, 42, 0.06)',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '0.75rem',
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: '0.8rem',
+                      fontWeight: 800,
+                      color: '#0f172a',
+                      letterSpacing: '0.02em',
+                    }}
+                  >
+                    Additional Information
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gap: '0.75rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid #e5e7eb' }}>
+                    <span style={{ fontSize: '0.85rem', color: '#6b7280' }}>Records:</span>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#0f172a' }}>{selectedStore.records || 0}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid #e5e7eb' }}>
+                    <span style={{ fontSize: '0.85rem', color: '#6b7280' }}>Workrooms:</span>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#0f172a' }}>{selectedStore.workroomsCount || 0}</span>
+                  </div>
+                  {selectedStore.avgLTR != null && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0' }}>
+                      <span style={{ fontSize: '0.85rem', color: '#6b7280' }}>Avg LTR:</span>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#0f172a' }}>{selectedStore.avgLTR.toFixed(1)}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div
+                style={{
+                  marginTop: '0.5rem',
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setIsStoreDetailsDialogOpen(false)}
+                  style={{
+                    background: '#0f172a',
+                    color: 'white',
+                    border: 'none',
+                    padding: '0.6rem 1.2rem',
+                    borderRadius: '10px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    boxShadow: '0 10px 20px rgba(15, 23, 42, 0.25)',
+                  }}
+                >
+                  Got it
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bottom Performing Stores */}
+      <section className="compact-section" style={{ marginTop: '1.5rem' }}>
+        <div className="compact-section-header">
+          <h3 className="compact-section-title">Bottom Performing Stores</h3>
+          <p className="text-xs text-gray-500 mt-1">
+            Bottom 10 stores based on survey and visual data - Critical stores needing attention
+          </p>
+        </div>
+
+        <div className="analytics-grid-container">
+          {/* BAR CHART */}
+          <div className="compact-chart-container" style={{ minHeight: '500px', padding: '1rem' }}>
+            {bottomPerformingStores.length > 0 ? (
+              <ResponsiveContainer width="100%" height={500}>
+                <BarChart
+                  data={bottomPerformingStores.map((s) => ({
+                    name: s.storeName.length > 15 ? s.storeName.substring(0, 15) + '...' : s.storeName,
+                    fullName: s.storeName,
+                    storeNumber: s.store,
+                    performanceScore: Number(s.performanceScore.toFixed(1)),
+                    status: s.status,
+                    statusColor: s.statusColor,
+                    avgLTR: s.avgLTR,
+                    totalSales: s.totalSales,
+                    records: s.records,
+                  }))}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis
+                    dataKey="name"
+                    angle={-45}
+                    textAnchor="end"
+                    height={100}
+                    tick={{ fontSize: '0.7rem', fill: '#374151' }}
+                    interval={0}
+                  />
+                  <YAxis
+                    label={{ value: 'Performance Score', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#374151', fontSize: '0.75rem' } }}
+                    tick={{ fontSize: '0.7rem', fill: '#374151' }}
+                    domain={[0, 100]}
+                  />
+                  <Tooltip
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload
+                        return (
+                          <div style={{
+                            backgroundColor: '#ffffff',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '0.375rem',
+                            padding: '0.5rem',
+                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                          }}>
+                            <p style={{ fontWeight: 600, marginBottom: '0.25rem', fontSize: '0.75rem' }}>
+                              {data.fullName} (Store {data.storeNumber})
+                            </p>
+                            <p style={{ fontSize: '0.7rem', color: '#6b7280' }}>
+                              Status: <span style={{ color: data.statusColor, fontWeight: 600 }}>{data.status}</span>
+                            </p>
+                            <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#1f2937', marginTop: '0.25rem' }}>
+                              Performance Score: {data.performanceScore.toFixed(1)}
+                            </p>
+                            {data.avgLTR != null && (
+                              <p style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                                Avg LTR: {data.avgLTR.toFixed(1)}
+                              </p>
+                            )}
+                            <p style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                              Total Sales: {formatCurrency(data.totalSales)}
+                            </p>
+                            <p style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                              Records: {data.records}
+                            </p>
+                          </div>
+                        )
+                      }
+                      return null
+                    }}
+                  />
+                  <Bar
+                    dataKey="performanceScore"
+                    fill="#3b82f6"
+                    radius={[4, 4, 0, 0]}
+                  >
+                    {bottomPerformingStores.map((s, index) => (
+                      <Cell key={`cell-bottom-${index}`} fill={s.statusColor} />
+                    ))}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
           ) : (
             <div style={{ textAlign: 'center', padding: '4rem 1rem', color: '#6b7280', fontSize: '0.875rem' }}>
-              Upload a T1/T2 scorecard to see average Vendor Debits by workroom.
+                Upload T1/T2 scorecard and survey data to see bottom performing stores.
             </div>
           )}
+          </div>
+
+          {/* TABLE */}
+          <div className="compact-table-container" style={{ marginTop: 0, borderTop: 'none', paddingTop: 0 }}>
+            <div className="overflow-x-auto" style={{ maxHeight: '600px', overflowY: 'auto' }}>
+              <table className="professional-table professional-table-zebra" style={{ fontSize: '0.75rem', width: '100%', tableLayout: 'fixed' }}>
+                <colgroup>
+                  <col style={{ width: '15%' }} />
+                  <col style={{ width: '30%' }} />
+                  <col style={{ width: '12%' }} />
+                  <col style={{ width: '15%' }} />
+                  <col style={{ width: '14%' }} />
+                  <col style={{ width: '14%' }} />
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'left' }}>Store</th>
+                    <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'left' }}>Store Name</th>
+                    <th align="center" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Score</th>
+                    <th align="center" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Status</th>
+                    <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Avg LTR</th>
+                    <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Total Sales</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {bottomPerformingStores.map((store) => {
+                    let scoreBadgeClass = 'badge-neutral'
+                    if (store.performanceScore >= 70) scoreBadgeClass = 'badge-positive'
+                    else if (store.performanceScore < 40) scoreBadgeClass = 'badge-warning'
+
+                    return (
+                      <tr 
+                        key={`store-bottom-${store.store}`}
+                        onClick={() => {
+                          setSelectedStore(store)
+                          setIsStoreDetailsDialogOpen(true)
+                        }}
+                        style={{ cursor: 'pointer' }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#f9fafb'
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = ''
+                        }}
+                      >
+                        <td style={{ padding: '0.5rem 0.75rem', fontWeight: 600, fontSize: '0.75rem', textAlign: 'left' }}>
+                          {String(store.store)}
+                        </td>
+                        <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.75rem', textAlign: 'left' }}>
+                          {store.storeName}
+                        </td>
+                        <td align="center" style={{ padding: '0.5rem 0.75rem' }}>
+                          <span className={`badge-pill ${scoreBadgeClass}`} style={{ fontSize: '0.65rem', padding: '0.15rem 0.4rem', fontWeight: 600, display: 'inline-block' }}>
+                            {store.performanceScore.toFixed(1)}
+                          </span>
+                        </td>
+                        <td align="center" style={{ padding: '0.5rem 0.75rem' }}>
+                          <span
+                            className="badge-pill"
+                            style={{
+                              fontSize: '0.65rem',
+                              padding: '0.15rem 0.4rem',
+                              fontWeight: 600,
+                              backgroundColor: store.statusColor,
+                              color: store.status === 'Winning' ? '#ffffff' : store.status === 'Critical' ? '#ffffff' : '#1f2937',
+                              display: 'inline-block',
+                            }}
+                          >
+                            {store.status}
+                          </span>
+                        </td>
+                        <td align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                          {store.avgLTR != null ? store.avgLTR.toFixed(1) : '—'}
+                        </td>
+                        <td align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                          {formatCurrency(store.totalSales)}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                  {bottomPerformingStores.length === 0 && (
+                    <tr>
+                      <td colSpan={6} style={{ textAlign: 'center', padding: '2rem 0.75rem', color: '#6b7280', fontSize: '0.75rem' }}>
+                        Upload T1/T2 scorecard and survey data to see bottom performing stores.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -1861,15 +2888,17 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
 
             {/* Key Metrics Overview */}
             <div style={{ 
-              display: 'grid', 
+              display: 'grid',
               gridTemplateColumns: 'repeat(4, 1fr)', 
-              gap: '0.5rem', 
+              gap: '0.75rem', 
               marginBottom: '1rem',
             }}>
               <div style={{
-                padding: '0.75rem',
-                backgroundColor: '#f9fafb',
-                borderRadius: '0.375rem',
+                padding: '0.9rem 1rem',
+                backgroundColor: '#f8fafc',
+                borderRadius: '12px',
+                border: '1px solid #e2e8f0',
+                boxShadow: '0 10px 22px rgba(15, 23, 42, 0.08)',
               }}>
                 <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Performance Score</div>
                 <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#111827' }}>
@@ -1877,9 +2906,11 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                 </div>
               </div>
               <div style={{
-                padding: '0.75rem',
-                backgroundColor: '#f9fafb',
-                borderRadius: '0.375rem',
+                padding: '0.9rem 1rem',
+                backgroundColor: '#f8fafc',
+                borderRadius: '12px',
+                border: '1px solid #e2e8f0',
+                boxShadow: '0 10px 22px rgba(15, 23, 42, 0.08)',
               }}>
                 <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Records</div>
                 <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#111827' }}>
@@ -1887,21 +2918,25 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                 </div>
               </div>
               <div style={{
-                padding: '0.75rem',
-                backgroundColor: '#f9fafb',
-                borderRadius: '0.375rem',
+                padding: '0.9rem 1rem',
+                backgroundColor: '#f8fafc',
+                borderRadius: '12px',
+                border: '1px solid #e2e8f0',
+                boxShadow: '0 10px 22px rgba(15, 23, 42, 0.08)',
               }}>
                 <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Reschedule Rate</div>
                 <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#111827' }}>
                   {selectedRiskWorkroom.rescheduleRate != null && selectedRiskWorkroom.rescheduleRate !== undefined 
-                    ? selectedRiskWorkroom.rescheduleRate.toFixed(1)
+                    ? `${selectedRiskWorkroom.rescheduleRate.toFixed(1)}%`
                     : 'N/A'}
                 </div>
               </div>
               <div style={{
-                padding: '0.75rem',
-                backgroundColor: '#f9fafb',
-                borderRadius: '0.375rem',
+                padding: '0.9rem 1rem',
+                backgroundColor: '#f8fafc',
+                borderRadius: '12px',
+                border: '1px solid #e2e8f0',
+                boxShadow: '0 10px 22px rgba(15, 23, 42, 0.08)',
               }}>
                 <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Sales</div>
                 <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827' }}>
@@ -1918,12 +2953,14 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
               <div style={{ 
                 display: 'grid',
                 gridTemplateColumns: 'repeat(4, 1fr)',
-                gap: '0.5rem'
+                gap: '0.75rem'
               }}>
                 <div style={{
-                  padding: '0.75rem',
-                  backgroundColor: '#f9fafb',
-                  borderRadius: '0.375rem',
+                  padding: '0.9rem 1rem',
+                  backgroundColor: '#f8fafc',
+                  borderRadius: '12px',
+                  border: '1px solid #e2e8f0',
+                  boxShadow: '0 10px 22px rgba(15, 23, 42, 0.08)',
                 }}>
                   <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: 500 }}>LTR Performance</div>
                   <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827', marginBottom: '0.25rem' }}>
@@ -1942,9 +2979,11 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   </div>
                 </div>
                 <div style={{
-                  padding: '0.75rem',
-                  backgroundColor: '#f9fafb',
-                  borderRadius: '0.375rem',
+                  padding: '0.9rem 1rem',
+                  backgroundColor: '#f8fafc',
+                  borderRadius: '12px',
+                  border: '1px solid #e2e8f0',
+                  boxShadow: '0 10px 22px rgba(15, 23, 42, 0.08)',
                 }}>
                   <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: 500 }}>Vendor Debit Exposure</div>
                   <div style={{ fontSize: '1.25rem', fontWeight: 700, color: selectedRiskWorkroom.vendorDebitExposure?.value && selectedRiskWorkroom.vendorDebitExposure.value !== 0 ? '#ef4444' : '#111827', marginBottom: '0.25rem' }}>
@@ -1955,9 +2994,11 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   </div>
                 </div>
                 <div style={{
-                  padding: '0.75rem',
-                  backgroundColor: '#f9fafb',
-                  borderRadius: '0.375rem',
+                  padding: '0.9rem 1rem',
+                  backgroundColor: '#f8fafc',
+                  borderRadius: '12px',
+                  border: '1px solid #e2e8f0',
+                  boxShadow: '0 10px 22px rgba(15, 23, 42, 0.08)',
                 }}>
                   <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: 500 }}>Total Job Cycle Time</div>
                   <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827', marginBottom: '0.25rem' }}>
@@ -1967,9 +3008,11 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   </div>
                 </div>
                 <div style={{
-                  padding: '0.75rem',
-                  backgroundColor: '#f9fafb',
-                  borderRadius: '0.375rem',
+                  padding: '0.9rem 1rem',
+                  backgroundColor: '#f8fafc',
+                  borderRadius: '12px',
+                  border: '1px solid #e2e8f0',
+                  boxShadow: '0 10px 22px rgba(15, 23, 42, 0.08)',
                 }}>
                   <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: 500 }}>Total Work Order Cycle Time</div>
                   <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827', marginBottom: '0.25rem' }}>
@@ -1988,9 +3031,11 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   Cycle Time
                 </h3>
                 <div style={{ 
-                  padding: '0.75rem', 
-                  backgroundColor: '#f9fafb', 
-                  borderRadius: '0.375rem',
+                  padding: '0.9rem 1rem', 
+                  backgroundColor: '#f8fafc', 
+                  borderRadius: '12px',
+                  border: '1px solid #e2e8f0',
+                  boxShadow: '0 10px 22px rgba(15, 23, 42, 0.08)',
                 }}>
                   <div style={{ fontSize: '0.875rem', color: '#374151' }}>
                     Average: <strong style={{ fontSize: '1rem', color: '#111827' }}>{selectedRiskWorkroom.cycleTime.toFixed(1)} days</strong>
@@ -2008,17 +3053,16 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                 <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#111827', marginBottom: '0.75rem', paddingBottom: '0.25rem', borderBottom: '1px solid #e5e7eb' }}>
                   Operational Risks
                 </h3>
-                <ul style={{ 
-                  listStyle: 'none', 
-                  padding: 0,
-                  margin: 0,
+                <div style={{ 
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '0.5rem',
                 }}>
                   {selectedRiskWorkroom.operationalRisks.map((risk: string, index: number) => (
-                    <li
+                    <div
                       key={index}
                       style={{
-                        marginBottom: '0.5rem',
-                        padding: '0.75rem',
+                        padding: '0.5rem 0.75rem',
                         backgroundColor: '#fef2f2',
                         borderRadius: '0.375rem',
                         border: '1px solid #fecaca',
@@ -2026,15 +3070,16 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                         fontSize: '0.75rem',
                         lineHeight: '1.4',
                         fontWeight: 500,
-                        display: 'flex',
+                        display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '0.5rem'
+                        gap: '0.5rem',
+                        whiteSpace: 'nowrap'
                       }}
                     >
                       <span>⚠️</span> {risk}
-                    </li>
+                    </div>
                   ))}
-                </ul>
+                </div>
               </div>
             )}
 
@@ -2044,45 +3089,48 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                 Issues to Fix
               </h3>
               {selectedRiskWorkroom.fixNowBullets && selectedRiskWorkroom.fixNowBullets.length > 0 ? (
-                <ul style={{ 
-                  listStyle: 'none', 
-                  padding: 0,
-                  margin: 0,
+                <div style={{ 
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                  gap: '0.75rem',
                 }}>
                   {selectedRiskWorkroom.fixNowBullets.map((bullet: string, index: number) => (
-                    <li
+                    <div
                       key={index}
                       style={{
-                        marginBottom: '0.5rem',
-                        padding: '0.75rem',
-                        backgroundColor: '#fffbeb',
-                        borderRadius: '0.375rem',
-                        border: '1px solid #fde68a',
-                        color: '#92400e',
+                        padding: '0.9rem 1rem',
+                        backgroundColor: '#f8fafc',
+                        borderRadius: '12px',
+                        border: '1px solid #e2e8f0',
+                        boxShadow: '0 10px 22px rgba(15, 23, 42, 0.08)',
                         fontSize: '0.75rem',
-                        lineHeight: '1.4',
+                        lineHeight: '1.5',
                         fontWeight: 500,
+                        color: '#111827',
                         display: 'flex',
-                        alignItems: 'center',
+                        alignItems: 'flex-start',
                         gap: '0.5rem'
                       }}
                     >
-                      <span>🔧</span> {bullet}
-                    </li>
+                      <span style={{ fontSize: '1rem' }}>🔧</span>
+                      <span>{bullet}</span>
+                    </div>
                   ))}
-                </ul>
+                </div>
               ) : (
                 <div style={{ 
-                  padding: '0.75rem', 
-                  backgroundColor: '#f0fdf4', 
-                  borderRadius: '0.375rem',
-                  border: '1px solid #bbf7d0',
+                  padding: '0.9rem 1rem', 
+                  backgroundColor: '#f8fafc', 
+                  borderRadius: '12px',
+                  border: '1px solid #e2e8f0',
+                  boxShadow: '0 10px 22px rgba(15, 23, 42, 0.08)',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.5rem'
+                  gap: '0.5rem',
+                  color: '#111827'
                 }}>
                   <span>✓</span>
-                  <p style={{ color: '#166534', fontSize: '0.75rem', margin: 0, fontWeight: 500 }}>No critical issues identified.</p>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>No critical issues identified.</span>
                 </div>
               )}
             </div>
@@ -2095,7 +3143,8 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                 borderTop: '2px solid #e5e7eb',
               }}>
                 <div style={{
-                  padding: '1rem',
+                  display: 'inline-block',
+                  padding: '0.75rem 1rem',
                   backgroundColor: selectedRiskWorkroom.financialRisk === 'Critical' || selectedRiskWorkroom.financialRisk === 'High' 
                     ? '#fef2f2' 
                     : selectedRiskWorkroom.financialRisk === 'Moderate'
@@ -2112,11 +3161,11 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                       : '#10b981'
                   }`,
                 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     <div>
                       <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Financial Risk Rating</div>
                       <div style={{ 
-                        fontSize: '1.5rem', 
+                        fontSize: '1.25rem', 
                         fontWeight: 700, 
                         color: selectedRiskWorkroom.financialRisk === 'Critical' 
                           ? '#991b1b' 
@@ -2130,7 +3179,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                       </div>
                     </div>
                     <div style={{ 
-                      fontSize: '2rem',
+                      fontSize: '1.5rem',
                       opacity: 0.8
                     }}>
                       {selectedRiskWorkroom.financialRisk === 'Critical' || selectedRiskWorkroom.financialRisk === 'High' 
@@ -2146,6 +3195,233 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
           </div>
         </div>
       )}
+
+      {isDetailsCycleDialogOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Details Cycle Time details"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(17, 24, 39, 0.35)',
+            backdropFilter: 'blur(2px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1rem',
+            zIndex: 60,
+          }}
+          onClick={() => setIsDetailsCycleDialogOpen(false)}
+        >
+          <div
+            style={{
+              maxWidth: '760px',
+              width: '100%',
+              background: 'white',
+              borderRadius: '16px',
+              boxShadow: '0 20px 60px rgba(15, 23, 42, 0.2)',
+              border: '1px solid #e5e7eb',
+              overflow: 'hidden',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '1rem 1.25rem',
+                borderBottom: '1px solid #f1f5f9',
+              }}
+            >
+              <div>
+                <div style={{ fontSize: '0.75rem', color: '#6b7280', letterSpacing: '0.04em' }}>
+                  DETAILS CYCLE TIME
+                </div>
+                <div style={{ fontSize: '1.125rem', fontWeight: 700, color: '#0f172a' }}>
+                  Provider cycle time breakdown
+                </div>
+              </div>
+            </div>
+
+            <div style={{ padding: '1.25rem 1.25rem 1.5rem', display: 'grid', gap: '1rem' }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                  gap: '0.75rem',
+                }}
+              >
+                <div
+                  style={{
+                    border: '1px solid #e2e8f0',
+                    background: '#f8fafc',
+                    borderRadius: '12px',
+                    padding: '0.9rem 1rem',
+                    boxShadow: '0 10px 22px rgba(15, 23, 42, 0.08)',
+                  }}
+                >
+                  <div style={{ fontSize: '0.75rem', color: '#1d4ed8', fontWeight: 700, letterSpacing: '0.04em' }}>
+                    Total Provider Cycle Time
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.3rem', marginTop: '0.5rem' }}>
+                    <div style={{ fontSize: '2.25rem', fontWeight: 800, color: '#0f172a' }}>
+                      {formatMetricValue(detailsCycleMetrics.totalProviderCycleTime)}
+                    </div>
+                    <span style={{ fontSize: '0.9rem', color: '#475569' }}>days</span>
+                  </div>
+                </div>
+                <div
+                  style={{
+                    border: '1px solid #e2e8f0',
+                    background: '#f8fafc',
+                    borderRadius: '12px',
+                    padding: '0.9rem 1rem',
+                    boxShadow: '0 10px 22px rgba(15, 23, 42, 0.08)',
+                  }}
+                >
+                  <div style={{ fontSize: '0.75rem', color: '#1d4ed8', fontWeight: 700, letterSpacing: '0.04em' }}>
+                    Completed
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.3rem', marginTop: '0.5rem' }}>
+                    <div style={{ fontSize: '2.25rem', fontWeight: 800, color: '#0f172a' }}>
+                      {formatMetricValue(detailsCycleMetrics.completed)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+                  gap: '1rem',
+                }}
+              >
+                <div
+                  style={{
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '14px',
+                    padding: '1rem 1.1rem',
+                    background: '#f8fafc',
+                    boxShadow: '0 12px 30px rgba(15, 23, 42, 0.06)',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '0.65rem',
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: '0.8rem',
+                        fontWeight: 800,
+                        color: '#0f172a',
+                        letterSpacing: '0.02em',
+                      }}
+                    >
+                      Cycle Time Stages
+                    </div>
+                    <div
+                      style={{
+                        fontSize: '0.7rem',
+                        color: '#475569',
+                        padding: '0.25rem 0.55rem',
+                        borderRadius: '999px',
+                        background: '#e2e8f0',
+                        fontWeight: 600,
+                      }}
+                    >
+                      {detailsCycleMetrics.stages.filter((i) => i.value != null).length} / {detailsCycleMetrics.stages.length} populated
+                    </div>
+                  </div>
+                  <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'grid', gap: '0.55rem' }}>
+                    {detailsCycleMetrics.stages.map((item) => (
+                      <li
+                        key={item.label}
+                        style={{
+                          padding: '0.85rem 1rem',
+                          borderRadius: '12px',
+                          background: 'white',
+                          border: '1px solid #e2e8f0',
+                          boxShadow: '0 6px 16px rgba(15, 23, 42, 0.05)',
+                          color: '#0f172a',
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          justifyContent: 'space-between',
+                          gap: '0.75rem',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem', minWidth: 0, flex: 1 }}>
+                          <span
+                            style={{
+                              width: '9px',
+                              height: '9px',
+                              borderRadius: '9999px',
+                              background: '#2563eb',
+                              boxShadow: '0 0 0 4px rgba(37, 99, 235, 0.12)',
+                              flexShrink: 0,
+                              marginTop: '0.25rem',
+                            }}
+                          />
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', minWidth: 0 }}>
+                            <span style={{ fontSize: '0.92rem', fontWeight: 600, color: '#0f172a' }}>
+                              {item.label}
+                            </span>
+                            {item.description && (
+                              <span style={{ fontSize: '0.75rem', color: '#6b7280', lineHeight: '1.3' }}>
+                                {item.description}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.2rem', flexShrink: 0 }}>
+                          <span style={{ fontWeight: 800, color: '#0f172a', fontSize: '1.1rem' }}>
+                            {formatMetricValue(item.value)}
+                          </span>
+                          {item.value != null && (
+                            <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>days</span>
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  marginTop: '1.25rem',
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setIsDetailsCycleDialogOpen(false)}
+                  style={{
+                    background: '#0f172a',
+                    color: 'white',
+                    border: 'none',
+                    padding: '0.6rem 1.2rem',
+                    borderRadius: '10px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    boxShadow: '0 10px 20px rgba(15, 23, 42, 0.25)',
+                  }}
+                >
+                  Got it
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {isJobCycleDialogOpen && (
         <div
           role="dialog"
@@ -2193,23 +3469,6 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   Stage-by-stage breakdown
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setIsJobCycleDialogOpen(false)}
-                aria-label="Close job cycle time details"
-                style={{
-                  border: '1px solid #e5e7eb',
-                  background: 'white',
-                  borderRadius: '9999px',
-                  padding: '0.35rem 0.75rem',
-                  fontSize: '0.875rem',
-                  color: '#0f172a',
-                  cursor: 'pointer',
-                  boxShadow: '0 6px 18px rgba(15, 23, 42, 0.08)',
-                }}
-              >
-                Close
-              </button>
             </div>
 
             <div style={{ padding: '1.25rem 1.25rem 1.5rem', display: 'grid', gap: '1rem' }}>
@@ -2343,9 +3602,9 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                                 <span style={{ fontSize: '0.92rem', fontWeight: 600, color: '#0f172a' }}>
                                   {item.label}
                                 </span>
-                                {item.description && (
+                                {(item as any).description && (
                                   <span style={{ fontSize: '0.75rem', color: '#6b7280', lineHeight: '1.3' }}>
-                                    {item.description}
+                                    {(item as any).description}
                                   </span>
                                 )}
                               </div>
@@ -2376,6 +3635,647 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                 <button
                   type="button"
                   onClick={() => setIsJobCycleDialogOpen(false)}
+                  style={{
+                    background: '#0f172a',
+                    color: 'white',
+                    border: 'none',
+                    padding: '0.6rem 1.2rem',
+                    borderRadius: '10px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    boxShadow: '0 10px 20px rgba(15, 23, 42, 0.25)',
+                  }}
+                >
+                  Got it
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isWorkOrderCycleDialogOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Work Order Cycle Time details"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(17, 24, 39, 0.35)',
+            backdropFilter: 'blur(2px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1rem',
+            zIndex: 60,
+          }}
+          onClick={() => setIsWorkOrderCycleDialogOpen(false)}
+        >
+          <div
+            style={{
+              maxWidth: '760px',
+              width: '100%',
+              background: 'white',
+              borderRadius: '16px',
+              boxShadow: '0 20px 60px rgba(15, 23, 42, 0.2)',
+              border: '1px solid #e5e7eb',
+              overflow: 'hidden',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '1rem 1.25rem',
+                borderBottom: '1px solid #f1f5f9',
+              }}
+            >
+              <div>
+                <div style={{ fontSize: '0.75rem', color: '#6b7280', letterSpacing: '0.04em' }}>
+                  PROVIDER CYCLE TIME
+                </div>
+                <div style={{ fontSize: '1.125rem', fontWeight: 700, color: '#0f172a' }}>
+                  Stage-by-stage breakdown
+                </div>
+              </div>
+            </div>
+
+            <div style={{ padding: '1.25rem 1.25rem 1.5rem', display: 'grid', gap: '1rem' }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                  gap: '0.75rem',
+                }}
+              >
+                <div
+                  style={{
+                    border: '1px solid #e2e8f0',
+                    background: '#f8fafc',
+                    borderRadius: '12px',
+                    padding: '0.9rem 1rem',
+                    boxShadow: '0 10px 22px rgba(15, 23, 42, 0.08)',
+                  }}
+                >
+                  <div style={{ fontSize: '0.75rem', color: '#1d4ed8', fontWeight: 700, letterSpacing: '0.04em' }}>
+                    Total Provider Cycle
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.3rem', marginTop: '0.5rem' }}>
+                    <div style={{ fontSize: '2.25rem', fontWeight: 800, color: '#0f172a' }}>
+                      {formatMetricValue(workOrderCycleMetrics.stages.at(-1)?.value)}
+                    </div>
+                    <span style={{ fontSize: '0.9rem', color: '#475569' }}>days</span>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+                  gap: '1rem',
+                }}
+              >
+                <div
+                  style={{
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '14px',
+                    padding: '1rem 1.1rem',
+                    background: '#f8fafc',
+                    boxShadow: '0 12px 30px rgba(15, 23, 42, 0.06)',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '0.65rem',
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: '0.8rem',
+                        fontWeight: 800,
+                        color: '#0f172a',
+                        letterSpacing: '0.02em',
+                      }}
+                      >
+                        Provider Cycle
+                      </div>
+                    <div
+                      style={{
+                        fontSize: '0.7rem',
+                        color: '#475569',
+                        padding: '0.25rem 0.55rem',
+                        borderRadius: '999px',
+                        background: '#e2e8f0',
+                        fontWeight: 600,
+                      }}
+                    >
+                      {workOrderCycleMetrics.stages.filter((i) => i.value != null).length} / {workOrderCycleMetrics.stages.length} populated
+                    </div>
+                  </div>
+                  <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'grid', gap: '0.55rem' }}>
+                    {workOrderCycleMetrics.stages.map((item) => (
+                      <li
+                        key={item.label}
+                        style={{
+                          padding: '0.85rem 1rem',
+                          borderRadius: '12px',
+                          background: 'white',
+                          border: '1px solid #e2e8f0',
+                          boxShadow: '0 6px 16px rgba(15, 23, 42, 0.05)',
+                          color: '#0f172a',
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          justifyContent: 'space-between',
+                          gap: '0.75rem',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem', minWidth: 0, flex: 1 }}>
+                          <span
+                            style={{
+                              width: '9px',
+                              height: '9px',
+                              borderRadius: '9999px',
+                              background: '#2563eb',
+                              boxShadow: '0 0 0 4px rgba(37, 99, 235, 0.12)',
+                              flexShrink: 0,
+                              marginTop: '0.25rem',
+                            }}
+                          />
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', minWidth: 0 }}>
+                            <span style={{ fontSize: '0.92rem', fontWeight: 600, color: '#0f172a' }}>
+                              {item.label}
+                            </span>
+                            {(item as any).description && (
+                              <span style={{ fontSize: '0.75rem', color: '#6b7280', lineHeight: '1.3' }}>
+                                {(item as any).description}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.2rem', flexShrink: 0 }}>
+                          <span style={{ fontWeight: 800, color: '#0f172a', fontSize: '1.1rem' }}>
+                            {formatMetricValue(item.value)}
+                          </span>
+                          {item.value != null && (
+                            <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>days</span>
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  marginTop: '1.25rem',
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setIsWorkOrderCycleDialogOpen(false)}
+                  style={{
+                    background: '#0f172a',
+                    color: 'white',
+                    border: 'none',
+                    padding: '0.6rem 1.2rem',
+                    borderRadius: '10px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    boxShadow: '0 10px 20px rgba(15, 23, 42, 0.25)',
+                  }}
+                >
+                  Got it
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isRescheduleRateDialogOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Reschedule Rate details"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(17, 24, 39, 0.35)',
+            backdropFilter: 'blur(2px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1rem',
+            zIndex: 60,
+          }}
+          onClick={() => setIsRescheduleRateDialogOpen(false)}
+        >
+          <div
+            style={{
+              maxWidth: '760px',
+              width: '100%',
+              background: 'white',
+              borderRadius: '16px',
+              boxShadow: '0 20px 60px rgba(15, 23, 42, 0.2)',
+              border: '1px solid #e5e7eb',
+              overflow: 'hidden',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '1rem 1.25rem',
+                borderBottom: '1px solid #f1f5f9',
+              }}
+            >
+              <div>
+                <div style={{ fontSize: '0.75rem', color: '#6b7280', letterSpacing: '0.04em' }}>
+                  RESCHEDULE RATE
+                </div>
+                <div style={{ fontSize: '1.125rem', fontWeight: 700, color: '#0f172a' }}>
+                  Rate breakdown by category
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsRescheduleRateDialogOpen(false)}
+                aria-label="Close reschedule rate details"
+                style={{
+                  border: '1px solid #e5e7eb',
+                  background: 'white',
+                  borderRadius: '9999px',
+                  padding: '0.35rem 0.75rem',
+                  fontSize: '0.875rem',
+                  color: '#0f172a',
+                  cursor: 'pointer',
+                  boxShadow: '0 6px 18px rgba(15, 23, 42, 0.08)',
+                }}
+              >
+                Close
+              </button>
+            </div>
+
+            <div style={{ padding: '1.25rem 1.25rem 1.5rem', display: 'grid', gap: '1rem' }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                  gap: '0.75rem',
+                }}
+              >
+                <div
+                  style={{
+                    border: '1px solid #e2e8f0',
+                    background: '#f8fafc',
+                    borderRadius: '12px',
+                    padding: '0.9rem 1rem',
+                    boxShadow: '0 10px 22px rgba(15, 23, 42, 0.08)',
+                  }}
+                >
+                  <div style={{ fontSize: '0.75rem', color: '#1d4ed8', fontWeight: 700, letterSpacing: '0.04em' }}>
+                    Reschedule Rate
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.3rem', marginTop: '0.5rem' }}>
+                    <div style={{ fontSize: '2.25rem', fontWeight: 800, color: '#0f172a' }}>
+                      {formatMetricValue(rescheduleRateMetrics.rates[0]?.value)}
+                    </div>
+                    <span style={{ fontSize: '0.9rem', color: '#475569' }}>%</span>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+                  gap: '1rem',
+                }}
+              >
+                <div
+                  style={{
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '14px',
+                    padding: '1rem 1.1rem',
+                    background: '#f8fafc',
+                    boxShadow: '0 12px 30px rgba(15, 23, 42, 0.06)',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '0.65rem',
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: '0.8rem',
+                        fontWeight: 800,
+                        color: '#0f172a',
+                        letterSpacing: '0.02em',
+                      }}
+                    >
+                      Reschedule Rates
+                    </div>
+                    <div
+                      style={{
+                        fontSize: '0.7rem',
+                        color: '#475569',
+                        padding: '0.25rem 0.55rem',
+                        borderRadius: '999px',
+                        background: '#e2e8f0',
+                        fontWeight: 600,
+                      }}
+                    >
+                      {rescheduleRateMetrics.rates.filter((i) => i.value != null).length} / {rescheduleRateMetrics.rates.length} populated
+                    </div>
+                  </div>
+                  <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'grid', gap: '0.55rem' }}>
+                    {rescheduleRateMetrics.rates.map((item) => (
+                      <li
+                        key={item.label}
+                        style={{
+                          padding: '0.85rem 1rem',
+                          borderRadius: '12px',
+                          background: 'white',
+                          border: '1px solid #e2e8f0',
+                          boxShadow: '0 6px 16px rgba(15, 23, 42, 0.05)',
+                          color: '#0f172a',
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          justifyContent: 'space-between',
+                          gap: '0.75rem',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem', minWidth: 0, flex: 1 }}>
+                          <span
+                            style={{
+                              width: '9px',
+                              height: '9px',
+                              borderRadius: '9999px',
+                              background: '#2563eb',
+                              boxShadow: '0 0 0 4px rgba(37, 99, 235, 0.12)',
+                              flexShrink: 0,
+                              marginTop: '0.25rem',
+                            }}
+                          />
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', minWidth: 0 }}>
+                            <span style={{ fontSize: '0.92rem', fontWeight: 600, color: '#0f172a' }}>
+                              {item.label}
+                            </span>
+                            {(item as any).description && (
+                              <span style={{ fontSize: '0.75rem', color: '#6b7280', lineHeight: '1.3' }}>
+                                {(item as any).description}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.2rem', flexShrink: 0 }}>
+                          <span style={{ fontWeight: 800, color: '#0f172a', fontSize: '1.1rem' }}>
+                            {formatMetricValue(item.value)}
+                          </span>
+                          {item.value != null && (
+                            <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>%</span>
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  marginTop: '1.25rem',
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setIsRescheduleRateDialogOpen(false)}
+                  style={{
+                    background: '#0f172a',
+                    color: 'white',
+                    border: 'none',
+                    padding: '0.6rem 1.2rem',
+                    borderRadius: '10px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    boxShadow: '0 10px 20px rgba(15, 23, 42, 0.25)',
+                  }}
+                >
+                  Got it
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isGetItRightDialogOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Get it Right details"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(17, 24, 39, 0.35)',
+            backdropFilter: 'blur(2px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1rem',
+            zIndex: 60,
+          }}
+          onClick={() => setIsGetItRightDialogOpen(false)}
+        >
+          <div
+            style={{
+              maxWidth: '760px',
+              width: '100%',
+              background: 'white',
+              borderRadius: '16px',
+              boxShadow: '0 20px 60px rgba(15, 23, 42, 0.2)',
+              border: '1px solid #e5e7eb',
+              overflow: 'hidden',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '1rem 1.25rem',
+                borderBottom: '1px solid #f1f5f9',
+              }}
+            >
+              <div>
+                <div style={{ fontSize: '0.75rem', color: '#6b7280', letterSpacing: '0.04em' }}>
+                  GET IT RIGHT
+                </div>
+                <div style={{ fontSize: '1.125rem', fontWeight: 700, color: '#0f172a' }}>
+                  Quality performance breakdown
+                </div>
+              </div>
+            </div>
+
+            <div style={{ padding: '1.25rem 1.25rem 1.5rem', display: 'grid', gap: '1rem' }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                  gap: '0.75rem',
+                }}
+              >
+                <div
+                  style={{
+                    border: '1px solid #e2e8f0',
+                    background: '#f8fafc',
+                    borderRadius: '12px',
+                    padding: '0.9rem 1rem',
+                    boxShadow: '0 10px 22px rgba(15, 23, 42, 0.08)',
+                  }}
+                >
+                  <div style={{ fontSize: '0.75rem', color: '#1d4ed8', fontWeight: 700, letterSpacing: '0.04em' }}>
+                    Get it Right
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.3rem', marginTop: '0.5rem' }}>
+                    <div style={{ fontSize: '2.25rem', fontWeight: 800, color: '#0f172a' }}>
+                      {formatMetricValue(getItRightMetrics.rates[0]?.value)}
+                    </div>
+                    <span style={{ fontSize: '0.9rem', color: '#475569' }}>%</span>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+                  gap: '1rem',
+                }}
+              >
+                <div
+                  style={{
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '14px',
+                    padding: '1rem 1.1rem',
+                    background: '#f8fafc',
+                    boxShadow: '0 12px 30px rgba(15, 23, 42, 0.06)',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '0.65rem',
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: '0.8rem',
+                        fontWeight: 800,
+                        color: '#0f172a',
+                        letterSpacing: '0.02em',
+                      }}
+                    >
+                      Get it Right Rates
+                    </div>
+                    <div
+                      style={{
+                        fontSize: '0.7rem',
+                        color: '#475569',
+                        padding: '0.25rem 0.55rem',
+                        borderRadius: '999px',
+                        background: '#e2e8f0',
+                        fontWeight: 600,
+                      }}
+                    >
+                      {getItRightMetrics.rates.filter((i) => i.value != null).length} / {getItRightMetrics.rates.length} populated
+                    </div>
+                  </div>
+                  <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'grid', gap: '0.55rem' }}>
+                    {getItRightMetrics.rates.map((item) => (
+                      <li
+                        key={item.label}
+                        style={{
+                          padding: '0.85rem 1rem',
+                          borderRadius: '12px',
+                          background: 'white',
+                          border: '1px solid #e2e8f0',
+                          boxShadow: '0 6px 16px rgba(15, 23, 42, 0.05)',
+                          color: '#0f172a',
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          justifyContent: 'space-between',
+                          gap: '0.75rem',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem', minWidth: 0, flex: 1 }}>
+                          <span
+                            style={{
+                              width: '9px',
+                              height: '9px',
+                              borderRadius: '9999px',
+                              background: '#2563eb',
+                              boxShadow: '0 0 0 4px rgba(37, 99, 235, 0.12)',
+                              flexShrink: 0,
+                              marginTop: '0.25rem',
+                            }}
+                          />
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', minWidth: 0 }}>
+                            <span style={{ fontSize: '0.92rem', fontWeight: 600, color: '#0f172a' }}>
+                              {item.label}
+                            </span>
+                            {(item as any).description && (
+                              <span style={{ fontSize: '0.75rem', color: '#6b7280', lineHeight: '1.3' }}>
+                                {(item as any).description}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.2rem', flexShrink: 0 }}>
+                          <span style={{ fontWeight: 800, color: '#0f172a', fontSize: '1.1rem' }}>
+                            {formatMetricValue(item.value)}
+                          </span>
+                          {item.value != null && (
+                            <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>%</span>
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  marginTop: '1.25rem',
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setIsGetItRightDialogOpen(false)}
                   style={{
                     background: '#0f172a',
                     color: 'white',
