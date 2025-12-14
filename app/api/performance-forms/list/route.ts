@@ -27,11 +27,12 @@ export async function GET(request: NextRequest) {
 
     console.log(`[performance-forms/list] User ID: ${userId}`)
 
-    // First, check if table exists by trying a simple query
-    const { data: tableCheck, error: tableError } = await supabase
+    // First, check if table exists and get diagnostic info
+    const { data: allSubmissions, error: tableError } = await supabase
       .from('performance_forms')
-      .select('id')
-      .limit(1)
+      .select('id, user_id, workroom, metric_type, submitted_at')
+      .order('submitted_at', { ascending: false })
+      .limit(100)
 
     if (tableError) {
       console.error('[performance-forms/list] Table access error:', tableError)
@@ -50,6 +51,14 @@ export async function GET(request: NextRequest) {
       }, { status: 500 })
     }
 
+    // Diagnostic: Check what user_ids exist in the table
+    const uniqueUserIds = Array.from(new Set(allSubmissions?.map(s => s.user_id) || []))
+    const totalCount = allSubmissions?.length || 0
+    console.log(`[performance-forms/list] Total submissions in table: ${totalCount}`)
+    console.log(`[performance-forms/list] Unique user_ids in table:`, uniqueUserIds)
+    console.log(`[performance-forms/list] Current user_id: ${userId}`)
+    console.log(`[performance-forms/list] User_id match: ${uniqueUserIds.includes(userId)}`)
+
     // Fetch all form submissions for this user
     const { data, error } = await supabase
       .from('performance_forms')
@@ -67,6 +76,21 @@ export async function GET(request: NextRequest) {
     }
 
     console.log(`[performance-forms/list] Found ${data?.length || 0} submissions for user ${userId}`)
+
+    // If no submissions found but there are submissions in the table, provide helpful message
+    if ((data?.length || 0) === 0 && totalCount > 0) {
+      console.warn(`[performance-forms/list] No submissions found for user ${userId}, but ${totalCount} total submissions exist with different user_ids`)
+      return NextResponse.json({ 
+        submissions: [],
+        count: 0,
+        diagnostic: {
+          message: `No submissions found for your account. Found ${totalCount} total submission(s) in database with different user account(s).`,
+          totalSubmissionsInTable: totalCount,
+          yourUserId: userId,
+          otherUserIds: uniqueUserIds.filter(id => id !== userId)
+        }
+      })
+    }
 
     return NextResponse.json({ 
       submissions: data || [],

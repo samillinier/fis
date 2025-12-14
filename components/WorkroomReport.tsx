@@ -38,6 +38,7 @@ export default function WorkroomReport() {
   const [submissions, setSubmissions] = useState<FormSubmission[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [diagnostic, setDiagnostic] = useState<any>(null)
   const [filterWorkroom, setFilterWorkroom] = useState<string>('all')
   const [filterMetricType, setFilterMetricType] = useState<string>('all')
   const [searchTerm, setSearchTerm] = useState('')
@@ -67,12 +68,17 @@ export default function WorkroomReport() {
       if (response.ok) {
         const result = await response.json()
         setSubmissions(result.submissions || [])
+        setDiagnostic(result.diagnostic || null)
         console.log(`[WorkroomReport] Loaded ${result.submissions?.length || 0} submissions`)
+        if (result.diagnostic) {
+          console.log('[WorkroomReport] Diagnostic info:', result.diagnostic)
+        }
       } else {
         const errorData = await response.json().catch(() => ({ error: 'Failed to fetch submissions' }))
         const errorMessage = errorData.error || 'Failed to fetch submissions'
         console.error('[WorkroomReport] Error fetching submissions:', errorMessage)
         setError(errorMessage)
+        setDiagnostic(errorData.diagnostic || null)
       }
     } catch (err: any) {
       console.error('[WorkroomReport] Error fetching submissions:', err)
@@ -176,7 +182,18 @@ export default function WorkroomReport() {
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-7xl mx-auto px-4">
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-red-800">Error: {error}</p>
+            <p className="text-red-800 font-semibold mb-2">Error: {error}</p>
+            {diagnostic && (
+              <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded text-sm">
+                <p className="text-yellow-800 font-medium mb-1">Diagnostic Information:</p>
+                <p className="text-yellow-700">{diagnostic.message}</p>
+                {diagnostic.totalSubmissionsInTable > 0 && (
+                  <p className="text-yellow-700 mt-1">
+                    Total submissions in database: {diagnostic.totalSubmissionsInTable}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -285,6 +302,13 @@ export default function WorkroomReport() {
 
         {/* Submissions List */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          {diagnostic && diagnostic.totalSubmissionsInTable > 0 && submissions.length === 0 && (
+            <div className="p-4 bg-yellow-50 border-b border-yellow-200">
+              <p className="text-sm text-yellow-800">
+                <strong>Note:</strong> {diagnostic.message}
+              </p>
+            </div>
+          )}
           {filteredSubmissions.length === 0 ? (
             <div className="p-8 text-center text-gray-500">
               <FileText size={48} className="mx-auto mb-4 text-gray-400" />
