@@ -104,16 +104,16 @@ export default function FileUpload() {
         const detailsCycleTimeIdx = headers.length > 18 ? 18 : -1 // Column S - Details Cycle Time (Total Provider Cycle Time)
         // completedIdx is Column T (index 19) - Completed
         // Job Cycle Time breakdown (columns U–Y)
-        // U=20, V=21, W=22, X=23 (Total Detail), Y=24 (Total Jobs)
+        // U=20, V=21, W=22, X=23 (Jobs Work Cycle Time), Y=24 (Total Jobs)
         // Column S (index 18) for Details Cycle Time
         const rtsSchedDetailsIdx = headers.length > 20 ? 20 : -1
         const schedStartDetailsIdx = headers.length > 21 ? 21 : -1
         const startDocsSubDetailsIdx = headers.length > 22 ? 22 : -1
-        const totalDetailCycleTimeIdx = headers.length > 23 ? 23 : -1 // Column X
+        const totalDetailCycleTimeIdx = headers.length > 23 ? 23 : -1 // Column X (also used for totalDetailCycleTime if needed)
         const rtsSchedJobsIdx = -1
         const schedStartJobsIdx = -1
         const startCompleteJobsIdx = -1
-        const jobsWorkCycleTimeIdx = headers.length > 24 ? 24 : -1
+        const jobsWorkCycleTimeIdx = headers.length > 23 ? 23 : -1 // Column X - Job Cycle Count for heatmap
         // Work Order Cycle Time breakdown (columns Z–AC)
         // Z=25, AA=26, AB=27, AC=28 (0-based)
         const workOrderStage1Idx = headers.length > 25 ? 25 : -1 // Column Z

@@ -52,6 +52,14 @@ export default function Sidebar({
           >
             Visual Breakdown
           </Link>
+          <Link
+            href="/survey-misc"
+            className={`sidebar-nav-button ${
+              isActive('/survey-misc') ? 'sidebar-nav-button--active' : ''
+            }`}
+          >
+            Survey Misc
+          </Link>
           {isAdmin && (
             <>
               <Link
@@ -61,14 +69,6 @@ export default function Sidebar({
                 }`}
               >
                 Workroom Data
-              </Link>
-              <Link
-                href="/labor"
-                className={`sidebar-nav-button ${
-                  isActive('/labor') ? 'sidebar-nav-button--active' : ''
-                }`}
-              >
-                Sales &amp; Vendor Debit
               </Link>
               <Link
                 href="/store"
@@ -87,27 +87,32 @@ export default function Sidebar({
                 Workroom Summary
               </Link>
               <Link
-                href="/survey-misc"
+                href="/workroom-report"
                 className={`sidebar-nav-button ${
-                  isActive('/survey-misc') ? 'sidebar-nav-button--active' : ''
+                  isActive('/workroom-report') ? 'sidebar-nav-button--active' : ''
                 }`}
               >
-                Survey Misc
+                Workroom Report
               </Link>
             </>
           )}
         </nav>
 
-        <div className="sidebar-filters">
+        {isAdmin && (
+          <>
+            <div className="sidebar-filters">
+              {/* Export Button */}
+              <ExportButton />
+            </div>
+          </>
+        )}
+      </div>
 
-          {/* Export Button */}
-          <ExportButton />
+      {isAdmin && (
+        <div className="sidebar-upload">
+          <DualFileUpload />
         </div>
-      </div>
-
-      <div className="sidebar-upload">
-        <DualFileUpload />
-      </div>
+      )}
     </aside>
   )
 }

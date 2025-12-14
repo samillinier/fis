@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation'
 import Layout from '@/components/Layout'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import { useAuth } from '@/components/AuthContext'
-import { loadActivity, type ActivityEvent } from '@/lib/activityLog'
 import { useNotification } from '@/components/NotificationContext'
+import UserSettings from '@/components/UserSettings'
 import { Shield, Trash2, UserPlus } from 'lucide-react'
 
 export default function ProfilePage() {
@@ -25,20 +25,12 @@ export default function ProfilePage() {
   const router = useRouter()
   const [newEmail, setNewEmail] = useState('')
   const [newName, setNewName] = useState('')
-  const [activity, setActivity] = useState<ActivityEvent[]>([])
 
   useEffect(() => {
     if (!isAdmin) {
       router.push('/')
     }
   }, [isAdmin, router])
-
-  useEffect(() => {
-    // Load recent activity on mount
-    if (typeof window !== 'undefined') {
-      setActivity(loadActivity())
-    }
-  }, [])
 
   const sortedUsers = useMemo(
     () =>
@@ -123,6 +115,11 @@ export default function ProfilePage() {
             </div>
           </div>
 
+          {/* User Settings Section */}
+          <div className="border rounded-lg">
+            <UserSettings />
+          </div>
+
           <div className="border rounded-lg p-4 space-y-4">
             <div className="flex flex-col sm:flex-row gap-3">
               <input
@@ -141,7 +138,7 @@ export default function ProfilePage() {
               />
               <button
                 onClick={handleAdd}
-                className="inline-flex items-center justify-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700 transition-colors"
+                className="inline-flex items-center justify-center gap-2 bg-[#80875d] text-white px-4 py-2 rounded-md hover:bg-[#6d7350] transition-colors"
               >
                 <UserPlus size={18} />
                 Add User
@@ -243,40 +240,6 @@ export default function ProfilePage() {
                       </div>
                     </div>
                   ))}
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-3">
-            <h2 className="text-lg font-semibold text-gray-900">Recent Changes</h2>
-            {activity.length === 0 ? (
-              <p className="text-sm text-gray-500">No recent changes recorded on this device.</p>
-            ) : (
-              <div className="border rounded-lg divide-y max-h-80 overflow-y-auto">
-                {activity.map((event) => (
-                  <div
-                    key={event.id}
-                    className="px-4 py-3 bg-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1"
-                  >
-                    <div>
-                      <p className="font-medium text-gray-900">
-                        {event.action}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {event.userEmail}
-                        {event.userName ? ` • ${event.userName}` : ''}
-                      </p>
-                      {event.details && (
-                        <p className="text-xs text-gray-400 mt-0.5">
-                          {event.details}
-                        </p>
-                      )}
-                    </div>
-                    <div className="text-xs text-gray-400 sm:text-right">
-                      {new Date(event.timestamp).toLocaleString()}
-                    </div>
-                  </div>
-                ))}
               </div>
             )}
           </div>

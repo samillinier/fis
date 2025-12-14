@@ -1,7 +1,8 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useData } from '@/context/DataContext'
+import { useAuth } from '@/components/AuthContext'
 import { getStoreName } from '@/data/storeNames'
 import CountUpNumber from '@/components/CountUpNumber'
 import {
@@ -14,6 +15,7 @@ import {
   Legend,
   ResponsiveContainer,
   Cell,
+  LabelList,
 } from 'recharts'
 
 const isValidWorkroomName = (name: string): boolean => {
@@ -40,6 +42,7 @@ interface WorkroomSurveyRow {
   ltrAvg: number
   craftAvg: number
   profAvg: number
+  weightedAvg: number // Weighted average: (L*0.60 + M*0.20 + N*0.10 + P*0.02 + Q*0.03)
   company?: string
   installerName?: string
   poNumber?: string | number
@@ -47,6 +50,78 @@ interface WorkroomSurveyRow {
 
 export default function SurveyMisc() {
   const { data } = useData()
+  const { user } = useAuth()
+  const [userWorkroom, setUserWorkroom] = useState<string | null>(null)
+  const [tableWorkroomFilter, setTableWorkroomFilter] = useState<string>('all')
+  
+  // Load user's workroom from profile
+  useEffect(() => {
+    if (user?.email) {
+      const loadUserWorkroom = async () => {
+        try {
+          const authHeader = user.email
+          const response = await fetch('/api/user-profile', {
+            headers: {
+              Authorization: `Bearer ${authHeader}`,
+            },
+          })
+
+          if (response.ok) {
+            const profileData = await response.json()
+            setUserWorkroom(profileData.workroom || null)
+          } else {
+            // Try localStorage as fallback
+            const stored = localStorage.getItem('fis-user-profile')
+            if (stored) {
+              const parsed = JSON.parse(stored)
+              setUserWorkroom(parsed.workroom || null)
+            }
+          }
+        } catch (error) {
+          console.error('Error loading user workroom:', error)
+          // Try localStorage as fallback
+          const stored = localStorage.getItem('fis-user-profile')
+          if (stored) {
+            const parsed = JSON.parse(stored)
+            setUserWorkroom(parsed.workroom || null)
+          }
+        }
+      }
+      loadUserWorkroom()
+    }
+  }, [user?.email])
+  
+  // Debug: Log survey data availability
+  useEffect(() => {
+    const surveyWorkrooms = data.workrooms.filter((w) => 
+      w.ltrScore != null || w.craftScore != null || w.profScore != null
+    )
+    console.log('📊 [SurveyMisc] Total workrooms:', data.workrooms.length)
+    console.log('📊 [SurveyMisc] Survey workrooms (with ltr/craft/prof):', surveyWorkrooms.length)
+    if (surveyWorkrooms.length > 0) {
+      console.log('📊 [SurveyMisc] Sample survey workroom:', {
+        name: surveyWorkrooms[0].name,
+        ltrScore: surveyWorkrooms[0].ltrScore,
+        craftScore: surveyWorkrooms[0].craftScore,
+        profScore: surveyWorkrooms[0].profScore,
+        company: surveyWorkrooms[0].company,
+        installerName: surveyWorkrooms[0].installerName
+      })
+    } else {
+      console.log('⚠️ [SurveyMisc] No survey workrooms found! Checking all workrooms...')
+      data.workrooms.slice(0, 3).forEach((w, i) => {
+        console.log(`📊 [SurveyMisc] Workroom ${i + 1}:`, {
+          name: w.name,
+          hasLtrScore: w.ltrScore != null,
+          hasCraftScore: w.craftScore != null,
+          hasProfScore: w.profScore != null,
+          hasSales: w.sales != null,
+          keys: Object.keys(w).filter(k => k.includes('Score') || k.includes('score') || k.includes('ltr') || k.includes('craft') || k.includes('prof'))
+        })
+      })
+    }
+  }, [data.workrooms])
+  
   const [selectedWorkroom, setSelectedWorkroom] = useState<string>('all')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [selectedMetric, setSelectedMetric] = useState<'all' | 'ltr' | 'craft' | 'prof'>('all')
@@ -81,6 +156,10 @@ export default function SurveyMisc() {
         ltrSum: number
         craftSum: number
         profSum: number
+        columnMSum: number
+        columnNSum: number
+        columnPSum: number
+        columnQSum: number
         count: number
       }
     >()
@@ -101,23 +180,29 @@ export default function SurveyMisc() {
       const company = w.company || (w as any).company || ''
       const installerName = w.installerName || (w as any).installerName || ''
       const poNumber = w.poNumber || (w as any).poNumber || ''
-      const key = `${storeNumber}|||${workroomName}|||${laborCategory}`
-      const existing =
+      // Group by installer name and company instead of store/workroom/category
+      const key = `${installerName}|||${company}`
+        const existing =
         map.get(key) || {
-          workroom: workroomName,
-          laborCategory,
-          storeNumber,
-          storeName,
+          workroom: workroomName, // Keep first workroom found
+          laborCategory, // Keep first labor category found
+          storeNumber, // Keep first store number found
+          storeName, // Keep first store name found
           surveyCount: 0,
           ltrAvg: 0,
           craftAvg: 0,
           profAvg: 0,
-          company: '',
-          installerName: '',
-          poNumber: '',
+          weightedAvg: 0,
+          company: company.trim() || '',
+          installerName: installerName.trim() || '',
+          poNumber: poNumber ? String(poNumber).trim() : '',
           ltrSum: 0,
           craftSum: 0,
           profSum: 0,
+          columnMSum: 0,
+          columnNSum: 0,
+          columnPSum: 0,
+          columnQSum: 0,
           count: 0,
         }
 
@@ -126,45 +211,39 @@ export default function SurveyMisc() {
       if (w.ltrScore != null) existing.ltrSum += w.ltrScore
       if (w.craftScore != null) existing.craftSum += w.craftScore
       if (w.profScore != null) existing.profSum += w.profScore
-      // Keep company value - use first non-empty value found
-      // Always update if we have a non-empty company value and existing is empty
-      if (company && company !== '' && company.trim() !== '') {
-        if (!existing.company || existing.company === '' || existing.company.trim() === '') {
-          existing.company = company.trim()
-        }
-      }
-      // Keep installerName value - use first non-empty value found
-      // Always update if we have a non-empty installerName value and existing is empty
-      if (installerName && installerName !== '' && installerName.trim() !== '') {
-        if (!existing.installerName || existing.installerName === '' || existing.installerName.trim() === '') {
-          existing.installerName = installerName.trim()
-        }
-      }
-      // Keep poNumber value - use first non-empty value found
-      // Always update if we have a non-empty poNumber value and existing is empty
-      if (poNumber && poNumber !== '' && String(poNumber).trim() !== '') {
-        if (!existing.poNumber || existing.poNumber === '' || String(existing.poNumber).trim() === '') {
-          existing.poNumber = String(poNumber).trim()
-        }
-      }
+      if (w.columnM != null) existing.columnMSum += w.columnM
+      if (w.columnN != null) existing.columnNSum += w.columnN
+      if (w.columnP != null) existing.columnPSum += w.columnP
+      if (w.columnQ != null) existing.columnQSum += w.columnQ
 
       map.set(key, existing)
     })
 
     const rows: WorkroomSurveyRow[] = Array.from(map.values())
-      .map((r) => ({
-        workroom: r.workroom,
-        laborCategory: r.laborCategory,
-        storeNumber: r.storeNumber,
-        storeName: r.storeName,
-        surveyCount: r.surveyCount,
-        ltrAvg: r.count > 0 ? r.ltrSum / r.count : 0,
-        craftAvg: r.count > 0 ? r.craftSum / r.count : 0,
-        profAvg: r.count > 0 ? r.profSum / r.count : 0,
-        company: r.company,
-        installerName: r.installerName,
-        poNumber: r.poNumber,
-      }))
+      .map((r) => {
+        // Calculate weighted average: (L*0.60 + M*0.20 + N*0.10 + P*0.02 + Q*0.03)
+        const ltrAvg = r.count > 0 ? r.ltrSum / r.count : 0
+        const columnMAvg = r.count > 0 ? r.columnMSum / r.count : 0
+        const columnNAvg = r.count > 0 ? r.columnNSum / r.count : 0
+        const columnPAvg = r.count > 0 ? r.columnPSum / r.count : 0
+        const columnQAvg = r.count > 0 ? r.columnQSum / r.count : 0
+        const weightedAvg = (ltrAvg * 0.60) + (columnMAvg * 0.20) + (columnNAvg * 0.10) + (columnPAvg * 0.02) + (columnQAvg * 0.03)
+        
+        return {
+          workroom: r.workroom,
+          laborCategory: r.laborCategory,
+          storeNumber: r.storeNumber,
+          storeName: r.storeName,
+          surveyCount: r.surveyCount,
+          ltrAvg,
+          craftAvg: r.count > 0 ? r.craftSum / r.count : 0,
+          profAvg: r.count > 0 ? r.profSum / r.count : 0,
+          weightedAvg,
+          company: r.company,
+          installerName: r.installerName,
+          poNumber: r.poNumber,
+        }
+      })
       .sort((a, b) => {
         // Sort primarily by numeric store number when possible, then by workroom
         const aNum = parseInt(a.storeNumber, 10)
@@ -243,7 +322,14 @@ export default function SurveyMisc() {
 
   const filteredRows = useMemo(() => {
     let filtered = rows.filter((row) => {
-      const matchesWorkroom = selectedWorkroom === 'all' || row.workroom === selectedWorkroom
+      // Use tableWorkroomFilter for table, with special handling for "my-workroom"
+      let matchesWorkroom = true
+      if (tableWorkroomFilter === 'my-workroom') {
+        matchesWorkroom = userWorkroom ? row.workroom === userWorkroom : false
+      } else if (tableWorkroomFilter !== 'all') {
+        matchesWorkroom = row.workroom === tableWorkroomFilter
+      }
+      
       const matchesCategory = selectedCategory === 'all' || row.laborCategory === selectedCategory
       return matchesWorkroom && matchesCategory
     })
@@ -253,16 +339,6 @@ export default function SurveyMisc() {
       // Get the appropriate score based on sortMetric
       const getScore = (row: WorkroomSurveyRow): number => {
         if (sortMetric === 'ltr') {
-          // Use individual LTR if surveyCount < 2, otherwise use average
-          if (row.surveyCount < 2) {
-            const matchingRecord = data.workrooms.find((w) => {
-              const matchesWorkroom = w.name === row.workroom
-              const matchesStore = String(w.store) === row.storeNumber
-              const matchesCategory = (w.laborCategory || (w as any).category || 'N/A') === row.laborCategory
-              return matchesWorkroom && matchesStore && matchesCategory && w.ltrScore != null
-            })
-            return matchingRecord?.ltrScore ?? 0
-          }
           return row.ltrAvg
         } else if (sortMetric === 'craft') {
           return row.craftAvg
@@ -283,7 +359,7 @@ export default function SurveyMisc() {
     }
 
     return filtered
-  }, [rows, selectedWorkroom, selectedCategory, sortBy, sortMetric, sortCount, data.workrooms])
+  }, [rows, tableWorkroomFilter, userWorkroom, selectedCategory, sortBy, sortMetric, sortCount, data.workrooms])
 
   // Use aggregated chart data for the bar chart (grouped by workroom only)
   const filteredChartData = aggregatedChartData.filter((row) => {
@@ -540,43 +616,87 @@ export default function SurveyMisc() {
                         return `Workroom: ${label}${dataPoint ? ` (${dataPoint.surveyCount} survey${dataPoint.surveyCount !== 1 ? 's' : ''})` : ''}`
                       }}
                     />
-                    <Legend wrapperStyle={{ fontSize: 11 }} />
                     {/* Color-coded bars: Grade-based colors (green/yellow/red) for all metrics */}
-                    {/* The legend shows which metric each bar represents */}
+                    {/* Labels are shown directly on bars instead of using legend */}
                     {(selectedMetric === 'all' || selectedMetric === 'ltr') && (
                       <Bar dataKey="ltrAvg" name="LTR Avg" fill="#3b82f6" radius={[4, 4, 0, 0]}>
                         {filteredChartData.map((entry, index) => {
-                          // Grade-based colors with blue border for LTR identification
+                          // Grade-based colors without border
                           let fillColor = '#10b981' // green - excellent (> 9)
                           if (entry.ltrAvg > 9) fillColor = '#10b981' // green - excellent
                           else if (entry.ltrAvg >= 7) fillColor = '#fbbf24' // yellow - moderate
                           else fillColor = '#ef4444' // red - needs improvement
-                          return <Cell key={`cell-ltr-${index}`} fill={fillColor} stroke="#3b82f6" strokeWidth={2} />
+                          return <Cell key={`cell-ltr-${index}`} fill={fillColor} />
                         })}
+                        <LabelList dataKey="ltrAvg" content={({ value, x, y, width, height }: any) => {
+                          if (!value || value === 0) return null
+                          return (
+                            <text
+                              x={x + width / 2}
+                              y={y - 5}
+                              fill="#1f2937"
+                              textAnchor="middle"
+                              fontSize="10"
+                              fontWeight="600"
+                            >
+                              LTR
+                            </text>
+                          )
+                        }} />
                       </Bar>
                     )}
                     {(selectedMetric === 'all' || selectedMetric === 'craft') && (
                       <Bar dataKey="craftAvg" name="Craft Avg" fill="#10b981" radius={[4, 4, 0, 0]}>
                         {filteredChartData.map((entry, index) => {
-                          // Grade-based colors with green border for Craft identification
+                          // Grade-based colors without border
                           let fillColor = '#10b981' // green - excellent (> 9)
                           if (entry.craftAvg > 9) fillColor = '#10b981' // green - excellent
                           else if (entry.craftAvg >= 7) fillColor = '#fbbf24' // yellow - moderate
                           else fillColor = '#ef4444' // red - needs improvement
-                          return <Cell key={`cell-craft-${index}`} fill={fillColor} stroke="#10b981" strokeWidth={2} />
+                          return <Cell key={`cell-craft-${index}`} fill={fillColor} />
                         })}
+                        <LabelList dataKey="craftAvg" content={({ value, x, y, width, height }: any) => {
+                          if (!value || value === 0) return null
+                          return (
+                            <text
+                              x={x + width / 2}
+                              y={y - 5}
+                              fill="#1f2937"
+                              textAnchor="middle"
+                              fontSize="10"
+                              fontWeight="600"
+                            >
+                              Craft
+                            </text>
+                          )
+                        }} />
                       </Bar>
                     )}
                     {(selectedMetric === 'all' || selectedMetric === 'prof') && (
                       <Bar dataKey="profAvg" name="Prof Avg" fill="#ef4444" radius={[4, 4, 0, 0]}>
                         {filteredChartData.map((entry, index) => {
-                          // Grade-based colors with red border for Prof identification
+                          // Grade-based colors without border
                           let fillColor = '#10b981' // green - excellent (> 9)
                           if (entry.profAvg > 9) fillColor = '#10b981' // green - excellent
                           else if (entry.profAvg >= 7) fillColor = '#fbbf24' // yellow - moderate
                           else fillColor = '#ef4444' // red - needs improvement
-                          return <Cell key={`cell-prof-${index}`} fill={fillColor} stroke="#ef4444" strokeWidth={2} />
+                          return <Cell key={`cell-prof-${index}`} fill={fillColor} />
                         })}
+                        <LabelList dataKey="profAvg" content={({ value, x, y, width, height }: any) => {
+                          if (!value || value === 0) return null
+                          return (
+                            <text
+                              x={x + width / 2}
+                              y={y - 5}
+                              fill="#1f2937"
+                              textAnchor="middle"
+                              fontSize="10"
+                              fontWeight="600"
+                            >
+                              Prof
+                            </text>
+                          )
+                        }} />
                       </Bar>
                     )}
                   </BarChart>
@@ -602,7 +722,27 @@ export default function SurveyMisc() {
 
               {/* Sorting Controls */}
               <div className="px-4 py-3 border-b border-gray-200">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
+                      Workroom
+                    </label>
+                    <select
+                      value={tableWorkroomFilter}
+                      onChange={(e) => setTableWorkroomFilter(e.target.value)}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                    >
+                      <option value="all">All Workrooms</option>
+                      {userWorkroom && (
+                        <option value="my-workroom">My Workroom ({userWorkroom})</option>
+                      )}
+                      {uniqueWorkrooms.map((workroom) => (
+                        <option key={workroom} value={workroom}>
+                          {workroom}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                   <div>
                     <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
                       Sort By
@@ -654,15 +794,11 @@ export default function SurveyMisc() {
                 <table className="professional-table professional-table-zebra">
                   <thead>
                     <tr>
-                      <th>PO Number</th>
                       <th>Workroom</th>
-                      <th>Company</th>
+                      <th>Company name</th>
                       <th>Installer Name</th>
-                      <th>Labor Category</th>
                       <th style={{ textAlign: 'right' }}>Surveys</th>
-                      <th style={{ textAlign: 'right' }}>LTR Avg</th>
-                      <th style={{ textAlign: 'right' }}>Craft Avg</th>
-                      <th style={{ textAlign: 'right' }}>Prof Avg</th>
+                      <th style={{ textAlign: 'right' }}>Weighted Avg</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -682,26 +818,9 @@ export default function SurveyMisc() {
                         return score.toFixed(1)
                       }
 
-                      // Get first individual LTR score if surveyCount < 2, otherwise use average
-                      const ltrDisplayValue = (() => {
-                        if (row.surveyCount >= 2) {
-                          // Show average for 2 or more surveys
-                          return row.ltrAvg !== 0 ? row.ltrAvg : null
-                        } else {
-                          // Show individual LTR score for single survey
-                          const matchingRecord = data.workrooms.find((w) => {
-                            const matchesWorkroom = w.name === row.workroom
-                            const matchesStore = String(w.store) === row.storeNumber
-                            const matchesCategory = (w.laborCategory || (w as any).category || 'N/A') === row.laborCategory
-                            return matchesWorkroom && matchesStore && matchesCategory && w.ltrScore != null
-                          })
-                          return matchingRecord?.ltrScore ?? null
-                        }
-                      })()
-
                       return (
                         <tr 
-                          key={`${row.storeNumber}-${row.workroom}-${row.laborCategory}`}
+                          key={`${row.installerName}-${row.company}`}
                           style={{ cursor: 'pointer' }}
                           onClick={() => {
                             setSelectedRow(row)
@@ -714,43 +833,17 @@ export default function SurveyMisc() {
                             e.currentTarget.style.backgroundColor = ''
                           }}
                         >
-                          <td style={{ fontWeight: 'normal' }}>{row.poNumber || '—'}</td>
                           <td>{row.workroom}</td>
                           <td>{row.company || '—'}</td>
                           <td>{row.installerName || '—'}</td>
-                          <td>{row.laborCategory}</td>
                           <td style={{ textAlign: 'right' }}>{row.surveyCount}</td>
                           <td style={{ textAlign: 'right' }}>
-                            {ltrDisplayValue != null ? (
+                            {row.weightedAvg != null && !isNaN(row.weightedAvg) ? (
                               <span
-                                className={`badge-pill ${getScoreBadge(ltrDisplayValue)}`}
+                                className={`badge-pill ${getScoreBadge(row.weightedAvg)}`}
                                 style={{ fontSize: '0.75rem', padding: '0.15rem 0.5rem' }}
                               >
-                                {formatScore(ltrDisplayValue)}
-                              </span>
-                            ) : (
-                              '—'
-                            )}
-                          </td>
-                          <td style={{ textAlign: 'right' }}>
-                            {row.craftAvg !== 0 ? (
-                              <span
-                                className={`badge-pill ${getScoreBadge(row.craftAvg)}`}
-                                style={{ fontSize: '0.75rem', padding: '0.15rem 0.5rem' }}
-                              >
-                                {formatScore(row.craftAvg)}
-                              </span>
-                            ) : (
-                              '—'
-                            )}
-                          </td>
-                          <td style={{ textAlign: 'right' }}>
-                            {row.profAvg !== 0 ? (
-                              <span
-                                className={`badge-pill ${getScoreBadge(row.profAvg)}`}
-                                style={{ fontSize: '0.75rem', padding: '0.15rem 0.5rem' }}
-                              >
-                                {formatScore(row.profAvg)}
+                                {formatScore(row.weightedAvg)}
                               </span>
                             ) : (
                               '—'
@@ -799,10 +892,11 @@ export default function SurveyMisc() {
               backgroundColor: 'white',
               borderRadius: '0.5rem',
               padding: '1.5rem',
-              maxWidth: '800px',
+              maxWidth: '900px',
               width: '90%',
-              maxHeight: '80vh',
-              overflowY: 'auto',
+              maxHeight: '90vh',
+              display: 'flex',
+              flexDirection: 'column',
               boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
             }}
             onClick={(e) => e.stopPropagation()}
@@ -830,7 +924,7 @@ export default function SurveyMisc() {
               </button>
             </div>
 
-            <div style={{ marginBottom: '1rem', paddingBottom: '1rem', borderBottom: '1px solid #e5e7eb' }}>
+            <div style={{ marginBottom: '1rem', paddingBottom: '1rem', borderBottom: '1px solid #e5e7eb', flexShrink: 0 }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', fontSize: '0.875rem' }}>
                 <div>
                   <span style={{ fontWeight: 600, color: '#6b7280' }}>Store Name:</span>
@@ -841,7 +935,7 @@ export default function SurveyMisc() {
                   <span style={{ marginLeft: '0.5rem', color: '#111827' }}>{selectedRow.laborCategory}</span>
                 </div>
                 <div>
-                  <span style={{ fontWeight: 600, color: '#6b7280' }}>Company:</span>
+                  <span style={{ fontWeight: 600, color: '#6b7280' }}>Company name:</span>
                   <span style={{ marginLeft: '0.5rem', color: '#111827' }}>{selectedRow.company || '—'}</span>
                 </div>
                 <div>
@@ -851,7 +945,7 @@ export default function SurveyMisc() {
               </div>
             </div>
 
-            <div style={{ marginBottom: '1rem' }}>
+            <div style={{ marginBottom: '1rem', flexShrink: 0 }}>
               <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#111827', marginBottom: '0.75rem' }}>
                 Average Scores
               </h3>
@@ -890,15 +984,14 @@ export default function SurveyMisc() {
             </div>
 
             {/* Individual Survey Records */}
-            <div>
-              <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#111827', marginBottom: '0.75rem' }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>
+              <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#111827', marginBottom: '0.75rem', flexShrink: 0 }}>
                 Individual Survey Records ({(() => {
                   const matchingRecords = data.workrooms.filter((w) => {
-                    const matchesWorkroom = w.name === selectedRow.workroom
-                    const matchesStore = String(w.store) === selectedRow.storeNumber
-                    const matchesCategory = (w.laborCategory || (w as any).category || 'N/A') === selectedRow.laborCategory
+                    const matchesInstaller = (w.installerName || (w as any).installerName || '').trim() === (selectedRow.installerName || '').trim()
+                    const matchesCompany = (w.company || (w as any).company || '').trim() === (selectedRow.company || '').trim()
                     const hasSurveyData = w.ltrScore != null || w.craftScore != null || w.profScore != null || w.surveyDate || w.surveyComment
-                    return matchesWorkroom && matchesStore && matchesCategory && hasSurveyData
+                    return matchesInstaller && matchesCompany && hasSurveyData
                   })
                   
                   // Remove duplicates
@@ -918,15 +1011,14 @@ export default function SurveyMisc() {
                   return uniqueRecords.length
                 })()})
               </h3>
-              <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+              <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', minHeight: 0 }}>
                 {(() => {
-                  // Filter matching records and remove duplicates based on unique combination
+                  // Filter matching records by installer name and company
                   const matchingRecords = data.workrooms.filter((w) => {
-                    const matchesWorkroom = w.name === selectedRow.workroom
-                    const matchesStore = String(w.store) === selectedRow.storeNumber
-                    const matchesCategory = (w.laborCategory || (w as any).category || 'N/A') === selectedRow.laborCategory
+                    const matchesInstaller = (w.installerName || (w as any).installerName || '').trim() === (selectedRow.installerName || '').trim()
+                    const matchesCompany = (w.company || (w as any).company || '').trim() === (selectedRow.company || '').trim()
                     const hasSurveyData = w.ltrScore != null || w.craftScore != null || w.profScore != null || w.surveyDate || w.surveyComment
-                    return matchesWorkroom && matchesStore && matchesCategory && hasSurveyData
+                    return matchesInstaller && matchesCompany && hasSurveyData
                   })
 
                   // Remove duplicates by creating a unique key for each record

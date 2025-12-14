@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import Google Fonts for signature */
+@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&family=Dancing+Script:wght@400;500;600;700&display=swap');
+
 :root {
   --background: #ffffff;
   --foreground: #000000;
@@ -12,6 +15,10 @@
   --muted: #6b7280;
   --card-bg: #ffffff;
   --card-border: #e5e7eb;
+  --sidebar-green: #80875d; /* Sidebar green color */
+  --sidebar-green-light: #9ca57a; /* Lighter shade for hover */
+  --sidebar-green-dark: #6b7349; /* Darker shade */
+  --sidebar-green-bg: #f0f2e8; /* Light background tint */
 }
 
 body {
@@ -232,6 +239,25 @@ body {
 }
 
 .logout-button-hover:hover svg {
+  transform: rotate(-15deg) scale(1.1);
+}
+
+.profile-button {
+  color: #111827 !important;
+}
+
+.profile-button svg {
+  color: #111827 !important;
+}
+
+.profile-button:hover {
+  color: #111827 !important;
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  border-color: #d1d5db;
+}
+
+.profile-button:hover svg {
+  color: #111827 !important;
   transform: rotate(-15deg) scale(1.1);
 }
 

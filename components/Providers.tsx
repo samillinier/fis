@@ -6,6 +6,7 @@ import { initialData } from '@/data/mockData'
 import type { DashboardData } from '@/context/DataContext'
 import { FilterProvider } from '@/components/FilterContext'
 import { NotificationProvider } from '@/components/NotificationContext'
+import { WorkroomNotificationProvider } from '@/components/WorkroomNotificationContext'
 import { AuthProvider, useAuth } from '@/components/AuthContext'
 import { fetchDashboardData, saveDashboardData } from '@/lib/database'
 
@@ -15,51 +16,62 @@ function DataProvider({ children }: { children: React.ReactNode }) {
   const [data, setDataState] = useState<DashboardData>(initialData)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Load data from database when user changes (logs in/out)
+  // Load data from Supabase workroom_data table on mount or when user changes
   useEffect(() => {
     const loadData = async () => {
-      // Wait a bit to ensure user is fully loaded in localStorage
-      await new Promise(resolve => setTimeout(resolve, 100))
+      // Wait a bit to ensure user is fully loaded
+      await new Promise(resolve => setTimeout(resolve, 300))
       
       setIsLoading(true)
       try {
-        console.log('Loading data for user:', user?.email || 'no user')
-        const persistedData = await fetchDashboardData()
-        console.log('Loaded data:', persistedData.workrooms.length, 'workrooms')
+        console.log('🔄 [DataProvider] Loading data from Supabase (visual_data + survey_data tables) for user:', user?.email || 'no user')
         
-        // Only update if the persisted data is different from initial data
-        if (JSON.stringify(persistedData) !== JSON.stringify(initialData)) {
-          setDataState(persistedData)
+        // Load from separate visual_data and survey_data tables
+        const dataFromSupabase = await fetchDashboardData()
+        
+        // If we have data, use it. Otherwise, use empty data.
+        if (dataFromSupabase && dataFromSupabase.workrooms && dataFromSupabase.workrooms.length > 0) {
+          setDataState(dataFromSupabase)
+          const visualCount = dataFromSupabase.workrooms.filter(w => w.sales != null || w.laborPO != null).length
+          const surveyCount = dataFromSupabase.workrooms.filter(w => w.ltrScore != null || w.craftScore != null).length
+          console.log(`✅ [DataProvider] Loaded ${dataFromSupabase.workrooms.length} workrooms from Supabase (${visualCount} visual + ${surveyCount} survey)`)
         } else {
-          // If no data found, reset to initial
           setDataState(initialData)
+          console.log('⚠️ [DataProvider] No data in Supabase, showing empty dashboard')
         }
       } catch (error) {
-        console.error('Error loading data:', error)
+        console.error('❌ [DataProvider] Error loading from Supabase:', error)
+        setDataState(initialData)
       } finally {
         setIsLoading(false)
       }
     }
     
-    // Only load data if we're on client side
     if (typeof window !== 'undefined') {
       loadData()
     }
   }, [user]) // Reload when user changes (logs in/out)
 
-  // Custom setData that also persists to database
+  // When data is uploaded: Update state and save to Supabase
+  // Supabase will: DELETE old data → INSERT new data
   const setData = useCallback(async (newData: DashboardData) => {
+    console.log('💾 Saving', newData.workrooms?.length || 0, 'workrooms to Supabase...')
+    
+    // Update UI immediately
     setDataState(newData)
-    // Save to database (with localStorage fallback)
+    
+    // Save to Supabase (deletes old, saves new)
     await saveDashboardData(newData)
   }, [])
 
   return (
     <DataContext.Provider value={{ data, setData }}>
       <NotificationProvider>
-        <FilterProvider>
-          {children}
-        </FilterProvider>
+        <WorkroomNotificationProvider>
+          <FilterProvider>
+            {children}
+          </FilterProvider>
+        </WorkroomNotificationProvider>
       </NotificationProvider>
     </DataContext.Provider>
   )

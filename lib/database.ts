@@ -25,13 +25,19 @@ function getAuthHeader(): string | null {
 }
 
 // Main Dashboard Data - Try API first, fallback to localStorage
+// Fetch data from Supabase (visual_data + survey_data tables)
 export async function fetchDashboardData(): Promise<DashboardData> {
   const authHeader = getAuthHeader()
   
-  // If no auth, use localStorage
+  // If no auth, return empty data
   if (!authHeader) {
-    return loadFromLocalStorage()
+    console.log('⚠️ [fetchDashboardData] No user logged in, returning empty data')
+    return { workrooms: [] }
   }
+
+  const userEmail = authHeader.replace('Bearer ', '')
+  console.log('📡 [fetchDashboardData] Fetching data for user:', userEmail)
+  console.log('📡 [fetchDashboardData] Auth header exists:', !!authHeader)
 
   try {
     const response = await fetch('/api/data', {
@@ -42,38 +48,65 @@ export async function fetchDashboardData(): Promise<DashboardData> {
       },
     })
 
+    console.log('📡 [fetchDashboardData] Response status:', response.status)
+
     if (!response.ok) {
-      // API error - fallback to localStorage
-      console.warn('Database API error, using localStorage fallback')
-      return loadFromLocalStorage()
+      const errorText = await response.text()
+      console.error('❌ [fetchDashboardData] Failed to fetch:', response.status, errorText)
+      return { workrooms: [] }
     }
 
     const data = await response.json()
-    // Save to localStorage as backup
-    if (data.workrooms) {
-      saveToLocalStorage(data)
+    console.log('✅ [fetchDashboardData] Fetched', data.workrooms?.length || 0, 'workrooms from Supabase')
+    
+    if (data.workrooms && data.workrooms.length > 0) {
+      console.log('📊 [fetchDashboardData] First workroom:', {
+        id: data.workrooms[0].id,
+        name: data.workrooms[0].name,
+        hasSales: data.workrooms[0].sales != null,
+        hasLtrScore: data.workrooms[0].ltrScore != null
+      })
     }
-    return data as DashboardData
+    
+    // Return data from Supabase (or empty if none)
+    return {
+      workrooms: data.workrooms || [],
+      ...(data.rawColumnLValues && { rawColumnLValues: data.rawColumnLValues }),
+      ...(data.rawCraftValues && { rawCraftValues: data.rawCraftValues }),
+      ...(data.rawProfValues && { rawProfValues: data.rawProfValues }),
+      ...(data.rawLaborCategories && { rawLaborCategories: data.rawLaborCategories }),
+      ...(data.rawCompanyValues && { rawCompanyValues: data.rawCompanyValues }),
+      ...(data.rawInstallerNames && { rawInstallerNames: data.rawInstallerNames }),
+      ...(data.excelFileTotalRows && { excelFileTotalRows: data.excelFileTotalRows }),
+    } as DashboardData
   } catch (error: any) {
-    console.error('Error fetching data from database:', error)
-    // Fallback to localStorage
-    return loadFromLocalStorage()
+    console.error('❌ [fetchDashboardData] Error:', error)
+    return { workrooms: [] }
   }
 }
 
+// Save data to Supabase (visual_data + survey_data tables)
 export async function saveDashboardData(data: DashboardData): Promise<boolean> {
-  // Always save to localStorage as backup
-  saveToLocalStorage(data)
-
-  // Record who changed the dashboard data
-  recordActivity('Updated dashboard data')
+  console.log('💾 [saveDashboardData] Called with', data.workrooms?.length || 0, 'workrooms')
+  console.log('💾 [saveDashboardData] Data structure:', {
+    hasWorkrooms: !!data.workrooms,
+    isArray: Array.isArray(data.workrooms),
+    length: data.workrooms?.length || 0,
+    firstWorkroom: data.workrooms?.[0] ? {
+      name: data.workrooms[0].name,
+      hasSales: data.workrooms[0].sales != null,
+      hasLtrScore: data.workrooms[0].ltrScore != null
+    } : null
+  })
 
   const authHeader = getAuthHeader()
   if (!authHeader) {
-    // No auth - localStorage only
-    console.warn('⚠️ No user logged in. Data saved to localStorage only. Please sign in to save to database.')
-    return true
+    console.error('❌ [saveDashboardData] No user logged in. Cannot save to Supabase.')
+    return false
   }
+  
+  const userEmail = authHeader.replace('Bearer ', '')
+  console.log('📧 [saveDashboardData] User email:', userEmail)
 
   try {
     const response = await fetch('/api/data', {
@@ -85,27 +118,159 @@ export async function saveDashboardData(data: DashboardData): Promise<boolean> {
       body: JSON.stringify(data),
     })
 
+    console.log('📡 [saveDashboardData] API response status:', response.status)
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      let errorData
+      try {
+        errorData = JSON.parse(errorText)
+      } catch {
+        errorData = { error: errorText }
+      }
+      
+      console.error('❌ [saveDashboardData] FAILED TO SAVE:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorData.error || errorText,
+        details: errorData.details,
+        hint: errorData.hint,
+        code: errorData.code,
+        workroomsCount: data.workrooms?.length || 0,
+        fullErrorResponse: errorText
+      })
+      
+      // Show user-friendly error
+      alert(`Failed to save data: ${errorData.error || errorText}\n\nCheck browser console for details.`)
+      
+      return false
+    }
+
+    const result = await response.json()
+    console.log('✅ [saveDashboardData] Saved to Supabase successfully:', {
+      count: result.count,
+      visualCount: result.visualCount,
+      surveyCount: result.surveyCount
+    })
+    return true
+  } catch (error: any) {
+    console.error('❌ [saveDashboardData] Error saving to Supabase:', {
+      error: error.message,
+      stack: error.stack,
+      workroomsCount: data.workrooms?.length || 0
+    })
+    return false
+  }
+}
+
+// File Names - Save and Load
+export async function saveFileNames(visualFileName: string | null, surveyFileName: string | null): Promise<boolean> {
+  // Always save to localStorage as backup
+  if (typeof window !== 'undefined') {
+    if (visualFileName) {
+      localStorage.setItem('fis-visual-file-name', visualFileName)
+    } else {
+      localStorage.removeItem('fis-visual-file-name')
+    }
+    if (surveyFileName) {
+      localStorage.setItem('fis-survey-file-name', surveyFileName)
+    } else {
+      localStorage.removeItem('fis-survey-file-name')
+    }
+  }
+
+  const authHeader = getAuthHeader()
+  if (!authHeader) {
+    // No auth - localStorage only
+    return true
+  }
+
+  try {
+    const response = await fetch('/api/file-names', {
+      method: 'POST',
+      headers: {
+        'Authorization': authHeader,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ visualFileName, surveyFileName }),
+    })
+
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
       const errorMessage = errorData.error || response.statusText
-      
-      if (response.status === 401) {
-        console.warn('⚠️ Unauthorized. Data saved to localStorage only. Please sign in.')
-      } else if (errorMessage.includes('does not exist') || errorMessage.includes('relation')) {
-        console.error('❌ Database tables not found. Please run database/vercel-postgres-schema.sql in Vercel Postgres SQL Editor.')
-      } else {
-        console.error('❌ Error saving to database:', errorMessage)
-        console.warn('⚠️ Data saved to localStorage as fallback. Check database connection.')
-      }
-      throw new Error(errorMessage)
+      console.warn('⚠️ Error saving file names to database:', errorMessage)
+      // Still saved to localStorage, so return true
+      return true
     }
 
-    console.log('✅ Data saved to database successfully')
     return true
   } catch (error) {
-    console.error('Error saving data to database:', error)
-    // Data still saved to localStorage, so return true
+    console.error('Error saving file names to database:', error)
+    // Still saved to localStorage, so return true
     return true
+  }
+}
+
+export async function loadFileNames(): Promise<{ visualFileName: string | null; surveyFileName: string | null }> {
+  const authHeader = getAuthHeader()
+  
+  // If no auth, use localStorage
+  if (!authHeader) {
+    return loadFileNamesFromLocalStorage()
+  }
+
+  try {
+    const response = await fetch('/api/file-names', {
+      method: 'GET',
+      headers: {
+        'Authorization': authHeader,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      // API error - fallback to localStorage
+      console.warn('Database API error for file names, using localStorage fallback')
+      return loadFileNamesFromLocalStorage()
+    }
+
+    const data = await response.json()
+    // Save to localStorage as backup
+    if (typeof window !== 'undefined') {
+      if (data.visualFileName) {
+        localStorage.setItem('fis-visual-file-name', data.visualFileName)
+      } else {
+        localStorage.removeItem('fis-visual-file-name')
+      }
+      if (data.surveyFileName) {
+        localStorage.setItem('fis-survey-file-name', data.surveyFileName)
+      } else {
+        localStorage.removeItem('fis-survey-file-name')
+      }
+    }
+    return {
+      visualFileName: data.visualFileName || null,
+      surveyFileName: data.surveyFileName || null,
+    }
+  } catch (error: any) {
+    console.error('Error fetching file names from database:', error)
+    // Fallback to localStorage
+    return loadFileNamesFromLocalStorage()
+  }
+}
+
+function loadFileNamesFromLocalStorage(): { visualFileName: string | null; surveyFileName: string | null } {
+  if (typeof window === 'undefined') {
+    return { visualFileName: null, surveyFileName: null }
+  }
+  try {
+    return {
+      visualFileName: localStorage.getItem('fis-visual-file-name'),
+      surveyFileName: localStorage.getItem('fis-survey-file-name'),
+    }
+  } catch (error) {
+    console.error('Error loading file names from localStorage:', error)
+    return { visualFileName: null, surveyFileName: null }
   }
 }
 
@@ -113,12 +278,31 @@ export async function clearDashboardData(): Promise<boolean> {
   // Always clear localStorage
   if (typeof window !== 'undefined') {
     localStorage.removeItem('fis-dashboard-data')
+    // Also clear file names
+    localStorage.removeItem('fis-visual-file-name')
+    localStorage.removeItem('fis-survey-file-name')
   }
 
   // Record clear action
   recordActivity('Cleared dashboard data')
 
   const authHeader = getAuthHeader()
+  
+  // Clear file names from database
+  if (authHeader) {
+    try {
+      await fetch('/api/file-names', {
+        method: 'DELETE',
+        headers: {
+          'Authorization': authHeader,
+          'Content-Type': 'application/json',
+        },
+      })
+    } catch (error) {
+      console.error('Error clearing file names from database:', error)
+    }
+  }
+
   if (!authHeader) {
     return true
   }
@@ -341,11 +525,14 @@ function loadFromLocalStorage(): DashboardData {
   try {
     const stored = localStorage.getItem('fis-dashboard-data')
     if (stored) {
-      return JSON.parse(stored)
+      const parsed = JSON.parse(stored)
+      console.log('📦 Loaded from localStorage:', parsed.workrooms?.length || 0, 'workrooms')
+      return parsed
     }
   } catch (error) {
-    console.error('Error loading from localStorage:', error)
+    console.error('❌ Error loading from localStorage:', error)
   }
+  console.log('⚠️ No data in localStorage, returning empty')
   return { workrooms: [] }
 }
 
@@ -353,8 +540,9 @@ function saveToLocalStorage(data: DashboardData): void {
   if (typeof window === 'undefined') return
   try {
     localStorage.setItem('fis-dashboard-data', JSON.stringify(data))
+    console.log('💾 Saved to localStorage:', data.workrooms?.length || 0, 'workrooms')
   } catch (error) {
-    console.error('Error saving to localStorage:', error)
+    console.error('❌ Error saving to localStorage:', error)
   }
 }
 

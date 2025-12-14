@@ -1,23 +1,94 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useData } from '@/context/DataContext'
 import { useNotification } from '@/components/NotificationContext'
+import { useAuth } from '@/components/AuthContext'
 import { Upload, FileText, CheckCircle2, XCircle } from 'lucide-react'
 import type { DashboardData, WorkroomData } from '@/context/DataContext'
 import * as XLSX from 'xlsx'
 import { workroomStoreData } from '@/data/workroomStoreData'
 import { getStoreName } from '@/data/storeNames'
+import { saveFileNames, loadFileNames } from '@/lib/database'
 
 export default function DualFileUpload() {
   const [isUploadingVisual, setIsUploadingVisual] = useState(false)
   const [isUploadingSurvey, setIsUploadingSurvey] = useState(false)
+  const [isDeletingVisual, setIsDeletingVisual] = useState(false)
+  const [isDeletingSurvey, setIsDeletingSurvey] = useState(false)
+  const [deleteProgress, setDeleteProgress] = useState<string>('')
   const [visualFileName, setVisualFileName] = useState<string | null>(null)
   const [surveyFileName, setSurveyFileName] = useState<string | null>(null)
   const { data, setData } = useData()
   const { showNotification } = useNotification()
+  const { user } = useAuth()
   const visualFileInputRef = useRef<HTMLInputElement>(null)
   const surveyFileInputRef = useRef<HTMLInputElement>(null)
+
+  // Load file names from database/localStorage on mount and when data is available
+  useEffect(() => {
+    const loadFileNamesData = async () => {
+      try {
+        const { visualFileName, surveyFileName } = await loadFileNames()
+        
+        // Check if data exists - use both localStorage and current data state
+        const storedData = typeof window !== 'undefined' ? localStorage.getItem('fis-dashboard-data') : null
+        const hasStoredData = storedData && storedData !== '{"workrooms":[]}'
+        const hasCurrentData = data.workrooms && data.workrooms.length > 0
+        const hasData = hasStoredData || hasCurrentData
+        
+        // Set file names if they exist and data exists
+        if (visualFileName && hasData) {
+          setVisualFileName(visualFileName)
+        } else if (visualFileName && !hasData) {
+          // Clear file name if no data exists
+          await saveFileNames(null, surveyFileName)
+          setVisualFileName(null)
+        } else if (!visualFileName) {
+          // Don't set if no file name (might not be loaded yet)
+          // Only clear if we explicitly know there's no data
+          if (!hasData) {
+            setVisualFileName(null)
+          }
+        }
+        
+        if (surveyFileName && hasData) {
+          setSurveyFileName(surveyFileName)
+        } else if (surveyFileName && !hasData) {
+          // Clear file name if no data exists
+          await saveFileNames(visualFileName, null)
+          setSurveyFileName(null)
+        } else if (!surveyFileName) {
+          // Don't set if no file name (might not be loaded yet)
+          // Only clear if we explicitly know there's no data
+          if (!hasData) {
+            setSurveyFileName(null)
+          }
+        }
+      } catch (error) {
+        console.error('Error loading file names:', error)
+      }
+    }
+    
+    // Load file names when component mounts or when data changes
+    // Use a small delay to ensure data is loaded first
+    const timer = setTimeout(() => {
+      loadFileNamesData()
+    }, 100)
+    
+    return () => clearTimeout(timer)
+  }, [data.workrooms.length]) // Run when data changes (workrooms count changes)
+
+  // Save file names to database and localStorage
+  const saveVisualFileName = async (fileName: string | null) => {
+    setVisualFileName(fileName)
+    await saveFileNames(fileName, surveyFileName)
+  }
+
+  const saveSurveyFileName = async (fileName: string | null) => {
+    setSurveyFileName(fileName)
+    await saveFileNames(visualFileName, fileName)
+  }
 
   // Helper function to parse visual data (sales, labor PO, vendor debit, cycle time, workroom/store info)
   const parseVisualData = async (file: File): Promise<WorkroomData[]> => {
@@ -111,15 +182,15 @@ export default function DualFileUpload() {
     const detailsCycleTimeIdx = headers.length > 18 ? 18 : -1 // Column S - Details Cycle Time (Total Provider Cycle Time)
     // completedIdx is Column T (index 19) - Completed
     // Job Cycle Time breakdown (columns U–Y)
-    // U=20, V=21, W=22, X=23 (Total Detail), Y=24 (Total Jobs)
+    // U=20, V=21, W=22, X=23 (Jobs Work Cycle Time), Y=24 (Total Jobs)
     const rtsSchedDetailsIdx = headers.length > 20 ? 20 : -1
     const schedStartDetailsIdx = headers.length > 21 ? 21 : -1
     const startDocsSubDetailsIdx = headers.length > 22 ? 22 : -1
-    const totalDetailCycleTimeIdx = headers.length > 23 ? 23 : -1 // Column X
+    const totalDetailCycleTimeIdx = headers.length > 23 ? 23 : -1 // Column X (also used for totalDetailCycleTime if needed)
     const rtsSchedJobsIdx = -1
     const schedStartJobsIdx = -1
     const startCompleteJobsIdx = -1
-    const jobsWorkCycleTimeIdx = headers.length > 24 ? 24 : -1
+    const jobsWorkCycleTimeIdx = headers.length > 23 ? 23 : -1 // Column X - Job Cycle Count for heatmap
     // Work Order Cycle Time breakdown (columns Z–AC)
     // Z=25, AA=26, AB=27, AC=28 (0-based)
     const workOrderStage1Idx = headers.length > 25 ? 25 : -1 // Column Z
@@ -516,6 +587,50 @@ export default function DualFileUpload() {
         surveyRecord.ltrScore = columnLValue
       }
 
+      // Read column M (index 12) - 20% weight
+      if (row.length > 12) {
+        const rawValue = row[12]
+        if (rawValue != null && rawValue !== '') {
+          const numValue = Number(rawValue)
+          if (!isNaN(numValue)) {
+            surveyRecord.columnM = numValue
+          }
+        }
+      }
+
+      // Read column N (index 13) - 10% weight
+      if (row.length > 13) {
+        const rawValue = row[13]
+        if (rawValue != null && rawValue !== '') {
+          const numValue = Number(rawValue)
+          if (!isNaN(numValue)) {
+            surveyRecord.columnN = numValue
+          }
+        }
+      }
+
+      // Read column P (index 15) - 2% weight
+      if (row.length > 15) {
+        const rawValue = row[15]
+        if (rawValue != null && rawValue !== '') {
+          const numValue = Number(rawValue)
+          if (!isNaN(numValue)) {
+            surveyRecord.columnP = numValue
+          }
+        }
+      }
+
+      // Read column Q (index 16) - 3% weight
+      if (row.length > 16) {
+        const rawValue = row[16]
+        if (rawValue != null && rawValue !== '') {
+          const numValue = Number(rawValue)
+          if (!isNaN(numValue)) {
+            surveyRecord.columnQ = numValue
+          }
+        }
+      }
+
       if (surveyDateIdx >= 0 && row[surveyDateIdx] != null && row[surveyDateIdx] !== '') {
         surveyRecord.surveyDate = row[surveyDateIdx]
       }
@@ -707,11 +822,13 @@ export default function DualFileUpload() {
     if (!file) return
 
     setIsUploadingVisual(true)
+    setIsDeletingVisual(true)
+    setDeleteProgress('Removing all previous visual data records...')
     setVisualFileName(null)
 
     try {
       const visualData = await parseVisualData(file)
-      setVisualFileName(file.name)
+      await saveVisualFileName(file.name)
 
       // DON'T merge - keep visual data separate from survey data
       // Keep existing survey data and add all visual records separately
@@ -720,7 +837,18 @@ export default function DualFileUpload() {
       )
 
       // Combine: survey data + all visual records (no merging)
-      setData({ workrooms: [...existingSurveyData, ...visualData] })
+      const combinedData = { workrooms: [...existingSurveyData, ...visualData] }
+      
+      // Save to Supabase - this will delete old data and save new data
+      console.log('💾 [DualFileUpload] Saving visual data to Supabase...')
+      setDeleteProgress('Deleting all previous visual data records from database...')
+      
+      // setData will trigger saveDashboardData which deletes old data then inserts new
+      await setData(combinedData)
+      
+      setDeleteProgress('')
+      setIsDeletingVisual(false)
+      
       showNotification(
         `Successfully uploaded ${visualData.length} visual data records! ${
           existingSurveyData.length > 0
@@ -729,10 +857,32 @@ export default function DualFileUpload() {
         }`,
         'success'
       )
+      
+      // Create notification in database
+      if (user?.email) {
+        try {
+          await fetch('/api/notifications', {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${user.email}`,
+            },
+            body: JSON.stringify({
+              workroom: 'System',
+              message: `Successfully uploaded ${visualData.length} visual data records. All previous visual data has been replaced.`,
+              type: 'info',
+            }),
+          })
+        } catch (error) {
+          console.error('Error creating upload notification:', error)
+        }
+      }
     } catch (error: any) {
       console.error('Visual data upload error:', error)
+      setDeleteProgress('')
+      setIsDeletingVisual(false)
       showNotification(`Error uploading visual data: ${error.message}`, 'error')
-      setVisualFileName(null)
+      await saveVisualFileName(null)
     } finally {
       setIsUploadingVisual(false)
       if (visualFileInputRef.current) {
@@ -746,6 +896,8 @@ export default function DualFileUpload() {
     if (!file) return
 
     setIsUploadingSurvey(true)
+    setIsDeletingSurvey(true)
+    setDeleteProgress('Removing all previous survey data records...')
     setSurveyFileName(null)
 
     try {
@@ -759,7 +911,7 @@ export default function DualFileUpload() {
         rawCompanyValues,
         rawInstallerNames
       } = await parseSurveyData(file)
-      setSurveyFileName(file.name)
+      await saveSurveyFileName(file.name)
 
       // DON'T merge - keep survey data separate from visual data
       // Keep existing visual data and add all survey records separately
@@ -780,7 +932,7 @@ export default function DualFileUpload() {
 
       // Combine: visual data + all survey records (no merging)
       // Store ALL raw values directly from Excel file for dashboard use
-      setData({ 
+      const combinedData = { 
         workrooms: [...existingVisualData, ...surveyRecords],
         rawColumnLValues: rawColumnL,
         rawCraftValues: rawCraft,
@@ -789,7 +941,23 @@ export default function DualFileUpload() {
         rawCompanyValues: rawCompanyValues,
         rawInstallerNames: rawInstallerNames,
         excelFileTotalRows: excelFileTotalRows
-      })
+      }
+      
+      // Save to Supabase - this will delete old data and save new data
+      // Survey data includes: ltrScore, craftScore, profScore, surveyDate, surveyComment, 
+      // laborCategory, columnM, columnN, columnP, columnQ, company, installerName, etc.
+      console.log('💾 [DualFileUpload] Saving survey data to Supabase...')
+      console.log(`📊 Survey records: ${surveyRecords.length}, Visual records: ${existingVisualData.length}`)
+      console.log(`📊 Survey fields included: ltrScore, craftScore, profScore, surveyDate, company, installerName, etc.`)
+      
+      setDeleteProgress('Deleting all previous survey data records from database...')
+      
+      // setData will trigger saveDashboardData which deletes old data then inserts new
+      await setData(combinedData)
+      
+      setDeleteProgress('')
+      setIsDeletingSurvey(false)
+      
       showNotification(
         `Successfully uploaded ${surveyData.length} survey data records! ${
           existingVisualData.length > 0
@@ -798,10 +966,32 @@ export default function DualFileUpload() {
         }`,
         'success'
       )
+      
+      // Create notification in database
+      if (user?.email) {
+        try {
+          await fetch('/api/notifications', {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${user.email}`,
+            },
+            body: JSON.stringify({
+              workroom: 'System',
+              message: `Successfully uploaded ${surveyData.length} survey data records. All previous survey data has been replaced.`,
+              type: 'info',
+            }),
+          })
+        } catch (error) {
+          console.error('Error creating upload notification:', error)
+        }
+      }
     } catch (error: any) {
       console.error('Survey data upload error:', error)
+      setDeleteProgress('')
+      setIsDeletingSurvey(false)
       showNotification(`Error uploading survey data: ${error.message}`, 'error')
-      setSurveyFileName(null)
+      await saveSurveyFileName(null)
     } finally {
       setIsUploadingSurvey(false)
       if (surveyFileInputRef.current) {
@@ -841,7 +1031,7 @@ export default function DualFileUpload() {
             {isUploadingVisual ? (
               <>
                 <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-400 border-t-transparent" />
-                <span>Uploading...</span>
+                <span>{isDeletingVisual ? 'Removing old data...' : 'Uploading...'}</span>
               </>
             ) : (
               <>
@@ -851,6 +1041,12 @@ export default function DualFileUpload() {
             )}
           </label>
         </div>
+        {deleteProgress && isDeletingVisual && (
+          <div className="mt-2 flex items-center gap-2 text-xs text-amber-600">
+            <div className="animate-spin rounded-full h-3 w-3 border-2 border-amber-400 border-t-transparent" />
+            <span>{deleteProgress}</span>
+          </div>
+        )}
         {visualFileName && (
           <div className="mt-2 flex items-center gap-2 text-xs text-gray-600">
             <CheckCircle2 size={14} className="text-green-600" />
@@ -888,7 +1084,7 @@ export default function DualFileUpload() {
             {isUploadingSurvey ? (
               <>
                 <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-400 border-t-transparent" />
-                <span>Uploading...</span>
+                <span>{isDeletingSurvey ? 'Removing old data...' : 'Uploading...'}</span>
               </>
             ) : (
               <>
@@ -898,6 +1094,12 @@ export default function DualFileUpload() {
             )}
           </label>
         </div>
+        {deleteProgress && isDeletingSurvey && (
+          <div className="mt-2 flex items-center gap-2 text-xs text-amber-600">
+            <div className="animate-spin rounded-full h-3 w-3 border-2 border-amber-400 border-t-transparent" />
+            <span>{deleteProgress}</span>
+          </div>
+        )}
         {surveyFileName && (
           <div className="mt-2 flex items-center gap-2 text-xs text-gray-600">
             <CheckCircle2 size={14} className="text-green-600" />

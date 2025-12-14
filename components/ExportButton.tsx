@@ -18,9 +18,9 @@ export default function ExportButton() {
       const titles: Record<string, string> = {
         '/': 'Visual Breakdown',
         '/analytics': 'Workroom Data',
-        '/labor': 'Sales & Vendor Debit',
         '/store': 'Store Overview',
         '/workroom-summary': 'Workroom Summary',
+        '/workroom-report': 'Workroom Report',
         '/survey-misc': 'Survey Misc',
       }
     return titles[path || pathname] || 'Dashboard Report'
@@ -30,9 +30,9 @@ export default function ExportButton() {
     { path: '/', title: 'Visual Breakdown' },
     { path: '/analytics', title: 'Workroom Data' },
     { path: '/sales', title: 'Sales by Workroom' },
-    { path: '/labor', title: 'Sales & Vendor Debit' },
     { path: '/store', title: 'Store Overview' },
     { path: '/workroom-summary', title: 'Workroom Summary' },
+    { path: '/workroom-report', title: 'Workroom Report' },
   ]
 
   const captureAllPagesInOneView = async (): Promise<HTMLCanvasElement | null> => {

@@ -13,6 +13,28 @@ CREATE TABLE IF NOT EXISTS users (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Authorized users / allowlist
+CREATE TABLE IF NOT EXISTS authorized_users (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  email TEXT UNIQUE NOT NULL,
+  name TEXT,
+  role TEXT DEFAULT 'user',
+  is_active BOOLEAN DEFAULT TRUE,
+  created_by TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Access requests (pending approvals)
+CREATE TABLE IF NOT EXISTS access_requests (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  email TEXT UNIQUE NOT NULL,
+  name TEXT,
+  source TEXT,
+  requested_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Workroom data table (main dashboard data)
 CREATE TABLE IF NOT EXISTS workroom_data (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -59,6 +81,8 @@ CREATE INDEX IF NOT EXISTS idx_historical_data_week ON historical_data(week);
 CREATE INDEX IF NOT EXISTS idx_historical_data_month ON historical_data(month);
 CREATE INDEX IF NOT EXISTS idx_historical_data_year ON historical_data(year);
 CREATE INDEX IF NOT EXISTS idx_historical_data_timestamp ON historical_data(timestamp);
+CREATE INDEX IF NOT EXISTS idx_authorized_users_email ON authorized_users(email);
+CREATE INDEX IF NOT EXISTS idx_access_requests_email ON access_requests(email);
 
 -- Row Level Security (RLS) - Disabled since we use Microsoft Auth
 -- Security is handled at the API layer (filtering by user_id/email)
@@ -67,6 +91,8 @@ CREATE INDEX IF NOT EXISTS idx_historical_data_timestamp ON historical_data(time
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE workroom_data ENABLE ROW LEVEL SECURITY;
 ALTER TABLE historical_data ENABLE ROW LEVEL SECURITY;
+ALTER TABLE authorized_users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE access_requests ENABLE ROW LEVEL SECURITY;
 
 -- Drop existing policies if they exist (safe to run multiple times)
 DROP POLICY IF EXISTS "Users can view own data" ON workroom_data;
@@ -85,6 +111,12 @@ CREATE POLICY "Service role full access workroom_data" ON workroom_data
   FOR ALL USING (true) WITH CHECK (true);
 
 CREATE POLICY "Service role full access historical_data" ON historical_data
+  FOR ALL USING (true) WITH CHECK (true);
+
+CREATE POLICY "Service role full access authorized_users" ON authorized_users
+  FOR ALL USING (true) WITH CHECK (true);
+
+CREATE POLICY "Service role full access access_requests" ON access_requests
   FOR ALL USING (true) WITH CHECK (true);
 
 -- Note: Security is enforced at the API layer where we filter by user_id (email)

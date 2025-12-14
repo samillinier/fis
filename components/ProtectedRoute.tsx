@@ -30,17 +30,17 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     if (!isAdmin) {
       const adminOnlyPaths = [
         '/analytics',
-        '/labor',
         '/performance',
         '/store',
         '/workroom-summary',
-        '/survey-misc',
+        '/workroom-report',
         '/profile',
       ]
       if (adminOnlyPaths.includes(pathname)) {
         router.push('/')
       }
     }
+    // Settings page is accessible to all authenticated users
   }, [isAuthenticated, isAdmin, isLoading, router, pathname])
 
   // Don't render children if not authenticated (except on auth pages)

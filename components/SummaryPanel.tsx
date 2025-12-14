@@ -58,9 +58,6 @@ export default function SummaryPanel() {
 
   return (
     <section style={{ marginTop: '2rem' }}>
-      <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.75rem' }}>
-        Overall Workroom Summary
-      </h2>
       <div
         style={{
           display: 'grid',

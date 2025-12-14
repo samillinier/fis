@@ -860,16 +860,17 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
       
       // Details Cycle Time Score (5% weight)
       // Lower cycle time is better - score based on days
+      // Caution triggers at > 5 days
       let detailsCycleTimeScore = 50 // Default neutral
       if (avgDetailsCycleTime != null && avgDetailsCycleTime > 0) {
-        if (avgDetailsCycleTime <= 10) {
+        if (avgDetailsCycleTime <= 5) {
           detailsCycleTimeScore = 100 // Excellent
-        } else if (avgDetailsCycleTime <= 20) {
-          detailsCycleTimeScore = 80 // Good
-        } else if (avgDetailsCycleTime <= 30) {
-          detailsCycleTimeScore = 60 // Moderate
-        } else if (avgDetailsCycleTime <= 40) {
+        } else if (avgDetailsCycleTime <= 10) {
+          detailsCycleTimeScore = 60 // Moderate - triggers notification (< 70)
+        } else if (avgDetailsCycleTime <= 15) {
           detailsCycleTimeScore = 40 // Poor
+        } else if (avgDetailsCycleTime <= 20) {
+          detailsCycleTimeScore = 30 // Critical
         } else {
           detailsCycleTimeScore = 20 // Critical
         }
@@ -957,7 +958,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
       const metricScores = {
         ltr: { score: ltrScore, value: avgLTRFromSurvey != null ? avgLTRFromSurvey : (ltrPercent > 0 ? ltrPercent : null), label: 'LTR' },
         detailsCycleTime: { score: detailsCycleTimeScore, value: avgDetailsCycleTime, label: 'Details Cycle Time' },
-        cycleJobs: { score: cycleJobsScore, value: avgJobsWorkCycleTime, label: 'Cycle Jobs' },
+        cycleJobs: { score: cycleJobsScore, value: avgJobsWorkCycleTime, label: 'Job Cycle Time' },
         workOrderCycleTime: { score: workOrderCycleTimeScore, value: w.cycleTime, label: 'Work Order Cycle Time' },
         rescheduleRate: { score: rescheduleRateScore, value: avgRescheduleRate, label: 'Reschedule Rate' },
         vendorDebits: { score: vendorDebitsScore, value: vendorDebitRatio * 100, label: 'Vendor Debits' }
@@ -978,20 +979,25 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
       
       // Operational Risks
       const operationalRisks: string[] = []
-      if (w.stores.size < 3) {
-        operationalRisks.push('Limited store coverage')
+      // Check if LTR score is low (< 70) and add "Underperforming LTR" to operational risks
+      // This should show for all workrooms with low LTR scores (either from survey data or calculated)
+      if (ltrScore < 70 || (avgLTRFromSurvey != null && avgLTRFromSurvey < 7.0) || (ltrPercent > 0 && ltrPercent > 35)) {
+        operationalRisks.push('Underperforming LTR')
       }
-      if (w.records < 5) {
-        operationalRisks.push('Low record volume')
+      // Check if any cycle time score is low (< 70) and add "High Cycle Time" to operational risks (only once)
+      if (workOrderCycleTimeScore < 70 || cycleJobsScore < 70 || detailsCycleTimeScore < 70) {
+        operationalRisks.push('High Cycle Time- Work Order, Jobs, and Details')
+      }
+      // Check if Reschedule Rate score is low (< 70) and add "Reschedule Rate" to operational risks
+      if (rescheduleRateScore < 70) {
+        operationalRisks.push('Reschedule Rate')
+      }
+      // Check if Vendor Debits score is low (< 70) and add "Vendor Debits" to operational risks
+      if (vendorDebitsScore < 70) {
+        operationalRisks.push('Vendor Debits')
       }
       if (avgCostPerRecord > 10000) {
         operationalRisks.push('High cost per record')
-      }
-      if (w.cycleTime != null && w.cycleTime > 30) {
-        operationalRisks.push(`Extended cycle time (${w.cycleTime.toFixed(0)} days)`)
-      }
-      if (avgLaborPOPerStore > 5000) {
-        operationalRisks.push('High Total Sales per store')
       }
       
       // Additional risk factors for context
@@ -1011,17 +1017,35 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
       if (vendorDebitRatio > 0.3) {
         fixNowBullets.push(`Reduce vendor debit exposure (currently ${(vendorDebitRatio * 100).toFixed(1)}%)`)
       }
+      // If LTR score is low (< 70), add detailed action items in a single box
+      if (ltrScore < 70) {
+        fixNowBullets.push('1. All communication with customers or IST runs through FIS workroom staff.\n2. Schedule to win by leveraging installer performance, not convenience.\n3. Maintain transparent communication with customers and document everything: SOW confirmation, materials, availability.\n4. Use a pre-installation checklist every time you schedule.\n5. Ensure installers understand their performance metrics and any corrective actions in play.')
+      }
+      // If Work Order Cycle Time score is low (< 70), add detailed action items in a single box
+      if (workOrderCycleTimeScore < 70) {
+        fixNowBullets.push('1. Create WO\'s internally unless materials are still pending.\n2. Schedule WO\'s before installs, prioritizing the original installer. If they can\'t meet the timeline or the customer wants a different crew, move it to the next available installer and charge it back.\n3. Assign installs based on performance so you\'re not creating tomorrow\'s WO\'s today.')
+      }
+      // If Job Cycle Time score is low (< 70), add detailed action items in a single box
+      if (cycleJobsScore < 70) {
+        fixNowBullets.push('1. Review the week\'s scheduled capacity, including Saturday, and know exactly where the gaps are.\n2. Hunt for WFP and RTS Follow-Up jobs that can now move forward based on installer availability.\n3. Call IST and confirm materials are staged for every RTS install so nothing blows up on game day.')
+      }
+      // If Details Cycle Time score is low (< 70), add action item
+      if (detailsCycleTimeScore < 70) {
+        fixNowBullets.push('Contact ROD to review with Measuring Services')
+      }
+      // If Reschedule Rate score is low (< 70), add detailed action items in a single box
+      if (rescheduleRateScore < 70) {
+        fixNowBullets.push('1. Confirm installer availability before you promise a date.\n2. Keep the original install date by pivoting to an alternate installer when needed.\n3. Avoid weather delays by having the installer cut carpet at a warehouse or store unless the customer can offer dry cutting space.')
+      }
+      // If Vendor Debits score is low (< 70), add detailed action items in a single box
+      if (vendorDebitsScore < 70) {
+        fixNowBullets.push('1. Schedule installs on the installers with the strongest LTR performance.\n2. Make sure installers verify the full SOW and confirm the job is within industry standards before starting.')
+      }
       if (ltrPercent > 35 && ltrPercent > 0) {
         fixNowBullets.push(`Improve LTR% performance (currently ${ltrPercent.toFixed(1)}%)`)
       }
-      if (w.stores.size < 3) {
-        fixNowBullets.push(`Expand store coverage (currently ${w.stores.size} stores)`)
-      }
       if (avgCostPerRecord > 10000) {
         fixNowBullets.push(`Optimize cost per record (currently ${formatCurrency(avgCostPerRecord)})`)
-      }
-      if (w.cycleTime != null && w.cycleTime > 30) {
-        fixNowBullets.push(`Reduce cycle time (currently ${w.cycleTime.toFixed(0)} days)`)
       }
       if (weightedPerformanceScore < 50) {
         fixNowBullets.push(`Improve overall performance score (currently ${weightedPerformanceScore.toFixed(1)})`)
@@ -1267,60 +1291,83 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                     zIndex: 1,
                     backdropFilter: 'blur(4px)'
                   }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem', alignItems: 'center' }}>
                       <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>WPI Score:</span>
-                      <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>{workroom.weightedPerformanceScore.toFixed(1)}</span>
+                      <span style={{ fontWeight: 700, fontSize: '1.5rem' }}>
+                        <CountUpNumber 
+                          value={workroom.weightedPerformanceScore} 
+                          duration={1500} 
+                          decimals={1} 
+                        />
+                      </span>
                     </div>
                     {/* Core Metrics Display */}
                     <div style={{ marginTop: '0.4rem', paddingTop: '0.4rem', borderTop: `1px solid ${textColor}20` }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
-                        <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>LTR:</span>
-                        <span style={{ fontWeight: 600, fontSize: '0.75rem' }}>
-                          {workroom.metricScores.ltr.value != null 
-                            ? `${workroom.metricScores.ltr.value.toFixed(1)}${workroom.avgLTRFromSurvey != null ? '' : '%'}`
-                            : 'N/A'}
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
-                        <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Details Cycle:</span>
-                        <span style={{ fontWeight: 600, fontSize: '0.75rem' }}>
-                          {workroom.metricScores.detailsCycleTime.value != null 
-                            ? `${workroom.metricScores.detailsCycleTime.value.toFixed(1)}d`
-                            : 'N/A'}
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
-                        <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Cycle Jobs:</span>
-                        <span style={{ fontWeight: 600, fontSize: '0.75rem' }}>
-                          {workroom.metricScores.cycleJobs.value != null 
-                            ? `${workroom.metricScores.cycleJobs.value.toFixed(1)}d`
-                            : 'N/A'}
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
-                        <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>WO Cycle:</span>
-                        <span style={{ fontWeight: 600, fontSize: '0.75rem' }}>
-                          {workroom.metricScores.workOrderCycleTime.value != null 
-                            ? `${workroom.metricScores.workOrderCycleTime.value.toFixed(1)}d`
-                            : 'N/A'}
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
-                        <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Reschedule:</span>
-                        <span style={{ fontWeight: 600, fontSize: '0.75rem' }}>
-                          {workroom.metricScores.rescheduleRate.value != null 
-                            ? `${workroom.metricScores.rescheduleRate.value.toFixed(1)}%`
-                            : 'N/A'}
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
-                        <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Vendor Debits:</span>
-                        <span style={{ fontWeight: 600, fontSize: '0.75rem' }}>
-                          {workroom.metricScores.vendorDebits.value != null 
-                            ? `${workroom.metricScores.vendorDebits.value.toFixed(1)}%`
-                            : 'N/A'}
-                        </span>
-                      </div>
+                      {/* Check if card is yellow (score 70-84) for emoji styling */}
+                      {(() => {
+                        const isYellowCard = workroom.weightedPerformanceScore >= 70 && workroom.weightedPerformanceScore < 85
+                        const emojiStyle = isYellowCard 
+                          ? { fontSize: '0.65rem', color: '#f59e0b', textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000' }
+                          : { fontSize: '0.7rem', color: '#f59e0b' }
+                        return (
+                          <>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
+                              <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>LTR:</span>
+                              <span style={{ fontWeight: 600, fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                                {workroom.metricScores.ltr.score < 70 && <span style={emojiStyle}>⚠️</span>}
+                                {workroom.metricScores.ltr.value != null 
+                                  ? `${workroom.metricScores.ltr.value.toFixed(1)}${workroom.avgLTRFromSurvey != null ? '' : '%'}`
+                                  : 'N/A'}
+                              </span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
+                              <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Details Cycle Time:</span>
+                              <span style={{ fontWeight: 600, fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                                {workroom.metricScores.detailsCycleTime.score < 70 && <span style={emojiStyle}>⚠️</span>}
+                                {workroom.metricScores.detailsCycleTime.value != null 
+                                  ? `${workroom.metricScores.detailsCycleTime.value.toFixed(1)}d`
+                                  : 'N/A'}
+                              </span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
+                              <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Job Cycle Time:</span>
+                              <span style={{ fontWeight: 600, fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                                {workroom.metricScores.cycleJobs.score < 70 && <span style={emojiStyle}>⚠️</span>}
+                                {workroom.metricScores.cycleJobs.value != null 
+                                  ? `${workroom.metricScores.cycleJobs.value.toFixed(1)}d`
+                                  : 'N/A'}
+                              </span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
+                              <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Work Order Cycle Time:</span>
+                              <span style={{ fontWeight: 600, fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                                {workroom.metricScores.workOrderCycleTime.score < 70 && <span style={emojiStyle}>⚠️</span>}
+                                {workroom.metricScores.workOrderCycleTime.value != null 
+                                  ? `${workroom.metricScores.workOrderCycleTime.value.toFixed(1)}d`
+                                  : 'N/A'}
+                              </span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
+                              <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Reschedule Rate:</span>
+                              <span style={{ fontWeight: 600, fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                                {workroom.metricScores.rescheduleRate.score < 70 && <span style={emojiStyle}>⚠️</span>}
+                                {workroom.metricScores.rescheduleRate.value != null 
+                                  ? `${workroom.metricScores.rescheduleRate.value.toFixed(1)}%`
+                                  : 'N/A'}
+                              </span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
+                              <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Vendor Debits:</span>
+                              <span style={{ fontWeight: 600, fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                                {workroom.metricScores.vendorDebits.score < 70 && <span style={emojiStyle}>⚠️</span>}
+                                {workroom.metricScores.vendorDebits.value != null 
+                                  ? `${workroom.metricScores.vendorDebits.value.toFixed(1)}%`
+                                  : 'N/A'}
+                              </span>
+                            </div>
+                          </>
+                        )
+                      })()}
                     </div>
                   </div>
                 </div>
@@ -1810,7 +1857,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
         <div className="compact-section-header">
           <h3 className="compact-section-title">Comprehensive Workroom Analysis Dashboard</h3>
           <p className="text-xs text-gray-500 mt-1">
-            LTR Performance • Work Order Cycle Time • Job Cycle Time • Total Sales Volume • Vendor Debit Exposure • Reschedule Rate • Avg Ticket Sale • Risk • Weighted Performance Score (Click any row for detailed analysis)
+            LTR Performance • Work Order Cycle Time • Job Cycle Time • Total Sales Volume • Avg Ticket Sale • Vendor Debit Exposure • Reschedule Rate • Risk • Weighted Performance Score (Click any row for detailed analysis)
           </p>
         </div>
 
@@ -1824,9 +1871,9 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Work Order Cycle Time</th>
                   <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Job Cycle Time</th>
                   <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Total Sales Volume</th>
+                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Avg Ticket Sale</th>
                   <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Vendor Debit Exposure</th>
                   <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Reschedule Rate</th>
-                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Avg Ticket Sale</th>
                   <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Risk</th>
                   <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Weighted Score</th>
                 </tr>
@@ -1937,6 +1984,15 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                           </span>
                         </div>
                       </td>
+                      <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>
+                        {workroom.avgTicketSale != null && workroom.avgTicketSale > 0 ? (
+                          <span style={{ fontWeight: 600, fontSize: '0.7rem' }}>
+                            ${workroom.avgTicketSale.toFixed(0)}
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: '0.65rem', color: '#9ca3af' }}>N/A</span>
+                        )}
+                      </td>
                       <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                           <span style={{ fontSize: '0.7rem', color: workroom.vendorDebitExposure.value < 0 ? '#ef4444' : (workroom.vendorDebitExposure.value > 0 ? '#ef4444' : '#111827') }}>{formatCurrency(workroom.vendorDebitExposure.value)}</span>
@@ -1956,15 +2012,6 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                       <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>
                         {workroom.rescheduleRate != null && workroom.rescheduleRate !== undefined ? (
                           <span style={{ fontWeight: 600, fontSize: '0.7rem' }}>{workroom.rescheduleRate.toFixed(1)}%</span>
-                        ) : (
-                          <span style={{ fontSize: '0.65rem', color: '#9ca3af' }}>N/A</span>
-                        )}
-                      </td>
-                      <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>
-                        {workroom.avgTicketSale != null && workroom.avgTicketSale > 0 ? (
-                          <span style={{ fontWeight: 600, fontSize: '0.7rem' }}>
-                            ${workroom.avgTicketSale.toFixed(0)}
-                          </span>
                         ) : (
                           <span style={{ fontSize: '0.65rem', color: '#9ca3af' }}>N/A</span>
                         )}
@@ -2464,23 +2511,6 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   {selectedStore.storeName} (Store {selectedStore.store})
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setIsStoreDetailsDialogOpen(false)}
-                aria-label="Close store details"
-                style={{
-                  border: '1px solid #e5e7eb',
-                  background: 'white',
-                  borderRadius: '9999px',
-                  padding: '0.35rem 0.75rem',
-                  fontSize: '0.875rem',
-                  color: '#0f172a',
-                  cursor: 'pointer',
-                  boxShadow: '0 6px 18px rgba(15, 23, 42, 0.08)',
-                }}
-              >
-                Close
-              </button>
             </div>
 
             <div style={{ padding: '1.25rem 1.25rem 1.5rem', display: 'grid', gap: '1rem' }}>
@@ -3090,32 +3120,41 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
               </h3>
               {selectedRiskWorkroom.fixNowBullets && selectedRiskWorkroom.fixNowBullets.length > 0 ? (
                 <div style={{ 
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                  display: 'flex',
+                  flexDirection: 'column',
                   gap: '0.75rem',
                 }}>
-                  {selectedRiskWorkroom.fixNowBullets.map((bullet: string, index: number) => (
-                    <div
-                      key={index}
-                      style={{
-                        padding: '0.9rem 1rem',
-                        backgroundColor: '#f8fafc',
-                        borderRadius: '12px',
-                        border: '1px solid #e2e8f0',
-                        boxShadow: '0 10px 22px rgba(15, 23, 42, 0.08)',
-                        fontSize: '0.75rem',
-                        lineHeight: '1.5',
-                        fontWeight: 500,
-                        color: '#111827',
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        gap: '0.5rem'
-                      }}
-                    >
-                      <span style={{ fontSize: '1rem' }}>🔧</span>
-                      <span>{bullet}</span>
-                    </div>
-                  ))}
+                  {selectedRiskWorkroom.fixNowBullets.map((bullet: string, index: number) => {
+                    // Replace numbering (1., 2., 3., etc.) with dashes (-) at the beginning of each line
+                    const replaceNumberingWithDash = (text: string): string => {
+                      return text.split('\n').map(line => {
+                        // Replace patterns like "1. ", "2. ", "10. ", etc. with "- " at the start of each line
+                        return line.replace(/^\d+\.\s*/, '- ').trim()
+                      }).join('\n')
+                    }
+                    return (
+                      <div
+                        key={index}
+                        style={{
+                          padding: '0.9rem 1rem',
+                          backgroundColor: '#f8fafc',
+                          borderRadius: '12px',
+                          border: '1px solid #e2e8f0',
+                          boxShadow: '0 10px 22px rgba(15, 23, 42, 0.08)',
+                          fontSize: '0.75rem',
+                          lineHeight: '1.5',
+                          fontWeight: 500,
+                          color: '#111827',
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: '0.5rem'
+                        }}
+                      >
+                        <span style={{ fontSize: '1rem' }}>🔧</span>
+                        <span style={{ whiteSpace: 'pre-line' }}>{replaceNumberingWithDash(bullet)}</span>
+                      </div>
+                    )
+                  })}
                 </div>
               ) : (
                 <div style={{ 

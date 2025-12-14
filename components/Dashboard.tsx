@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { useData } from '@/context/DataContext'
 import VisualBreakdown from '@/components/VisualBreakdown'
 import SalesByWorkroom from '@/components/SalesByWorkroom'
-import LaborVendorReport from '@/components/LaborVendorReport'
 import StoreOverview from '@/components/StoreOverview'
 import FileUpload from '@/components/FileUpload'
 import SummaryPanel from '@/components/SummaryPanel'
@@ -59,14 +58,6 @@ export default function Dashboard() {
             >
               Sales by Workroom
             </button>
-            <button
-              onClick={() => setActiveView('labor')}
-              className={`sidebar-nav-button ${
-                activeView === 'labor' ? 'sidebar-nav-button--active' : ''
-              }`}
-            >
-              Sales &amp; Vendor Debit
-            </button>
                 <button
                   onClick={() => setActiveView('store')}
                   className={`sidebar-nav-button ${
@@ -111,19 +102,12 @@ export default function Dashboard() {
               <SalesByWorkroom selectedWorkroom={selectedWorkroom} />
             </div>
           )}
-          {activeView === 'labor' && (
-            <div className="mt-8 pt-8 border-t border-gray-200">
-              <LaborVendorReport selectedWorkroom={selectedWorkroom} />
-            </div>
-          )}
           {activeView === 'store' && (
             <div className="mt-8 pt-8 border-t border-gray-200">
               <StoreOverview />
             </div>
           )}
 
-          {/* Global summary below the main view */}
-          {activeView === 'breakdown' && <SummaryPanel />}
         </main>
       </div>
     </div>

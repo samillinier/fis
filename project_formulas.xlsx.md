@@ -48,3 +48,6 @@ This file is a placeholder indicating that `project_formulas.xlsx` should contai
 6) Activity Log
    - Records: Updated dashboard data; Cleared dashboard data; Saved historical snapshot; Deleted historical entry; Cleared all historical data (with user email/name, timestamp)
 
+
+
+

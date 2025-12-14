@@ -1,10 +1,9 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Layout from '@/components/Layout'
 import VisualBreakdown from '@/components/VisualBreakdown'
-import SummaryPanel from '@/components/SummaryPanel'
 import { useFilters } from '@/components/FilterContext'
 import { useAuth } from '@/components/AuthContext'
 
@@ -25,10 +24,7 @@ export default function Home() {
 
   return (
     <Layout>
-      <>
-        <VisualBreakdown selectedWorkroom={selectedWorkroom} />
-        <SummaryPanel />
-      </>
+      <VisualBreakdown selectedWorkroom={selectedWorkroom} />
     </Layout>
   )
 }

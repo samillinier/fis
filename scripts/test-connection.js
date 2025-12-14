@@ -5,20 +5,25 @@ const fs = require('fs')
 const path = require('path')
 const { createClient } = require('@supabase/supabase-js')
 
-// Read .env.local manually
+// Prefer process.env (e.g., when supplied inline); fall back to .env.local
 function loadEnv() {
-  const envPath = path.join(__dirname, '..', '.env.local')
-  if (!fs.existsSync(envPath)) {
-    return {}
-  }
-  const content = fs.readFileSync(envPath, 'utf8')
-  const env = {}
-  content.split('\n').forEach(line => {
-    const match = line.match(/^([^=]+)=(.*)$/)
-    if (match) {
-      env[match[1].trim()] = match[2].trim()
+  const env = { ...process.env }
+  if (!env.NEXT_PUBLIC_SUPABASE_URL || !env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    const envPath = path.join(__dirname, '..', '.env.local')
+    if (fs.existsSync(envPath)) {
+      const content = fs.readFileSync(envPath, 'utf8')
+      content.split('\n').forEach((line) => {
+        const match = line.match(/^([^=]+)=(.*)$/)
+        if (match) {
+          const key = match[1].trim()
+          const value = match[2].trim()
+          if (!env[key]) {
+            env[key] = value
+          }
+        }
+      })
     }
-  })
+  }
   return env
 }
 

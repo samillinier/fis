@@ -27,6 +27,10 @@ export interface WorkroomData {
   craftScore?: number
   profScore?: number
   professionalScore?: number
+  columnM?: number // Column M (index 12) - 20% weight
+  columnN?: number // Column N (index 13) - 10% weight
+  columnP?: number // Column P (index 15) - 2% weight
+  columnQ?: number // Column Q (index 16) - 3% weight
   completed?: number
   // Details Cycle Time breakdown (Excel columns P–T)
   detailsRtsSched?: number // Column P (index 15) - RTS - Sch (Details)
@@ -75,7 +79,7 @@ export interface DashboardData {
 
 interface DataContextType {
   data: DashboardData
-  setData: (data: DashboardData) => void
+  setData: (data: DashboardData) => Promise<void>
 }
 
 export const DataContext = createContext<DataContextType | undefined>(undefined)
