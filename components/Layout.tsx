@@ -97,7 +97,7 @@ export default function Layout({ children }: LayoutProps) {
                       className="logout-button-hover profile-button"
                     >
                       <UserCog size={18} />
-                      <span>{isAdmin ? 'Profile' : 'Settings'}</span>
+                      <span>{isAdmin === true ? 'Profile' : 'Settings'}</span>
                     </button>
                     <button
                       type="button"
@@ -124,7 +124,7 @@ export default function Layout({ children }: LayoutProps) {
         />
 
         <main className="dashboard-main">
-          {isAdmin && accessRequests.length > 0 && (
+          {isAdmin === true && accessRequests.length > 0 && (
             <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-amber-900 shadow-sm">
               <div className="font-semibold">New access requests</div>
               <div className="text-sm">

@@ -27,13 +27,13 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     }
 
     // Restrict certain routes for non-admin users
-    if (!isAdmin) {
+    // Note: isAdmin might be undefined during initial load, so we check it exists first
+    if (isAdmin === false) {
       const adminOnlyPaths = [
         '/analytics',
         '/performance',
         '/store',
         '/workroom-summary',
-        '/workroom-report',
         '/profile',
       ]
       if (adminOnlyPaths.includes(pathname)) {
