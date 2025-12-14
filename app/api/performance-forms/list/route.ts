@@ -16,10 +16,38 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid user' }, { status: 401 })
     }
 
+    console.log(`[performance-forms/list] Fetching submissions for user: ${userEmail}`)
+
     // Ensure user exists
     const userId = await ensureUserExists(userEmail)
     if (!userId) {
+      console.error(`[performance-forms/list] User not found: ${userEmail}`)
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+
+    console.log(`[performance-forms/list] User ID: ${userId}`)
+
+    // First, check if table exists by trying a simple query
+    const { data: tableCheck, error: tableError } = await supabase
+      .from('performance_forms')
+      .select('id')
+      .limit(1)
+
+    if (tableError) {
+      console.error('[performance-forms/list] Table access error:', tableError)
+      // Check if it's a "does not exist" error
+      if (tableError.message?.includes('does not exist') || tableError.code === '42P01') {
+        return NextResponse.json({ 
+          error: 'Database table not found. Please run database/setup-performance-forms-complete.sql in Supabase SQL Editor.',
+          submissions: [],
+          count: 0
+        }, { status: 500 })
+      }
+      return NextResponse.json({ 
+        error: `Database error: ${tableError.message}`,
+        submissions: [],
+        count: 0
+      }, { status: 500 })
     }
 
     // Fetch all form submissions for this user
@@ -30,17 +58,27 @@ export async function GET(request: NextRequest) {
       .order('submitted_at', { ascending: false })
 
     if (error) {
-      console.error('Error fetching form submissions:', error)
-      return NextResponse.json({ error: 'Failed to fetch submissions' }, { status: 500 })
+      console.error('[performance-forms/list] Error fetching form submissions:', error)
+      return NextResponse.json({ 
+        error: `Failed to fetch submissions: ${error.message}`,
+        submissions: [],
+        count: 0
+      }, { status: 500 })
     }
+
+    console.log(`[performance-forms/list] Found ${data?.length || 0} submissions for user ${userId}`)
 
     return NextResponse.json({ 
       submissions: data || [],
       count: data?.length || 0
     })
-  } catch (error) {
-    console.error('Error in GET /api/performance-forms/list:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  } catch (error: any) {
+    console.error('[performance-forms/list] Unexpected error:', error)
+    return NextResponse.json({ 
+      error: `Internal server error: ${error?.message || 'Unknown error'}`,
+      submissions: [],
+      count: 0
+    }, { status: 500 })
   }
 }
 

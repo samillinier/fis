@@ -67,13 +67,16 @@ export default function WorkroomReport() {
       if (response.ok) {
         const result = await response.json()
         setSubmissions(result.submissions || [])
+        console.log(`[WorkroomReport] Loaded ${result.submissions?.length || 0} submissions`)
       } else {
         const errorData = await response.json().catch(() => ({ error: 'Failed to fetch submissions' }))
-        setError(errorData.error || 'Failed to fetch submissions')
+        const errorMessage = errorData.error || 'Failed to fetch submissions'
+        console.error('[WorkroomReport] Error fetching submissions:', errorMessage)
+        setError(errorMessage)
       }
-    } catch (err) {
-      console.error('Error fetching submissions:', err)
-      setError('Failed to fetch submissions')
+    } catch (err: any) {
+      console.error('[WorkroomReport] Error fetching submissions:', err)
+      setError(`Failed to fetch submissions: ${err?.message || 'Network error'}`)
     } finally {
       setLoading(false)
     }
