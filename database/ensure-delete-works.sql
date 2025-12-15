@@ -47,3 +47,5 @@ AND schemaname = 'public';
 
 -- If counts are 0, delete is working! ✅
 
+
+

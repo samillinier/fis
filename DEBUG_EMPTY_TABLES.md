@@ -79,3 +79,5 @@ ALTER TABLE survey_data DISABLE ROW LEVEL SECURITY;
 
 Then upload data again. If it works, we know RLS was the issue and can fix the policies.
 
+
+

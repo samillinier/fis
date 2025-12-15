@@ -46,6 +46,7 @@ interface WorkroomSurveyRow {
   company?: string
   installerName?: string
   poNumber?: string | number
+  customerName?: string
 }
 
 export default function SurveyMisc() {
@@ -179,6 +180,7 @@ export default function SurveyMisc() {
       const storeName = getStoreName(w.store as any)
       const company = w.company || (w as any).company || ''
       const installerName = w.installerName || (w as any).installerName || ''
+      const customerName = w.customerName || (w as any).customerName || ''
       const poNumber = w.poNumber || (w as any).poNumber || ''
       // Group by installer name and company instead of store/workroom/category
       const key = `${installerName}|||${company}`
@@ -196,6 +198,7 @@ export default function SurveyMisc() {
           company: company.trim() || '',
           installerName: installerName.trim() || '',
           poNumber: poNumber ? String(poNumber).trim() : '',
+          customerName: customerName.trim() || '',
           ltrSum: 0,
           craftSum: 0,
           profSum: 0,
@@ -242,6 +245,7 @@ export default function SurveyMisc() {
           company: r.company,
           installerName: r.installerName,
           poNumber: r.poNumber,
+          customerName: r.customerName,
         }
       })
       .sort((a, b) => {
@@ -942,6 +946,10 @@ export default function SurveyMisc() {
                   <span style={{ fontWeight: 600, color: '#6b7280' }}>Installer Name:</span>
                   <span style={{ marginLeft: '0.5rem', color: '#111827' }}>{selectedRow.installerName || '—'}</span>
                 </div>
+                <div>
+                  <span style={{ fontWeight: 600, color: '#6b7280' }}>Customer Name:</span>
+                  <span style={{ marginLeft: '0.5rem', color: '#111827' }}>{selectedRow.customerName || '—'}</span>
+                </div>
               </div>
             </div>
 
@@ -1085,6 +1093,14 @@ export default function SurveyMisc() {
                               <div>
                                 <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>Survey Date</div>
                                 <div style={{ fontSize: '0.875rem', fontWeight: 500, color: '#111827' }}>{formatDate(record.surveyDate)}</div>
+                              </div>
+                            )}
+                            {record.customerName && (
+                              <div>
+                                <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>Customer Name</div>
+                                <div style={{ fontSize: '0.875rem', fontWeight: 500, color: '#111827' }}>
+                                  {record.customerName}
+                                </div>
                               </div>
                             )}
                             {record.ltrScore != null && (

@@ -22,3 +22,5 @@ AND column_name = 'cycle_time';
 
 -- Should show: data_type = 'numeric', numeric_precision = 10, numeric_scale = 2
 
+
+

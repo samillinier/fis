@@ -483,6 +483,16 @@ export default function DualFileUpload() {
     })
     const installerNameColumnIdx = installerNameHeaderIdx >= 0 ? installerNameHeaderIdx : (headers.length > 20 ? 20 : -1) // Fallback to index 20 if header not found
 
+    // Use column V (index 21) for Customer Name in survey files
+    // Column V is the 22nd column (A=0, B=1, ..., V=21)
+    const customerNameHeaderIdx = headers.findIndex((h) => {
+      if (typeof h !== 'string') return false
+      const lowerH = h.toLowerCase().trim()
+      return lowerH.includes('customer name') || lowerH === 'customer' || lowerH.includes('customer')
+    })
+    const customerNameColumnIdx =
+      customerNameHeaderIdx >= 0 ? customerNameHeaderIdx : headers.length > 21 ? 21 : -1
+
     // Use column J (index 9) for PO Number in survey files
     // Column J is the 10th column (A=0, B=1, ..., J=9)
     const poNumberIdx = 9
@@ -682,6 +692,22 @@ export default function DualFileUpload() {
             if (installerNames.length <= 3) {
               console.log(`[Survey Parsing] Installer Name from column U (index ${installerNameColumnIdx}):`, installerNameValue)
             }
+          }
+        }
+      }
+
+      // Read column V (index 21) for Customer Name
+      if (customerNameColumnIdx >= 0 && row.length > customerNameColumnIdx) {
+        const rawCustomerValue = row[customerNameColumnIdx]
+        if (rawCustomerValue != null && rawCustomerValue !== '' && rawCustomerValue !== undefined) {
+          const customerNameValue = String(rawCustomerValue).trim()
+          if (
+            customerNameValue &&
+            customerNameValue !== 'undefined' &&
+            customerNameValue !== 'null' &&
+            customerNameValue.length > 0
+          ) {
+            surveyRecord.customerName = customerNameValue
           }
         }
       }

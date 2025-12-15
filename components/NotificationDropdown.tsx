@@ -2,11 +2,11 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Bell, X } from 'lucide-react'
+import { Bell, X, Trash2 } from 'lucide-react'
 import { useWorkroomNotifications } from './WorkroomNotificationContext'
 
 export default function NotificationDropdown() {
-  const { notifications, unreadCount, markAsRead } = useWorkroomNotifications()
+  const { notifications, unreadCount, markAsRead, deleteNotification } = useWorkroomNotifications()
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
@@ -54,7 +54,8 @@ export default function NotificationDropdown() {
   }
 
   const isLTRNotification = (message: string): boolean => {
-    return message.toLowerCase().includes('low ltr') || message.toLowerCase().includes('ltr performance')
+    const messageLower = message.toLowerCase()
+    return messageLower.includes('ltr') && messageLower.includes('⚠️')
   }
 
   const handleFixNowLTR = (e?: React.MouseEvent, notification?: any) => {
@@ -75,6 +76,10 @@ export default function NotificationDropdown() {
     return (messageLower.includes('job cycle time') || messageLower.includes('details cycle time')) && !messageLower.includes('work order cycle time')
   }
 
+  const isWorkOrderCycleTimeNotification = (message: string): boolean => {
+    return message.toLowerCase().includes('work order cycle time')
+  }
+
   const handleFixNowCycleTime = (e?: React.MouseEvent, notification?: any) => {
     if (e) {
       e.stopPropagation() // Prevent notification click if called from button
@@ -89,6 +94,18 @@ export default function NotificationDropdown() {
         // Details Cycle Time or other cycle time - route to work cycle time form
         router.push(`/work-cycle-time-form?workroom=${encodeURIComponent(workroom)}`)
       }
+      setIsOpen(false)
+    }
+  }
+
+  const handleFixNowWorkOrderCycleTime = (e?: React.MouseEvent, notification?: any) => {
+    if (e) {
+      e.stopPropagation() // Prevent notification click if called from button
+    }
+    const workroom = notification?.workroom || (e?.currentTarget as any)?.closest('[data-workroom]')?.dataset?.workroom
+    if (workroom) {
+      // Navigate to work order cycle time form with workroom as query parameter
+      router.push(`/work-order-cycle-time-form?workroom=${encodeURIComponent(workroom)}`)
       setIsOpen(false)
     }
   }
@@ -115,6 +132,42 @@ export default function NotificationDropdown() {
       await markAsRead(unreadIds)
     }
   }
+
+  const isOldFormatNotification = (message: string): boolean => {
+    const messageLower = message.toLowerCase()
+    return messageLower.includes('has high') || 
+           messageLower.includes('has low') || 
+           messageLower.includes('score:') ||
+           messageLower.includes('(score:') ||
+           messageLower.includes('rate:') ||
+           messageLower.includes('(rate:') ||
+           messageLower.includes('review ') ||
+           messageLower.includes('review scheduling') ||
+           messageLower.includes('customer communication') ||
+           (!messageLower.includes('⚠️'))
+  }
+
+  const handleDeleteOldFormatNotifications = async () => {
+    const oldFormatNotifications = notifications.filter((n) => isOldFormatNotification(n.message))
+    if (oldFormatNotifications.length > 0) {
+      console.log(`[NotificationDropdown] Deleting ${oldFormatNotifications.length} old format notifications:`, oldFormatNotifications.map(n => n.message))
+      const oldFormatIds = oldFormatNotifications.map((n) => n.id)
+      await deleteNotification(oldFormatIds)
+      setIsOpen(false) // Close dropdown after deletion
+    }
+  }
+
+  // Auto-delete old format notifications when dropdown opens
+  useEffect(() => {
+    if (isOpen) {
+      const oldFormatNotifications = notifications.filter((n) => isOldFormatNotification(n.message))
+      if (oldFormatNotifications.length > 0) {
+        console.log(`[NotificationDropdown] Auto-deleting ${oldFormatNotifications.length} old format notifications`)
+        const oldFormatIds = oldFormatNotifications.map((n) => n.id)
+        deleteNotification(oldFormatIds)
+      }
+    }
+  }, [isOpen, notifications])
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -157,14 +210,25 @@ export default function NotificationDropdown() {
         <div className="absolute right-0 mt-2 w-[32rem] bg-white rounded-lg shadow-lg border border-gray-200 z-50 max-h-[32rem] overflow-hidden flex flex-col">
           <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-white">
             <h3 className="font-semibold text-gray-900">Notifications</h3>
-            {unreadCount > 0 && (
-              <button
-                onClick={handleMarkAllRead}
-                className="text-sm text-green-600 hover:text-green-700"
-              >
-                Mark all read
-              </button>
-            )}
+            <div className="flex items-center gap-3">
+              {notifications.some((n) => isOldFormatNotification(n.message)) && (
+                <button
+                  onClick={handleDeleteOldFormatNotifications}
+                  className="text-sm text-red-600 hover:text-red-700 font-medium"
+                  title="Delete all old format notifications"
+                >
+                  Delete Old Format
+                </button>
+              )}
+              {unreadCount > 0 && (
+                <button
+                  onClick={handleMarkAllRead}
+                  className="text-sm text-green-600 hover:text-green-700"
+                >
+                  Mark all read
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="overflow-y-auto flex-1 bg-white">
@@ -195,6 +259,8 @@ export default function NotificationDropdown() {
                         handleFixNow(undefined, notification)
                       } else if (isLTRNotification(notification.message)) {
                         handleFixNowLTR(undefined, notification)
+                      } else if (isWorkOrderCycleTimeNotification(notification.message)) {
+                        handleFixNowWorkOrderCycleTime(undefined, notification)
                       } else if (isCycleTimeNotification(notification.message)) {
                         handleFixNowCycleTime(undefined, notification)
                       } else if (isVendorDebitNotification(notification.message)) {
@@ -243,6 +309,16 @@ export default function NotificationDropdown() {
                               </button>
                             </span>
                           )}
+                          {isWorkOrderCycleTimeNotification(notification.message) && (
+                            <span className="ml-2">
+                              <button
+                                onClick={(e) => handleFixNowWorkOrderCycleTime(e, notification)}
+                                className="text-green-600 hover:text-green-700 underline text-sm font-medium"
+                              >
+                                Fix Now
+                              </button>
+                            </span>
+                          )}
                           {isCycleTimeNotification(notification.message) && (
                             <span className="ml-2">
                               <button
@@ -268,6 +344,17 @@ export default function NotificationDropdown() {
                           {formatDate(notification.created_at)}
                         </p>
                       </div>
+                      <button
+                        onClick={async (e) => {
+                          e.stopPropagation()
+                          await deleteNotification([notification.id])
+                        }}
+                        className="flex-shrink-0 p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                        aria-label="Delete notification"
+                        title="Delete notification"
+                      >
+                        <Trash2 size={16} />
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -279,4 +366,6 @@ export default function NotificationDropdown() {
     </div>
   )
 }
+
+
 

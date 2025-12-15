@@ -17,7 +17,7 @@ const WORKROOMS = [
   'Tampa',
 ]
 
-const ROLES = ['GM', 'PC', 'Other'] as const
+const ROLES = ['GM', 'PC', 'Corporate', 'Other'] as const
 
 export default function UserSettings() {
   const { user } = useAuth()
@@ -170,4 +170,6 @@ export default function UserSettings() {
     </div>
   )
 }
+
+
 

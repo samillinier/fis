@@ -53,3 +53,5 @@ Page Refresh → LOAD data from Supabase → Display in UI
 - `✅ [GET /api/data] Fetched X workroom records from database`
 - `✅ [DataProvider] Loaded data from Supabase: X workrooms`
 
+
+

@@ -6,11 +6,11 @@ import { useAuth } from './AuthContext'
 import { useNotification } from './NotificationContext'
 import { AlertCircle, ArrowLeft } from 'lucide-react'
 
-interface WorkCycleTimeFormProps {
+interface WorkOrderCycleTimeFormProps {
   workroom: string
 }
 
-export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) {
+export default function WorkOrderCycleTimeForm({ workroom }: WorkOrderCycleTimeFormProps) {
   const { user } = useAuth()
   const { showNotification } = useNotification()
   const router = useRouter()
@@ -43,21 +43,29 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
     otherCategory: '',
     otherDays: '',
     
-    // Root Cause Identification
+    // Root Cause Identification - Scheduling
     delayedCustomerContact: false,
     incorrectInstallerAssignment: false,
     installerAvailabilityIssues: false,
     poorArrivalCoordination: false,
     reschedulesImpactingFlow: false,
+    
+    // Root Cause Identification - Details & Admin Flow
     detailErrors: false,
     incorrectMeasurements: false,
     missingJobInformation: false,
+    
+    // Root Cause Identification - Inventory & Store Issues
     materialNotAvailable: false,
     incorrectMaterialDelivered: false,
     storeProcessingDelays: false,
+    
+    // Root Cause Identification - Installer-Related
     installerCancelNoShow: false,
     installersNotPullingJobsForward: false,
     slowJobCompletionPace: false,
+    
+    // Root Cause Identification - Other
     otherCause: false,
     otherCauseDescription: '',
     
@@ -122,15 +130,15 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
         },
         body: JSON.stringify({
           workroom: formData.workroom,
-          metric_type: 'cycle_time',
+          metric_type: 'work_order_cycle_time',
           form_data: formData,
         }),
       })
 
       if (response.ok) {
         const result = await response.json()
-        console.log('Cycle Time form submitted successfully:', result)
-        showNotification('Work Cycle Time Corrective Report submitted successfully', 'success')
+        console.log('Work Order Cycle Time form submitted successfully:', result)
+        showNotification('Work Order Cycle Time Corrective Report submitted successfully', 'success')
         router.push('/')
       } else {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
@@ -192,9 +200,9 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 space-y-8">
           {/* WORKROOM INFORMATION */}
-          <section className="mb-8">
+          <section>
             <h2 className="text-xl font-semibold text-gray-900 mb-4 border-b border-gray-200 pb-2">
               WORKROOM INFORMATION
             </h2>
@@ -209,7 +217,7 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
                   value={formData.workroom}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#80875d]"
                 />
               </div>
               <div>
@@ -222,7 +230,7 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
                   value={formData.gmName}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#80875d]"
                 />
               </div>
               <div>
@@ -235,7 +243,7 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
                   value={formData.weekEnding}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#80875d]"
                 />
               </div>
               <div>
@@ -251,7 +259,7 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
                     required
                     step="0.1"
                     min="0"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#80875d]"
                   />
                   <span className="text-gray-600">Days</span>
                   <span className="text-sm text-gray-500">(Target: 12 Days)</span>
@@ -261,7 +269,7 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
           </section>
 
           {/* 1. CYCLE TIME BY CATEGORY */}
-          <section className="mb-8">
+          <section>
             <h2 className="text-xl font-semibold text-gray-900 mb-4 border-b border-gray-200 pb-2">
               1. CYCLE TIME BY CATEGORY (Required)
             </h2>
@@ -271,9 +279,7 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
             
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Carpet:
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Carpet:</label>
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
@@ -282,15 +288,13 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
                     onChange={handleInputChange}
                     step="0.1"
                     min="0"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#80875d]"
                   />
                   <span className="text-gray-600 text-sm">days</span>
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Vinyl / Sheet Goods:
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Vinyl / Sheet Goods:</label>
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
@@ -299,15 +303,13 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
                     onChange={handleInputChange}
                     step="0.1"
                     min="0"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#80875d]"
                   />
                   <span className="text-gray-600 text-sm">days</span>
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Laminate:
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Laminate:</label>
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
@@ -316,15 +318,13 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
                     onChange={handleInputChange}
                     step="0.1"
                     min="0"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#80875d]"
                   />
                   <span className="text-gray-600 text-sm">days</span>
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  LVP:
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">LVP:</label>
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
@@ -333,15 +333,13 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
                     onChange={handleInputChange}
                     step="0.1"
                     min="0"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#80875d]"
                   />
                   <span className="text-gray-600 text-sm">days</span>
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Hardwood:
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Hardwood:</label>
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
@@ -350,15 +348,13 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
                     onChange={handleInputChange}
                     step="0.1"
                     min="0"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#80875d]"
                   />
                   <span className="text-gray-600 text-sm">days</span>
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Tile:
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tile:</label>
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
@@ -367,43 +363,42 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
                     onChange={handleInputChange}
                     step="0.1"
                     min="0"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#80875d]"
                   />
                   <span className="text-gray-600 text-sm">days</span>
                 </div>
               </div>
               <div className="col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Other (Specify):
-                </label>
-                <div className="flex items-center gap-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Other (Specify):</label>
+                <div className="grid grid-cols-2 gap-4">
                   <input
                     type="text"
                     name="otherCategory"
                     value={formData.otherCategory}
                     onChange={handleInputChange}
-                    placeholder="Specify category"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    placeholder="Category name"
+                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#80875d]"
                   />
-                  <span className="text-gray-600">—</span>
-                  <input
-                    type="number"
-                    name="otherDays"
-                    value={formData.otherDays}
-                    onChange={handleInputChange}
-                    step="0.1"
-                    min="0"
-                    placeholder="days"
-                    className="w-24 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                  <span className="text-gray-600 text-sm">days</span>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      name="otherDays"
+                      value={formData.otherDays}
+                      onChange={handleInputChange}
+                      step="0.1"
+                      min="0"
+                      placeholder="Days"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#80875d]"
+                    />
+                    <span className="text-gray-600 text-sm">days</span>
+                  </div>
                 </div>
               </div>
             </div>
           </section>
 
           {/* 2. ROOT CAUSE IDENTIFICATION */}
-          <section className="mb-8">
+          <section>
             <h2 className="text-xl font-semibold text-gray-900 mb-4 border-b border-gray-200 pb-2">
               2. ROOT CAUSE IDENTIFICATION
             </h2>
@@ -411,17 +406,18 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
               Select all causes contributing to increased cycle times.
             </p>
             
-            <div className="space-y-4">
+            <div className="space-y-6">
+              {/* Scheduling */}
               <div>
-                <h3 className="font-medium text-gray-800 mb-2">Scheduling</h3>
-                <div className="space-y-2 ml-4">
+                <h3 className="font-medium text-gray-800 mb-3">Scheduling</h3>
+                <div className="space-y-2">
                   <label className="flex items-center gap-2">
                     <input
                       type="checkbox"
                       name="delayedCustomerContact"
                       checked={formData.delayedCustomerContact}
                       onChange={handleInputChange}
-                      className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                      className="w-4 h-4 text-[#80875d] border-gray-300 rounded focus:ring-[#80875d]"
                     />
                     <span className="text-sm text-gray-700">Delayed customer contact</span>
                   </label>
@@ -431,7 +427,7 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
                       name="incorrectInstallerAssignment"
                       checked={formData.incorrectInstallerAssignment}
                       onChange={handleInputChange}
-                      className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                      className="w-4 h-4 text-[#80875d] border-gray-300 rounded focus:ring-[#80875d]"
                     />
                     <span className="text-sm text-gray-700">Incorrect installer assignment</span>
                   </label>
@@ -441,7 +437,7 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
                       name="installerAvailabilityIssues"
                       checked={formData.installerAvailabilityIssues}
                       onChange={handleInputChange}
-                      className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                      className="w-4 h-4 text-[#80875d] border-gray-300 rounded focus:ring-[#80875d]"
                     />
                     <span className="text-sm text-gray-700">Installer availability issues</span>
                   </label>
@@ -451,7 +447,7 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
                       name="poorArrivalCoordination"
                       checked={formData.poorArrivalCoordination}
                       onChange={handleInputChange}
-                      className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                      className="w-4 h-4 text-[#80875d] border-gray-300 rounded focus:ring-[#80875d]"
                     />
                     <span className="text-sm text-gray-700">Poor arrival coordination</span>
                   </label>
@@ -461,23 +457,24 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
                       name="reschedulesImpactingFlow"
                       checked={formData.reschedulesImpactingFlow}
                       onChange={handleInputChange}
-                      className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                      className="w-4 h-4 text-[#80875d] border-gray-300 rounded focus:ring-[#80875d]"
                     />
                     <span className="text-sm text-gray-700">Reschedules impacting flow</span>
                   </label>
                 </div>
               </div>
 
+              {/* Details & Admin Flow */}
               <div>
-                <h3 className="font-medium text-gray-800 mb-2">Details & Admin Flow</h3>
-                <div className="space-y-2 ml-4">
+                <h3 className="font-medium text-gray-800 mb-3">Details & Admin Flow</h3>
+                <div className="space-y-2">
                   <label className="flex items-center gap-2">
                     <input
                       type="checkbox"
                       name="detailErrors"
                       checked={formData.detailErrors}
                       onChange={handleInputChange}
-                      className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                      className="w-4 h-4 text-[#80875d] border-gray-300 rounded focus:ring-[#80875d]"
                     />
                     <span className="text-sm text-gray-700">Detail errors</span>
                   </label>
@@ -487,7 +484,7 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
                       name="incorrectMeasurements"
                       checked={formData.incorrectMeasurements}
                       onChange={handleInputChange}
-                      className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                      className="w-4 h-4 text-[#80875d] border-gray-300 rounded focus:ring-[#80875d]"
                     />
                     <span className="text-sm text-gray-700">Incorrect measurements</span>
                   </label>
@@ -497,23 +494,24 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
                       name="missingJobInformation"
                       checked={formData.missingJobInformation}
                       onChange={handleInputChange}
-                      className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                      className="w-4 h-4 text-[#80875d] border-gray-300 rounded focus:ring-[#80875d]"
                     />
                     <span className="text-sm text-gray-700">Missing job information</span>
                   </label>
                 </div>
               </div>
 
+              {/* Inventory & Store Issues */}
               <div>
-                <h3 className="font-medium text-gray-800 mb-2">Inventory & Store Issues</h3>
-                <div className="space-y-2 ml-4">
+                <h3 className="font-medium text-gray-800 mb-3">Inventory & Store Issues</h3>
+                <div className="space-y-2">
                   <label className="flex items-center gap-2">
                     <input
                       type="checkbox"
                       name="materialNotAvailable"
                       checked={formData.materialNotAvailable}
                       onChange={handleInputChange}
-                      className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                      className="w-4 h-4 text-[#80875d] border-gray-300 rounded focus:ring-[#80875d]"
                     />
                     <span className="text-sm text-gray-700">Material not available</span>
                   </label>
@@ -523,7 +521,7 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
                       name="incorrectMaterialDelivered"
                       checked={formData.incorrectMaterialDelivered}
                       onChange={handleInputChange}
-                      className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                      className="w-4 h-4 text-[#80875d] border-gray-300 rounded focus:ring-[#80875d]"
                     />
                     <span className="text-sm text-gray-700">Incorrect material delivered</span>
                   </label>
@@ -533,23 +531,24 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
                       name="storeProcessingDelays"
                       checked={formData.storeProcessingDelays}
                       onChange={handleInputChange}
-                      className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                      className="w-4 h-4 text-[#80875d] border-gray-300 rounded focus:ring-[#80875d]"
                     />
                     <span className="text-sm text-gray-700">Store processing delays</span>
                   </label>
                 </div>
               </div>
 
+              {/* Installer-Related */}
               <div>
-                <h3 className="font-medium text-gray-800 mb-2">Installer-Related</h3>
-                <div className="space-y-2 ml-4">
+                <h3 className="font-medium text-gray-800 mb-3">Installer-Related</h3>
+                <div className="space-y-2">
                   <label className="flex items-center gap-2">
                     <input
                       type="checkbox"
                       name="installerCancelNoShow"
                       checked={formData.installerCancelNoShow}
                       onChange={handleInputChange}
-                      className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                      className="w-4 h-4 text-[#80875d] border-gray-300 rounded focus:ring-[#80875d]"
                     />
                     <span className="text-sm text-gray-700">Installer cancel/no show</span>
                   </label>
@@ -559,7 +558,7 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
                       name="installersNotPullingJobsForward"
                       checked={formData.installersNotPullingJobsForward}
                       onChange={handleInputChange}
-                      className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                      className="w-4 h-4 text-[#80875d] border-gray-300 rounded focus:ring-[#80875d]"
                     />
                     <span className="text-sm text-gray-700">Installers not pulling jobs forward</span>
                   </label>
@@ -569,43 +568,42 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
                       name="slowJobCompletionPace"
                       checked={formData.slowJobCompletionPace}
                       onChange={handleInputChange}
-                      className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                      className="w-4 h-4 text-[#80875d] border-gray-300 rounded focus:ring-[#80875d]"
                     />
                     <span className="text-sm text-gray-700">Slow job completion pace</span>
                   </label>
                 </div>
               </div>
 
+              {/* Other */}
               <div>
-                <h3 className="font-medium text-gray-800 mb-2">Other</h3>
-                <div className="ml-4">
-                  <label className="flex items-center gap-2 mb-2">
-                    <input
-                      type="checkbox"
-                      name="otherCause"
-                      checked={formData.otherCause}
-                      onChange={handleInputChange}
-                      className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                    />
-                    <span className="text-sm text-gray-700">Other</span>
-                  </label>
-                  {formData.otherCause && (
-                    <textarea
-                      name="otherCauseDescription"
-                      value={formData.otherCauseDescription}
-                      onChange={handleInputChange}
-                      placeholder="Please describe..."
-                      rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                    />
-                  )}
-                </div>
+                <h3 className="font-medium text-gray-800 mb-3">Other</h3>
+                <label className="flex items-center gap-2 mb-2">
+                  <input
+                    type="checkbox"
+                    name="otherCause"
+                    checked={formData.otherCause}
+                    onChange={handleInputChange}
+                    className="w-4 h-4 text-[#80875d] border-gray-300 rounded focus:ring-[#80875d]"
+                  />
+                  <span className="text-sm text-gray-700">Other</span>
+                </label>
+                {formData.otherCause && (
+                  <textarea
+                    name="otherCauseDescription"
+                    value={formData.otherCauseDescription}
+                    onChange={handleInputChange}
+                    placeholder="Please specify..."
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#80875d]"
+                  />
+                )}
               </div>
             </div>
           </section>
 
           {/* 3. TOP 3 JOBS IMPACTING CYCLE TIME */}
-          <section className="mb-8">
+          <section>
             <h2 className="text-xl font-semibold text-gray-900 mb-4 border-b border-gray-200 pb-2">
               3. TOP 3 JOBS IMPACTING CYCLE TIME
             </h2>
@@ -613,135 +611,49 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
               List the three jobs with the highest delays.
             </p>
             
-            <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-              <h3 className="font-medium text-gray-800 mb-3">Job 1:</h3>
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Customer / Job #:
-                  </label>
-                  <input
-                    type="text"
-                    name="job1Customer"
-                    value={formData.job1Customer}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
+            <div className="space-y-6">
+              {[1, 2, 3].map((num) => (
+                <div key={num} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <h3 className="font-semibold text-gray-800 mb-4">{num}. Customer / Job #:</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <input
+                        type="text"
+                        name={`job${num}Customer`}
+                        value={formData[`job${num}Customer` as keyof typeof formData] as string}
+                        onChange={handleInputChange}
+                        placeholder="Customer / Job #"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#80875d]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Cause of Delay:</label>
+                      <input
+                        type="text"
+                        name={`job${num}Cause`}
+                        value={formData[`job${num}Cause` as keyof typeof formData] as string}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#80875d]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Corrective Action Taken:</label>
+                      <textarea
+                        name={`job${num}Action`}
+                        value={formData[`job${num}Action` as keyof typeof formData] as string}
+                        onChange={handleInputChange}
+                        rows={3}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#80875d]"
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Cause of Delay:
-                  </label>
-                  <input
-                    type="text"
-                    name="job1Cause"
-                    value={formData.job1Cause}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Corrective Action Taken:
-                  </label>
-                  <textarea
-                    name="job1Action"
-                    value={formData.job1Action}
-                    onChange={handleInputChange}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-              </div>
-            </div>
-            
-            <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-              <h3 className="font-medium text-gray-800 mb-3">Job 2:</h3>
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Customer / Job #:
-                  </label>
-                  <input
-                    type="text"
-                    name="job2Customer"
-                    value={formData.job2Customer}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Cause of Delay:
-                  </label>
-                  <input
-                    type="text"
-                    name="job2Cause"
-                    value={formData.job2Cause}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Corrective Action Taken:
-                  </label>
-                  <textarea
-                    name="job2Action"
-                    value={formData.job2Action}
-                    onChange={handleInputChange}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-              </div>
-            </div>
-            
-            <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-              <h3 className="font-medium text-gray-800 mb-3">Job 3:</h3>
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Customer / Job #:
-                  </label>
-                  <input
-                    type="text"
-                    name="job3Customer"
-                    value={formData.job3Customer}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Cause of Delay:
-                  </label>
-                  <input
-                    type="text"
-                    name="job3Cause"
-                    value={formData.job3Cause}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Corrective Action Taken:
-                  </label>
-                  <textarea
-                    name="job3Action"
-                    value={formData.job3Action}
-                    onChange={handleInputChange}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-              </div>
+              ))}
             </div>
           </section>
 
           {/* 4. IMMEDIATE CORRECTIVE ACTIONS */}
-          <section className="mb-8">
+          <section>
             <h2 className="text-xl font-semibold text-gray-900 mb-4 border-b border-gray-200 pb-2">
               4. IMMEDIATE CORRECTIVE ACTIONS (Next 24 Hours)
             </h2>
@@ -753,13 +665,12 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
               value={formData.immediateActions}
               onChange={handleInputChange}
               rows={5}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-              placeholder="Describe immediate actions to be taken in the next 24 hours..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#80875d]"
             />
           </section>
 
           {/* 5. PREVENTATIVE ACTIONS */}
-          <section className="mb-8">
+          <section>
             <h2 className="text-xl font-semibold text-gray-900 mb-4 border-b border-gray-200 pb-2">
               5. PREVENTATIVE ACTIONS (Next 72 Hours)
             </h2>
@@ -771,13 +682,12 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
               value={formData.preventativeActions}
               onChange={handleInputChange}
               rows={5}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-              placeholder="Describe preventative actions to be taken in the next 72 hours..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#80875d]"
             />
           </section>
 
           {/* 6. INSTALLER ACCOUNTABILITY REVIEW */}
-          <section className="mb-8">
+          <section>
             <h2 className="text-xl font-semibold text-gray-900 mb-4 border-b border-gray-200 pb-2">
               6. INSTALLER ACCOUNTABILITY REVIEW
             </h2>
@@ -792,8 +702,8 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
                     name="installerIssues"
                     value="yes"
                     checked={formData.installerIssues === 'yes'}
-                    onChange={() => handleRadioChange('installerIssues', 'yes')}
-                    className="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500"
+                    onChange={(e) => handleRadioChange('installerIssues', e.target.value)}
+                    className="w-4 h-4 text-[#80875d] border-gray-300 focus:ring-[#80875d]"
                   />
                   <span className="text-sm text-gray-700">Yes</span>
                 </label>
@@ -803,15 +713,15 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
                     name="installerIssues"
                     value="no"
                     checked={formData.installerIssues === 'no'}
-                    onChange={() => handleRadioChange('installerIssues', 'no')}
-                    className="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500"
+                    onChange={(e) => handleRadioChange('installerIssues', e.target.value)}
+                    className="w-4 h-4 text-[#80875d] border-gray-300 focus:ring-[#80875d]"
                   />
                   <span className="text-sm text-gray-700">No</span>
                 </label>
               </div>
             </div>
             {formData.installerIssues === 'yes' && (
-              <div className="mt-3">
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   If yes, list installer & action plan:
                 </label>
@@ -820,15 +730,14 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
                   value={formData.installerDetails}
                   onChange={handleInputChange}
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  placeholder="List installers and action plan..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#80875d]"
                 />
               </div>
             )}
           </section>
 
           {/* 7. STORE & INVENTORY ISSUES */}
-          <section className="mb-8">
+          <section>
             <h2 className="text-xl font-semibold text-gray-900 mb-4 border-b border-gray-200 pb-2">
               7. STORE & INVENTORY ISSUES
             </h2>
@@ -843,8 +752,8 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
                     name="storeIssues"
                     value="yes"
                     checked={formData.storeIssues === 'yes'}
-                    onChange={() => handleRadioChange('storeIssues', 'yes')}
-                    className="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500"
+                    onChange={(e) => handleRadioChange('storeIssues', e.target.value)}
+                    className="w-4 h-4 text-[#80875d] border-gray-300 focus:ring-[#80875d]"
                   />
                   <span className="text-sm text-gray-700">Yes</span>
                 </label>
@@ -854,15 +763,15 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
                     name="storeIssues"
                     value="no"
                     checked={formData.storeIssues === 'no'}
-                    onChange={() => handleRadioChange('storeIssues', 'no')}
-                    className="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500"
+                    onChange={(e) => handleRadioChange('storeIssues', e.target.value)}
+                    className="w-4 h-4 text-[#80875d] border-gray-300 focus:ring-[#80875d]"
                   />
                   <span className="text-sm text-gray-700">No</span>
                 </label>
               </div>
             </div>
             {formData.storeIssues === 'yes' && (
-              <div className="mt-3">
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   If yes, describe issue and store location(s):
                 </label>
@@ -871,15 +780,14 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
                   value={formData.storeIssuesDescription}
                   onChange={handleInputChange}
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  placeholder="Describe store issues and locations..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#80875d]"
                 />
               </div>
             )}
           </section>
 
           {/* 8. GM COMMITMENT STATEMENT */}
-          <section className="mb-8">
+          <section>
             <h2 className="text-xl font-semibold text-gray-900 mb-4 border-b border-gray-200 pb-2">
               8. GM COMMITMENT STATEMENT
             </h2>
@@ -890,43 +798,33 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
               name="commitmentStatement"
               value={formData.commitmentStatement}
               onChange={handleInputChange}
-              rows={5}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-              placeholder="Enter your commitment statement..."
+              rows={4}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#80875d] mb-4"
             />
-            
-            <div className="grid grid-cols-2 gap-4 mt-6">
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  GM Signature: <span className="text-red-500">*</span>
+                  GM Signature:
                 </label>
                 <input
                   type="text"
                   name="gmSignature"
                   value={formData.gmSignature}
                   onChange={handleInputChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  style={{ 
-                    fontFamily: "'Dancing Script', 'Brush Script MT', 'Lucida Handwriting', 'Kalam', cursive",
-                    fontSize: '2rem',
-                    letterSpacing: '0.05em',
-                    fontWeight: '500'
-                  }}
-                  placeholder="Sign here..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#80875d]"
+                  style={{ fontFamily: "'Dancing Script', 'Brush Script MT', 'Lucida Handwriting', 'Kalam', cursive", fontSize: '1.5rem', letterSpacing: '0.05em' }}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Date: <span className="text-red-500">*</span>
+                  Date:
                 </label>
                 <input
                   type="date"
                   name="signatureDate"
                   value={formData.signatureDate}
                   onChange={handleInputChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#80875d]"
                 />
               </div>
             </div>
@@ -954,6 +852,4 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
     </div>
   )
 }
-
-
 

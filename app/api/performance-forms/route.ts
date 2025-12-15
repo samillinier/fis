@@ -195,3 +195,80 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
+
+// DELETE - Delete a performance form submission
+export async function DELETE(request: NextRequest) {
+  try {
+    const authHeader = request.headers.get('Authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const userEmail = authHeader.replace('Bearer ', '')
+    if (!userEmail) {
+      return NextResponse.json({ error: 'Invalid user' }, { status: 401 })
+    }
+
+    const { searchParams } = new URL(request.url)
+    const submissionId = searchParams.get('id')
+
+    if (!submissionId) {
+      return NextResponse.json({ error: 'Missing submission ID' }, { status: 400 })
+    }
+
+    // Ensure user exists
+    const userId = await ensureUserExists(userEmail)
+    if (!userId) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+
+    // Check if submission exists and belongs to the user (or user is admin)
+    const { data: submission, error: fetchError } = await supabase
+      .from('performance_forms')
+      .select('id, user_id')
+      .eq('id', submissionId)
+      .single()
+
+    if (fetchError || !submission) {
+      return NextResponse.json({ error: 'Submission not found' }, { status: 404 })
+    }
+
+    // Check if user is admin (same logic as list endpoint)
+    const SUPER_ADMIN_EMAIL = 'sbiru@fiscorponline.com'
+    const normalizedEmail = userEmail.trim().toLowerCase()
+    const isSuperAdmin = normalizedEmail === SUPER_ADMIN_EMAIL.toLowerCase()
+    
+    let isAdmin = isSuperAdmin
+    if (!isSuperAdmin) {
+      const { data: authUser } = await supabase
+        .from('authorized_users')
+        .select('role, is_active')
+        .eq('email', normalizedEmail)
+        .single()
+      
+      isAdmin = authUser?.role === 'admin' && authUser?.is_active !== false
+    }
+
+    // Only allow deletion if user owns the submission or is admin
+    if (!isAdmin && submission.user_id !== userId) {
+      return NextResponse.json({ error: 'Unauthorized to delete this submission' }, { status: 403 })
+    }
+
+    // Delete the submission
+    const { error: deleteError } = await supabase
+      .from('performance_forms')
+      .delete()
+      .eq('id', submissionId)
+
+    if (deleteError) {
+      console.error('Error deleting submission:', deleteError)
+      return NextResponse.json({ error: 'Failed to delete submission' }, { status: 500 })
+    }
+
+    console.log(`Submission ${submissionId} deleted by user ${userEmail}`)
+    return NextResponse.json({ success: true, message: 'Submission deleted successfully' })
+  } catch (error) {
+    console.error('Error in DELETE /api/performance-forms:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}

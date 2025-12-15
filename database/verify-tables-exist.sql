@@ -41,3 +41,5 @@ WHERE table_schema = 'public'
 AND table_name = 'survey_data'
 ORDER BY ordinal_position;
 
+
+

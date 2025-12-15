@@ -108,40 +108,67 @@ export async function PUT(request: NextRequest) {
     }
 
     // Check for duplicate notification (same workroom and similar message)
-    // Look for unread notifications with the same workroom and similar message
-    const messageLower = message.toLowerCase()
+    // Look at ALL notifications (read and unread) to prevent duplicates
+    const messageLower = message.toLowerCase().trim()
+    const workroomNormalized = workroom.trim()
+    
     const { data: existingNotifications, error: checkError } = await supabase
       .from('notifications')
-      .select('id, message, is_read')
+      .select('id, message, is_read, workroom')
       .eq('user_id', userId)
-      .eq('workroom', workroom)
-      .eq('is_read', false)
+      .eq('workroom', workroomNormalized)
       .order('created_at', { ascending: false })
-      .limit(50)
+      .limit(100)
 
     if (checkError) {
       console.error('Error checking for duplicates:', checkError)
     } else if (existingNotifications && existingNotifications.length > 0) {
       // Check if any existing notification has a similar message
       const isDuplicate = existingNotifications.some((n) => {
-        const existingMessageLower = n.message.toLowerCase()
+        const existingMessageLower = (n.message || '').toLowerCase().trim()
+        const existingWorkroom = (n.workroom || '').trim()
         
-        // Check for exact match or very similar messages
+        // Must be same workroom
+        if (existingWorkroom.toLowerCase() !== workroomNormalized.toLowerCase()) {
+          return false
+        }
+        
+        // Check for exact match
         if (existingMessageLower === messageLower) {
           return true
         }
         
-        // Check for key metric matches to prevent duplicates
-        const metrics = ['ltr', 'reschedule rate', 'vendor debit', 'cycle time', 'job cycle time', 'details cycle time']
-        for (const metric of metrics) {
-          if (messageLower.includes(metric) && existingMessageLower.includes(metric)) {
-            // If both messages contain the same metric, it's likely a duplicate
-            // Extract the metric-specific part to compare
-            const messageMetricPart = messageLower.split(metric)[0] + metric
-            const existingMetricPart = existingMessageLower.split(metric)[0] + metric
-            if (messageMetricPart === existingMetricPart) {
-              return true
+        // Extract metric from new format: "Workroom: Metric ⚠️ Value"
+        const extractMetric = (msg: string) => {
+          const metrics = ['ltr', 'job cycle time', 'work order cycle time', 'details cycle time', 'reschedule rate', 'vendor debits']
+          for (const metric of metrics) {
+            if (msg.includes(metric)) {
+              return metric
             }
+          }
+          return null
+        }
+        
+        // If new format (contains ⚠️), check by metric
+        if (messageLower.includes('⚠️')) {
+          const newMetric = extractMetric(messageLower)
+          const existingMetric = extractMetric(existingMessageLower)
+          
+          if (newMetric && existingMetric && newMetric === existingMetric) {
+            // Same metric for same workroom = duplicate
+            return true
+          }
+        }
+        
+        // Also check if old format exists for same metric (treat as duplicate)
+        const metrics = ['ltr', 'job cycle time', 'work order cycle time', 'details cycle time', 'reschedule rate', 'vendor debit']
+        for (const metric of metrics) {
+          const hasMetricInNew = messageLower.includes(metric)
+          const hasMetricInExisting = existingMessageLower.includes(metric)
+          
+          if (hasMetricInNew && hasMetricInExisting) {
+            // Both contain same metric for same workroom = duplicate (regardless of format)
+            return true
           }
         }
         
@@ -157,13 +184,34 @@ export async function PUT(request: NextRequest) {
       }
     }
 
+    // Validate data before creating
+    if (!workroomNormalized || !message.trim()) {
+      return NextResponse.json({ error: 'Invalid workroom or message' }, { status: 400 })
+    }
+
+    // REJECT old format notifications - only accept new hazard format with ⚠️
+    // messageLower is already defined above
+    const isOldFormat = messageLower.includes('has high') || 
+                       messageLower.includes('has low') || 
+                       messageLower.includes('score:') ||
+                       messageLower.includes('review ') ||
+                       (!messageLower.includes('⚠️'))
+    
+    if (isOldFormat) {
+      console.log(`[Notifications] Rejecting old format notification: ${message.substring(0, 50)}...`)
+      return NextResponse.json({ 
+        error: 'Old notification format not allowed. Only hazard format (⚠️) is accepted.',
+        rejected: true
+      }, { status: 400 })
+    }
+
     // Create notification if no duplicate found
     const { data, error } = await supabase
       .from('notifications')
       .insert({
         user_id: userId,
-        workroom,
-        message,
+        workroom: workroomNormalized,
+        message: message.trim(),
         type,
         is_read: false,
       })
@@ -181,4 +229,52 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
+
+// DELETE - Delete notifications
+export async function DELETE(request: NextRequest) {
+  try {
+    const authHeader = request.headers.get('Authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const userEmail = authHeader.replace('Bearer ', '')
+    if (!userEmail) {
+      return NextResponse.json({ error: 'Invalid user' }, { status: 401 })
+    }
+
+    const body = await request.json()
+    const { notificationIds } = body
+
+    if (!Array.isArray(notificationIds) || notificationIds.length === 0) {
+      return NextResponse.json({ error: 'Invalid request - notificationIds array required' }, { status: 400 })
+    }
+
+    // Ensure user exists
+    const userId = await ensureUserExists(userEmail)
+    if (!userId) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+
+    // Delete notifications - only delete notifications belonging to this user
+    const { error, count } = await supabase
+      .from('notifications')
+      .delete()
+      .eq('user_id', userId)
+      .in('id', notificationIds)
+
+    if (error) {
+      console.error('Error deleting notifications:', error)
+      return NextResponse.json({ error: 'Failed to delete notifications' }, { status: 500 })
+    }
+
+    console.log(`[DELETE /api/notifications] Deleted ${count || notificationIds.length} notification(s) for user ${userId}`)
+    return NextResponse.json({ success: true, deletedCount: count || notificationIds.length })
+  } catch (error) {
+    console.error('Error in DELETE /api/notifications:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
+
 

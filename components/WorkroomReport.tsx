@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from './AuthContext'
-import { FileText, Calendar, User, Building2, Filter, Search, Download, X, Eye, AlertCircle, Target, TrendingDown, Users, Store, Package, CheckCircle2, ClipboardList, AlertTriangle, FileCheck, Clock, DollarSign, BarChart3, Shield, MessageSquare } from 'lucide-react'
+import { FileText, Calendar, User, Building2, Filter, Search, Download, X, Eye, AlertCircle, Target, TrendingDown, Users, Store, Package, CheckCircle2, ClipboardList, AlertTriangle, FileCheck, Clock, DollarSign, BarChart3, Shield, MessageSquare, RefreshCw, Trash2 } from 'lucide-react'
 
 interface FormSubmission {
   id: string
@@ -43,33 +43,82 @@ export default function WorkroomReport() {
   const [filterMetricType, setFilterMetricType] = useState<string>('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedSubmission, setSelectedSubmission] = useState<FormSubmission | null>(null)
+  const [refreshing, setRefreshing] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchSubmissions()
-  }, [])
+    if (user?.email) {
+      // Clear any stale submissions first
+      console.log('[WorkroomReport] Clearing stale submissions and fetching fresh data')
+      setSubmissions([])
+      setError(null)
+      fetchSubmissions()
+    } else {
+      // Clear submissions if user logs out
+      setSubmissions([])
+      setError(null)
+    }
+  }, [user?.email])
 
-  const fetchSubmissions = async () => {
+  const fetchSubmissions = async (isRefresh = false) => {
     if (!user?.email) {
       setLoading(false)
       return
     }
 
-    setLoading(true)
+    if (isRefresh) {
+      setRefreshing(true)
+    } else {
+      setLoading(true)
+    }
     setError(null)
 
     try {
       const authHeader = user.email
-      const response = await fetch('/api/performance-forms/list', {
+      // Aggressive cache-busting for production - add multiple query params
+      const timestamp = new Date().getTime()
+      const random = Math.random().toString(36).substring(7)
+      const response = await fetch(`/api/performance-forms/list?_t=${timestamp}&_r=${random}&_v=${Date.now()}`, {
+        method: 'GET',
         headers: {
           Authorization: `Bearer ${authHeader}`,
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+          'X-Requested-With': 'XMLHttpRequest', // Prevent some CDN caching
         },
+        cache: 'no-store', // Prevent browser caching
+        next: { revalidate: 0 }, // Next.js cache control
       })
 
       if (response.ok) {
         const result = await response.json()
-        setSubmissions(result.submissions || [])
+        const submissionsList = result.submissions || []
+        
+        // Log response metadata for debugging production caching
+        console.log(`[WorkroomReport] Response timestamp: ${result.timestamp}`)
+        console.log(`[WorkroomReport] Response workrooms: ${result.workrooms?.join(', ') || 'N/A'}`)
+        
+        // Remove duplicates by ID (safety check)
+        const uniqueSubmissions = submissionsList.filter((submission: FormSubmission, index: number, self: FormSubmission[]) => 
+          index === self.findIndex(s => s.id === submission.id)
+        )
+        
+        if (submissionsList.length !== uniqueSubmissions.length) {
+          console.warn(`[WorkroomReport] ⚠️ Duplicate submissions detected! Raw: ${submissionsList.length}, Unique: ${uniqueSubmissions.length}`)
+        }
+        
+        // Verify we're getting fresh data - check if workrooms match what's in database
+        const responseWorkrooms = result.workrooms || []
+        const actualWorkrooms = Array.from(new Set(uniqueSubmissions.map((s: FormSubmission) => s.workroom)))
+        if (responseWorkrooms.length > 0 && JSON.stringify(responseWorkrooms.sort()) !== JSON.stringify(actualWorkrooms.sort())) {
+          console.warn(`[WorkroomReport] ⚠️ Workroom mismatch! Response says: ${responseWorkrooms.join(', ')}, Actual: ${actualWorkrooms.join(', ')}`)
+        }
+        
+        setSubmissions(uniqueSubmissions)
         setDiagnostic(result.diagnostic || null)
-        console.log(`[WorkroomReport] Loaded ${result.submissions?.length || 0} submissions`)
+        console.log(`[WorkroomReport] Loaded ${uniqueSubmissions.length} unique submissions (raw: ${submissionsList.length})`)
+        console.log(`[WorkroomReport] Submission workrooms:`, uniqueSubmissions.map((s: FormSubmission) => ({ id: s.id, workroom: s.workroom, metric_type: s.metric_type, submitted_at: s.submitted_at })))
         if (result.diagnostic) {
           console.log('[WorkroomReport] Diagnostic info:', result.diagnostic)
         }
@@ -85,6 +134,54 @@ export default function WorkroomReport() {
       setError(`Failed to fetch submissions: ${err?.message || 'Network error'}`)
     } finally {
       setLoading(false)
+      setRefreshing(false)
+    }
+  }
+
+  const handleRefresh = () => {
+    console.log('[WorkroomReport] Manual refresh triggered')
+    fetchSubmissions(true)
+  }
+
+  const handleDelete = async (submissionId: string, e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent opening the modal when clicking delete
+    
+    if (!confirm('Are you sure you want to delete this report? This action cannot be undone.')) {
+      return
+    }
+
+    if (!user?.email) {
+      setError('You must be logged in to delete reports')
+      return
+    }
+
+    setDeletingId(submissionId)
+
+    try {
+      const authHeader = user.email
+      const response = await fetch(`/api/performance-forms?id=${submissionId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${authHeader}`,
+        },
+      })
+
+      if (response.ok) {
+        // Remove the deleted submission from the list
+        setSubmissions(submissions.filter(s => s.id !== submissionId))
+        // Close modal if the deleted submission was selected
+        if (selectedSubmission?.id === submissionId) {
+          setSelectedSubmission(null)
+        }
+      } else {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to delete report' }))
+        setError(errorData.error || 'Failed to delete report')
+      }
+    } catch (err: any) {
+      console.error('[WorkroomReport] Error deleting submission:', err)
+      setError(`Failed to delete report: ${err?.message || 'Network error'}`)
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -210,15 +307,26 @@ export default function WorkroomReport() {
               <h1 className="text-3xl font-bold text-gray-900 mb-2">Workroom Report</h1>
               <p className="text-gray-600">View all submitted performance forms and accountability reports</p>
             </div>
-            {filteredSubmissions.length > 0 && (
+            <div className="flex items-center gap-3">
               <button
-                onClick={exportToCSV}
-                className="flex items-center gap-2 px-4 py-2 bg-[#80875d] text-white rounded-lg hover:bg-[#6d7350] transition-colors"
+                onClick={handleRefresh}
+                disabled={refreshing || loading}
+                className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Refresh data from database"
               >
-                <Download size={18} />
-                Export CSV
+                <RefreshCw size={18} className={refreshing ? 'animate-spin' : ''} />
+                {refreshing ? 'Refreshing...' : 'Refresh'}
               </button>
-            )}
+              {filteredSubmissions.length > 0 && (
+                <button
+                  onClick={exportToCSV}
+                  className="flex items-center gap-2 px-4 py-2 bg-[#80875d] text-white rounded-lg hover:bg-[#6d7350] transition-colors"
+                >
+                  <Download size={18} />
+                  Export CSV
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -346,7 +454,7 @@ export default function WorkroomReport() {
                 return (
                   <div 
                     key={submission.id} 
-                    className="p-6 hover:bg-gray-50 transition-colors cursor-pointer"
+                    className="p-6 hover:bg-gray-50 transition-colors cursor-pointer relative"
                     onClick={() => setSelectedSubmission(submission)}
                   >
                     <div className="flex items-start justify-between">
@@ -427,6 +535,18 @@ export default function WorkroomReport() {
                           </div>
                         </div>
                       </div>
+                      <button
+                        onClick={(e) => handleDelete(submission.id, e)}
+                        disabled={deletingId === submission.id}
+                        className="ml-4 p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Delete this report"
+                      >
+                        {deletingId === submission.id ? (
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-red-600"></div>
+                        ) : (
+                          <Trash2 size={18} />
+                        )}
+                      </button>
                     </div>
                   </div>
                 )
@@ -446,13 +566,17 @@ export default function WorkroomReport() {
                     selectedSubmission.metric_type === 'reschedule_rate' ? 'bg-red-100' :
                     selectedSubmission.metric_type === 'ltr' ? 'bg-blue-100' :
                     selectedSubmission.metric_type === 'cycle_time' ? 'bg-yellow-100' :
+                    selectedSubmission.metric_type === 'job_cycle_time' ? 'bg-orange-100' :
+                    selectedSubmission.metric_type === 'details_cycle_time' ? 'bg-amber-100' :
                     selectedSubmission.metric_type === 'vendor_debit' ? 'bg-purple-100' : 'bg-gray-100'
                   }`}>
                     {selectedSubmission.metric_type === 'reschedule_rate' && <AlertCircle className="text-red-600" size={24} />}
                     {selectedSubmission.metric_type === 'ltr' && <Target className="text-blue-600" size={24} />}
                     {selectedSubmission.metric_type === 'cycle_time' && <Clock className="text-yellow-600" size={24} />}
+                    {selectedSubmission.metric_type === 'job_cycle_time' && <Clock className="text-orange-600" size={24} />}
+                    {selectedSubmission.metric_type === 'details_cycle_time' && <Clock className="text-amber-600" size={24} />}
                     {selectedSubmission.metric_type === 'vendor_debit' && <DollarSign className="text-purple-600" size={24} />}
-                    {!['reschedule_rate', 'ltr', 'cycle_time', 'vendor_debit'].includes(selectedSubmission.metric_type) && <FileText className="text-gray-600" size={24} />}
+                    {!['reschedule_rate', 'ltr', 'cycle_time', 'job_cycle_time', 'details_cycle_time', 'vendor_debit'].includes(selectedSubmission.metric_type) && <FileText className="text-gray-600" size={24} />}
                   </div>
                   <div>
                     <h1 className="text-2xl font-bold text-gray-900">
@@ -1250,6 +1374,392 @@ function ReportDetailView({ submission }: { submission: FormSubmission }) {
     </div>
   )
 
+  const renderJobCycleTimeReport = () => (
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 space-y-8">
+      {/* Workroom Information */}
+      <section>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4 border-b border-gray-200 pb-2 flex items-center gap-2">
+          <Building2 size={20} className="text-orange-600" />
+          WORKROOM INFORMATION
+        </h2>
+        <div className="grid grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Workroom:</label>
+            <div className="text-base font-semibold text-gray-900">{formData.workroom || 'N/A'}</div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">GM Completing Report:</label>
+            <div className="text-base font-semibold text-gray-900">{formData.gmName || 'N/A'}</div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Week Ending:</label>
+            <div className="text-base font-semibold text-gray-900">{formData.weekEnding || 'N/A'}</div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Current Overall Cycle Time:</label>
+            <div className="text-base font-semibold text-gray-900">
+              {formData.currentOverallCycleTime ? `${formData.currentOverallCycleTime} Days` : 'N/A'}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Cycle Time by Category */}
+      {(formData.carpetDays || formData.vinylDays || formData.laminateDays || formData.lvpDays || formData.hardwoodDays || formData.tileDays || formData.otherDays) && (
+        <section>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4 border-b border-gray-200 pb-2">
+            1. CYCLE TIME BY CATEGORY (Required)
+          </h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Provide the current average cycle days for each category.
+          </p>
+          <div className="grid grid-cols-3 gap-4">
+            {formData.carpetDays && (
+              <div className="p-3 bg-gray-50 rounded border border-gray-200">
+                <div className="text-sm text-gray-600 mb-1">Carpet:</div>
+                <div className="text-base font-semibold text-gray-900">{formData.carpetDays} days</div>
+              </div>
+            )}
+            {formData.vinylDays && (
+              <div className="p-3 bg-gray-50 rounded border border-gray-200">
+                <div className="text-sm text-gray-600 mb-1">Vinyl / Sheet Goods:</div>
+                <div className="text-base font-semibold text-gray-900">{formData.vinylDays} days</div>
+              </div>
+            )}
+            {formData.laminateDays && (
+              <div className="p-3 bg-gray-50 rounded border border-gray-200">
+                <div className="text-sm text-gray-600 mb-1">Laminate:</div>
+                <div className="text-base font-semibold text-gray-900">{formData.laminateDays} days</div>
+              </div>
+            )}
+            {formData.lvpDays && (
+              <div className="p-3 bg-gray-50 rounded border border-gray-200">
+                <div className="text-sm text-gray-600 mb-1">LVP:</div>
+                <div className="text-base font-semibold text-gray-900">{formData.lvpDays} days</div>
+              </div>
+            )}
+            {formData.hardwoodDays && (
+              <div className="p-3 bg-gray-50 rounded border border-gray-200">
+                <div className="text-sm text-gray-600 mb-1">Hardwood:</div>
+                <div className="text-base font-semibold text-gray-900">{formData.hardwoodDays} days</div>
+              </div>
+            )}
+            {formData.tileDays && (
+              <div className="p-3 bg-gray-50 rounded border border-gray-200">
+                <div className="text-sm text-gray-600 mb-1">Tile:</div>
+                <div className="text-base font-semibold text-gray-900">{formData.tileDays} days</div>
+              </div>
+            )}
+            {formData.otherDays && formData.otherCategory && (
+              <div className="p-3 bg-gray-50 rounded border border-gray-200">
+                <div className="text-sm text-gray-600 mb-1">{formData.otherCategory}:</div>
+                <div className="text-base font-semibold text-gray-900">{formData.otherDays} days</div>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Root Cause Identification */}
+      {(formData.delayedCustomerContact || formData.incorrectInstallerAssignment || formData.installerAvailabilityIssues || 
+        formData.poorArrivalCoordination || formData.reschedulesImpactingFlow || formData.detailErrors || 
+        formData.incorrectMeasurements || formData.missingJobInformation || formData.materialNotAvailable || 
+        formData.incorrectMaterialDelivered || formData.storeProcessingDelays || formData.installerCancelNoShow || 
+        formData.installersNotPullingJobsForward || formData.slowJobCompletionPace || formData.other) && (
+        <section>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4 border-b border-gray-200 pb-2 flex items-center gap-2">
+            <AlertCircle size={20} className="text-red-600" />
+            2. ROOT CAUSE IDENTIFICATION
+          </h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Select all root causes contributing to cycle time delays.
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            {formData.delayedCustomerContact && (
+              <div className="flex items-center gap-2 p-2 bg-red-50 rounded border border-red-200">
+                <CheckCircle2 size={16} className="text-red-600" />
+                <span className="text-sm text-gray-700">Delayed Customer Contact</span>
+              </div>
+            )}
+            {formData.incorrectInstallerAssignment && (
+              <div className="flex items-center gap-2 p-2 bg-red-50 rounded border border-red-200">
+                <CheckCircle2 size={16} className="text-red-600" />
+                <span className="text-sm text-gray-700">Incorrect Installer Assignment</span>
+              </div>
+            )}
+            {formData.installerAvailabilityIssues && (
+              <div className="flex items-center gap-2 p-2 bg-red-50 rounded border border-red-200">
+                <CheckCircle2 size={16} className="text-red-600" />
+                <span className="text-sm text-gray-700">Installer Availability Issues</span>
+              </div>
+            )}
+            {formData.poorArrivalCoordination && (
+              <div className="flex items-center gap-2 p-2 bg-red-50 rounded border border-red-200">
+                <CheckCircle2 size={16} className="text-red-600" />
+                <span className="text-sm text-gray-700">Poor Arrival Coordination</span>
+              </div>
+            )}
+            {formData.reschedulesImpactingFlow && (
+              <div className="flex items-center gap-2 p-2 bg-red-50 rounded border border-red-200">
+                <CheckCircle2 size={16} className="text-red-600" />
+                <span className="text-sm text-gray-700">Reschedules Impacting Flow</span>
+              </div>
+            )}
+            {formData.detailErrors && (
+              <div className="flex items-center gap-2 p-2 bg-red-50 rounded border border-red-200">
+                <CheckCircle2 size={16} className="text-red-600" />
+                <span className="text-sm text-gray-700">Detail Errors</span>
+              </div>
+            )}
+            {formData.incorrectMeasurements && (
+              <div className="flex items-center gap-2 p-2 bg-red-50 rounded border border-red-200">
+                <CheckCircle2 size={16} className="text-red-600" />
+                <span className="text-sm text-gray-700">Incorrect Measurements</span>
+              </div>
+            )}
+            {formData.missingJobInformation && (
+              <div className="flex items-center gap-2 p-2 bg-red-50 rounded border border-red-200">
+                <CheckCircle2 size={16} className="text-red-600" />
+                <span className="text-sm text-gray-700">Missing Job Information</span>
+              </div>
+            )}
+            {formData.materialNotAvailable && (
+              <div className="flex items-center gap-2 p-2 bg-red-50 rounded border border-red-200">
+                <CheckCircle2 size={16} className="text-red-600" />
+                <span className="text-sm text-gray-700">Material Not Available</span>
+              </div>
+            )}
+            {formData.incorrectMaterialDelivered && (
+              <div className="flex items-center gap-2 p-2 bg-red-50 rounded border border-red-200">
+                <CheckCircle2 size={16} className="text-red-600" />
+                <span className="text-sm text-gray-700">Incorrect Material Delivered</span>
+              </div>
+            )}
+            {formData.storeProcessingDelays && (
+              <div className="flex items-center gap-2 p-2 bg-red-50 rounded border border-red-200">
+                <CheckCircle2 size={16} className="text-red-600" />
+                <span className="text-sm text-gray-700">Store Processing Delays</span>
+              </div>
+            )}
+            {formData.installerCancelNoShow && (
+              <div className="flex items-center gap-2 p-2 bg-red-50 rounded border border-red-200">
+                <CheckCircle2 size={16} className="text-red-600" />
+                <span className="text-sm text-gray-700">Installer Cancel/No Show</span>
+              </div>
+            )}
+            {formData.installersNotPullingJobsForward && (
+              <div className="flex items-center gap-2 p-2 bg-red-50 rounded border border-red-200">
+                <CheckCircle2 size={16} className="text-red-600" />
+                <span className="text-sm text-gray-700">Installers Not Pulling Jobs Forward</span>
+              </div>
+            )}
+            {formData.slowJobCompletionPace && (
+              <div className="flex items-center gap-2 p-2 bg-red-50 rounded border border-red-200">
+                <CheckCircle2 size={16} className="text-red-600" />
+                <span className="text-sm text-gray-700">Slow Job Completion Pace</span>
+              </div>
+            )}
+            {formData.other && formData.otherDescription && (
+              <div className="p-2 bg-red-50 rounded border border-red-200">
+                <div className="flex items-center gap-2 mb-1">
+                  <CheckCircle2 size={16} className="text-red-600" />
+                  <span className="text-sm font-medium text-gray-700">Other:</span>
+                </div>
+                <div className="text-sm text-gray-700 ml-6">{formData.otherDescription}</div>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Top 3 Jobs Impacting Cycle Time */}
+      {((formData.job1Customer && formData.job1Customer.trim() !== '') || 
+        (formData.job2Customer && formData.job2Customer.trim() !== '') || 
+        (formData.job3Customer && formData.job3Customer.trim() !== '')) && (
+        <section>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4 border-b border-gray-200 pb-2 flex items-center gap-2">
+            <TrendingDown size={20} className="text-red-600" />
+            3. TOP 3 JOBS IMPACTING CYCLE TIME
+          </h2>
+          <p className="text-sm text-gray-600 mb-4">
+            List the three jobs with the highest delays.
+          </p>
+          <div className="space-y-6">
+            {formData.job1Customer && formData.job1Customer.trim() !== '' && (
+              <div className="p-6 bg-gray-50 rounded-lg border border-gray-200">
+                <h3 className="font-semibold text-gray-800 mb-4">1. Customer / Job #: {formData.job1Customer}</h3>
+                <div className="space-y-3">
+                  {(formData.job1Cause && formData.job1Cause.trim() !== '') && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Cause of Delay:</label>
+                      <div className="text-sm text-gray-900">{formData.job1Cause}</div>
+                    </div>
+                  )}
+                  {(formData.job1Action && formData.job1Action.trim() !== '') && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Corrective Action Taken:</label>
+                      <div className="text-sm text-gray-900 whitespace-pre-wrap">{formData.job1Action}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            {formData.job2Customer && formData.job2Customer.trim() !== '' && (
+              <div className="p-6 bg-gray-50 rounded-lg border border-gray-200">
+                <h3 className="font-semibold text-gray-800 mb-4">2. Customer / Job #: {formData.job2Customer}</h3>
+                <div className="space-y-3">
+                  {(formData.job2Cause && formData.job2Cause.trim() !== '') && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Cause of Delay:</label>
+                      <div className="text-sm text-gray-900">{formData.job2Cause}</div>
+                    </div>
+                  )}
+                  {(formData.job2Action && formData.job2Action.trim() !== '') && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Corrective Action Taken:</label>
+                      <div className="text-sm text-gray-900 whitespace-pre-wrap">{formData.job2Action}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            {formData.job3Customer && formData.job3Customer.trim() !== '' && (
+              <div className="p-6 bg-gray-50 rounded-lg border border-gray-200">
+                <h3 className="font-semibold text-gray-800 mb-4">3. Customer / Job #: {formData.job3Customer}</h3>
+                <div className="space-y-3">
+                  {(formData.job3Cause && formData.job3Cause.trim() !== '') && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Cause of Delay:</label>
+                      <div className="text-sm text-gray-900">{formData.job3Cause}</div>
+                    </div>
+                  )}
+                  {(formData.job3Action && formData.job3Action.trim() !== '') && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Corrective Action Taken:</label>
+                      <div className="text-sm text-gray-900 whitespace-pre-wrap">{formData.job3Action}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Installer Accountability Review */}
+      {formData.installerIssues && formData.installerIssues !== 'no' && (
+        <section>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4 border-b border-gray-200 pb-2 flex items-center gap-2">
+            <Users size={20} className="text-blue-600" />
+            4. INSTALLER ACCOUNTABILITY REVIEW
+          </h2>
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="mb-3">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Installer Issues Identified:</label>
+              <div className="text-sm font-semibold text-gray-900">{formData.installerIssues === 'yes' ? 'Yes' : 'No'}</div>
+            </div>
+            {formData.installerDetails && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Installer Details:</label>
+                <div className="text-sm text-gray-900 whitespace-pre-wrap">{formData.installerDetails}</div>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Store & Inventory Issues */}
+      {formData.storeIssues && formData.storeIssues !== 'no' && (
+        <section>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4 border-b border-gray-200 pb-2 flex items-center gap-2">
+            <Store size={20} className="text-purple-600" />
+            5. STORE & INVENTORY ISSUES
+          </h2>
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="mb-3">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Store Issues Identified:</label>
+              <div className="text-sm font-semibold text-gray-900">{formData.storeIssues === 'yes' ? 'Yes' : 'No'}</div>
+            </div>
+            {formData.storeIssuesDescription && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Store Issues Description:</label>
+                <div className="text-sm text-gray-900 whitespace-pre-wrap">{formData.storeIssuesDescription}</div>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Immediate Corrective Actions */}
+      {formData.immediateActions && (
+        <section>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4 border-b border-gray-200 pb-2">
+            6. IMMEDIATE CORRECTIVE ACTIONS (Next 24 Hours)
+          </h2>
+          <p className="text-sm text-gray-600 mb-3">
+            Actions to pull jobs forward and close delay gaps immediately.
+          </p>
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <p className="text-sm text-gray-700 whitespace-pre-wrap">{formData.immediateActions}</p>
+          </div>
+        </section>
+      )}
+
+      {/* Preventative Actions */}
+      {formData.preventativeActions && (
+        <section>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4 border-b border-gray-200 pb-2 flex items-center gap-2">
+            <Shield size={20} className="text-blue-600" />
+            7. PREVENTATIVE ACTIONS (Next 72 Hours)
+          </h2>
+          <p className="text-sm text-gray-600 mb-3">
+            Operational changes to stabilize cycle time moving forward.
+          </p>
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <p className="text-sm text-gray-700 whitespace-pre-wrap">{formData.preventativeActions}</p>
+          </div>
+        </section>
+      )}
+
+      {/* GM Commitment Statement */}
+      {formData.commitmentStatement && (
+        <section>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4 border-b border-gray-200 pb-2">
+            8. GM COMMITMENT STATEMENT
+          </h2>
+          <p className="text-sm text-gray-600 mb-3">
+            One operational change you will implement immediately to return cycle time to standard.
+          </p>
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 mb-4">
+            <p className="text-sm text-gray-700 whitespace-pre-wrap">{formData.commitmentStatement}</p>
+          </div>
+          {formData.gmSignature && (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">GM Signature:</label>
+                <div className="text-2xl font-signature text-gray-900" style={{ fontFamily: "'Dancing Script', 'Brush Script MT', 'Lucida Handwriting', 'Kalam', cursive", fontSize: '2rem', letterSpacing: '0.05em', fontWeight: '500' }}>
+                  {formData.gmSignature}
+                </div>
+              </div>
+              {formData.signatureDate && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Date:</label>
+                  <div className="text-base font-semibold text-gray-900">{formData.signatureDate}</div>
+                </div>
+              )}
+            </div>
+          )}
+        </section>
+      )}
+    </div>
+  )
+
+  const renderDetailsCycleTimeReport = () => {
+    // Details Cycle Time uses similar structure to cycle_time but may have different fields
+    // For now, use the same renderer as cycle_time since they share the same structure
+    return renderCycleTimeReport()
+  }
+
   // Render based on metric type
   switch (submission.metric_type) {
     case 'reschedule_rate':
@@ -1258,16 +1768,31 @@ function ReportDetailView({ submission }: { submission: FormSubmission }) {
       return renderLTRReport()
     case 'cycle_time':
       return renderCycleTimeReport()
+    case 'job_cycle_time':
+      return renderJobCycleTimeReport()
+    case 'details_cycle_time':
+      return renderDetailsCycleTimeReport()
     case 'vendor_debit':
       return renderVendorDebitReport()
     default:
       return (
         <div className="p-4">
-          <pre className="text-xs bg-gray-50 p-4 rounded overflow-auto">
-            {JSON.stringify(formData, null, 2)}
-          </pre>
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+            <p className="text-sm text-yellow-800">
+              <AlertTriangle size={16} className="inline mr-2" />
+              Unknown report type: <strong>{submission.metric_type}</strong>
+            </p>
+          </div>
+          <details className="mt-4">
+            <summary className="cursor-pointer text-sm font-medium text-gray-700 mb-2">View Raw Data (JSON)</summary>
+            <pre className="text-xs bg-gray-50 p-4 rounded overflow-auto mt-2">
+              {JSON.stringify(formData, null, 2)}
+            </pre>
+          </details>
         </div>
       )
   }
 }
+
+
 

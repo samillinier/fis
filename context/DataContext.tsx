@@ -63,6 +63,7 @@ export interface WorkroomData {
   poNumber?: string | number // Column J (index 9) - PO Number
   company?: string
   installerName?: string
+  customerName?: string // Column V (index 21) - Customer Name (survey data)
   [key: string]: any
 }
 
@@ -91,5 +92,3 @@ export function useData() {
   }
   return context
 }
-
-

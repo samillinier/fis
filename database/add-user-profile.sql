@@ -4,7 +4,7 @@
 -- Add workroom and role columns to user_metadata table
 ALTER TABLE user_metadata 
 ADD COLUMN IF NOT EXISTS workroom TEXT,
-ADD COLUMN IF NOT EXISTS user_role TEXT CHECK (user_role IN ('GM', 'PC', 'Other'));
+ADD COLUMN IF NOT EXISTS user_role TEXT CHECK (user_role IN ('GM', 'PC', 'Corporate', 'Other'));
 
 -- Add index for workroom queries
 CREATE INDEX IF NOT EXISTS idx_user_metadata_workroom ON user_metadata(workroom);
@@ -36,4 +36,6 @@ DROP POLICY IF EXISTS "Service role full access notifications" ON notifications;
 -- Allow all operations for service_role key (API routes handle security)
 CREATE POLICY "Service role full access notifications" ON notifications
   FOR ALL USING (true) WITH CHECK (true);
+
+
 

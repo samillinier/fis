@@ -16,3 +16,5 @@ AND schemaname = 'public';
 
 -- Should show rowsecurity = false for all three tables
 
+
+

@@ -34,3 +34,5 @@ SELECT * FROM visual_data WHERE workroom_name = 'TEST_WORKROOM';
 -- STEP 4: If it worked, clean up
 DELETE FROM visual_data WHERE workroom_name = 'TEST_WORKROOM';
 
+
+

@@ -239,8 +239,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user?.email, refreshAccessData])
 
-  const isAdmin: boolean =
-    (user?.email?.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase()) || (user?.role === 'admin')
+  const isAdmin =
+    user?.email?.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase() || user?.role === 'admin'
 
   const isAuthorized =
     !!user &&

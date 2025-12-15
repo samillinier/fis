@@ -24,3 +24,5 @@ DROP POLICY IF EXISTS "Service role full access user_metadata" ON user_metadata;
 CREATE POLICY "Service role full access user_metadata" ON user_metadata
   FOR ALL USING (true) WITH CHECK (true);
 
+
+

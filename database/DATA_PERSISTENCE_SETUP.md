@@ -36,3 +36,5 @@ If data disappears on refresh:
 3. Check Supabase dashboard to see if data exists in `workroom_data` table
 4. Verify the migration was run successfully
 
+
+

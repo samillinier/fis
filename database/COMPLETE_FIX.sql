@@ -52,3 +52,5 @@ SELECT COUNT(*) as test_record_count FROM visual_data WHERE workroom_name = 'API
 -- If Step 5 shows 1, then tables are working! Delete test record:
 -- DELETE FROM visual_data WHERE workroom_name = 'API_TEST';
 
+
+

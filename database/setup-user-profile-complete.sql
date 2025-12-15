@@ -1,6 +1,5 @@
--- Complete migration for user profile and notifications
+-- Complete setup script for user profile metadata and notifications
 -- Run this SQL in your Supabase SQL Editor
--- This creates all necessary tables and columns in one go
 
 -- Step 1: Create user_metadata table if it doesn't exist
 CREATE TABLE IF NOT EXISTS user_metadata (
@@ -9,7 +8,7 @@ CREATE TABLE IF NOT EXISTS user_metadata (
   visual_file_name TEXT,
   survey_file_name TEXT,
   workroom TEXT,
-  user_role TEXT CHECK (user_role IN ('GM', 'PC', 'Other')),
+  user_role TEXT CHECK (user_role IN ('GM', 'PC', 'Corporate', 'Other')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -28,7 +27,7 @@ BEGIN
     SELECT 1 FROM information_schema.columns 
     WHERE table_name = 'user_metadata' AND column_name = 'user_role'
   ) THEN
-    ALTER TABLE user_metadata ADD COLUMN user_role TEXT CHECK (user_role IN ('GM', 'PC', 'Other'));
+    ALTER TABLE user_metadata ADD COLUMN user_role TEXT CHECK (user_role IN ('GM', 'PC', 'Corporate', 'Other'));
   END IF;
 END $$;
 
@@ -69,4 +68,3 @@ ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Service role full access notifications" ON notifications;
 CREATE POLICY "Service role full access notifications" ON notifications
   FOR ALL USING (true) WITH CHECK (true);
-

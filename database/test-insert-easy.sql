@@ -27,3 +27,5 @@ SELECT * FROM visual_data WHERE workroom_name = 'TEST_WORKROOM';
 -- Clean up (run this after testing)
 -- DELETE FROM visual_data WHERE workroom_name = 'TEST_WORKROOM';
 
+
+

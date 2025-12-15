@@ -12,3 +12,5 @@ AND schemaname = 'public';
 -- If rowsecurity = true → RLS is ENABLED (might be blocking)
 -- If rowsecurity = false → RLS is DISABLED (should work)
 
+
+

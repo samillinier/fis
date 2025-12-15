@@ -11,3 +11,5 @@ CREATE INDEX IF NOT EXISTS idx_workroom_data_jsonb ON workroom_data USING GIN (d
 -- Add comment
 COMMENT ON COLUMN workroom_data.data_jsonb IS 'Complete WorkroomData object stored as JSON for full data persistence';
 
+
+

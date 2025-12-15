@@ -73,3 +73,5 @@ Upload Survey Data → DELETE old from survey_data → INSERT new to survey_data
 Page Load → GET from visual_data + survey_data → Combine in frontend → Display
 ```
 
+
+

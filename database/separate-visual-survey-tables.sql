@@ -110,3 +110,5 @@ CREATE POLICY "Users can update their own dashboard metadata" ON dashboard_metad
 
 -- Note: Service role can bypass RLS, so API routes will work fine
 
+
+

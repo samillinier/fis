@@ -46,3 +46,5 @@ SELECT COUNT(*) as test_count FROM visual_data WHERE workroom_name = 'VERIFY_TES
 -- 6. Clean up
 DELETE FROM visual_data WHERE workroom_name = 'VERIFY_TEST';
 
+
+
