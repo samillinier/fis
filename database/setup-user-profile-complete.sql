@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS user_metadata (
   visual_file_name TEXT,
   survey_file_name TEXT,
   workroom TEXT,
-  user_role TEXT CHECK (user_role IN ('GM', 'PC', 'Corporate', 'Other')),
+  user_role TEXT CHECK (user_role IN ('GM', 'PC', 'Corporate', 'President', 'Other')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -27,7 +27,7 @@ BEGIN
     SELECT 1 FROM information_schema.columns 
     WHERE table_name = 'user_metadata' AND column_name = 'user_role'
   ) THEN
-    ALTER TABLE user_metadata ADD COLUMN user_role TEXT CHECK (user_role IN ('GM', 'PC', 'Corporate', 'Other'));
+    ALTER TABLE user_metadata ADD COLUMN user_role TEXT CHECK (user_role IN ('GM', 'PC', 'Corporate', 'President', 'Other'));
   END IF;
 END $$;
 

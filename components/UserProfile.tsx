@@ -37,7 +37,7 @@ export default function UserProfile({ onComplete }: UserProfileProps) {
   ).sort()
 
   // Common roles
-  const roles = ['GM', 'PC', 'Corporate', 'Manager', 'Supervisor', 'Analyst', 'Other']
+  const roles = ['GM', 'PC', 'Corporate', 'President', 'Manager', 'Supervisor', 'Analyst', 'Other']
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

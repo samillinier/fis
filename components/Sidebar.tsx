@@ -7,12 +7,16 @@ import Link from 'next/link'
 import ExportButton from '@/components/ExportButton'
 import DualFileUpload from '@/components/DualFileUpload'
 import { useAuth } from '@/components/AuthContext'
+import { X } from 'lucide-react'
 
 interface SidebarProps {
   selectedWorkroom: string
   setSelectedWorkroom: (value: string) => void
   excludeCycleTime?: boolean
   setExcludeCycleTime?: (value: boolean) => void
+  isOpen?: boolean
+  onClose?: () => void
+  isMobile?: boolean
 }
 
 export default function Sidebar({
@@ -20,6 +24,9 @@ export default function Sidebar({
   setSelectedWorkroom,
   excludeCycleTime = false,
   setExcludeCycleTime,
+  isOpen = true,
+  onClose,
+  isMobile = false,
 }: SidebarProps) {
   const { data } = useData()
   const pathname = usePathname()
@@ -42,13 +49,35 @@ export default function Sidebar({
 
   const isActive = (path: string) => pathname === path
 
+  const handleLinkClick = () => {
+    // Close sidebar on mobile when a link is clicked
+    if (isMobile && onClose) {
+      onClose()
+    }
+  }
+
+  // On desktop, sidebar is always "open" (visible)
+  const sidebarIsOpen = isMobile ? isOpen : true
+
   return (
-    <aside className="dashboard-sidebar">
+    <aside className={`dashboard-sidebar ${isMobile ? (sidebarIsOpen ? 'sidebar-open' : 'sidebar-closed') : ''}`}>
+      {isMobile && (
+        <div className="sidebar-mobile-header">
+          <button
+            className="sidebar-close-button"
+            onClick={onClose}
+            aria-label="Close menu"
+          >
+            <X size={24} />
+          </button>
+        </div>
+      )}
       <div className="sidebar-content">
         <nav className="sidebar-nav">
           <Link
             href="/"
             className={`sidebar-nav-button ${isActive('/') ? 'sidebar-nav-button--active' : ''}`}
+            onClick={handleLinkClick}
           >
             Visual Breakdown
           </Link>
@@ -57,6 +86,7 @@ export default function Sidebar({
             className={`sidebar-nav-button ${
               isActive('/survey-misc') ? 'sidebar-nav-button--active' : ''
             }`}
+            onClick={handleLinkClick}
           >
             Survey Misc
           </Link>
@@ -67,6 +97,7 @@ export default function Sidebar({
                 className={`sidebar-nav-button ${
                   isActive('/analytics') ? 'sidebar-nav-button--active' : ''
                 }`}
+                onClick={handleLinkClick}
               >
                 Workroom Data
               </Link>
@@ -75,6 +106,7 @@ export default function Sidebar({
                 className={`sidebar-nav-button ${
                   isActive('/store') ? 'sidebar-nav-button--active' : ''
                 }`}
+                onClick={handleLinkClick}
               >
                 Store Overview
               </Link>
@@ -83,6 +115,7 @@ export default function Sidebar({
                 className={`sidebar-nav-button ${
                   isActive('/workroom-summary') ? 'sidebar-nav-button--active' : ''
                 }`}
+                onClick={handleLinkClick}
               >
                 Workroom Summary
               </Link>
@@ -91,6 +124,7 @@ export default function Sidebar({
                 className={`sidebar-nav-button ${
                   isActive('/workroom-report') ? 'sidebar-nav-button--active' : ''
                 }`}
+                onClick={handleLinkClick}
               >
                 Workroom Report
               </Link>

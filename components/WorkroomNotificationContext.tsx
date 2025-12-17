@@ -31,6 +31,47 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
   const [notifications, setNotifications] = useState<WorkroomNotification[]>([])
   const [loading, setLoading] = useState(false)
 
+  // Helper function to extract metric from notification message
+  const extractMetricFromMessage = (msg: string): string | null => {
+    const messageLower = msg.toLowerCase()
+    if (messageLower.includes('ltr') && messageLower.includes('performance is below standard')) return 'ltr'
+    if (messageLower.includes('reschedule rate') && messageLower.includes('above target')) return 'reschedule_rate'
+    if (messageLower.includes('job cycle time') && messageLower.includes('exceeds target')) return 'job_cycle_time'
+    if (messageLower.includes('work order cycle time') && (messageLower.includes('exceeds target') || messageLower.includes('n/a'))) return 'work_order_cycle_time'
+    if (messageLower.includes('details cycle time') && messageLower.includes('exceeds target')) return 'details_cycle_time'
+    if (messageLower.includes('vendor debits') && (messageLower.includes('above target') || messageLower.includes('ratio is above'))) return 'vendor_debits'
+    return null
+  }
+
+  // Helper function to remove duplicate notifications (keep the most recent one)
+  const removeDuplicates = (notifications: any[]): any[] => {
+    const seen = new Map<string, any>()
+    
+    // Sort by created_at descending to keep the most recent
+    const sorted = [...notifications].sort((a, b) => {
+      const timeA = new Date(a.created_at || a.id).getTime()
+      const timeB = new Date(b.created_at || b.id).getTime()
+      return timeB - timeA
+    })
+    
+    for (const notification of sorted) {
+      const workroom = (notification.workroom || '').trim().toLowerCase()
+      const metric = extractMetricFromMessage(notification.message || '')
+      
+      if (workroom && metric) {
+        const key = `${workroom}:${metric}`
+        if (!seen.has(key)) {
+          seen.set(key, notification)
+        }
+      } else {
+        // If we can't extract metric, keep it (shouldn't happen with new format)
+        seen.set(notification.id, notification)
+      }
+    }
+    
+    return Array.from(seen.values())
+  }
+
   const refreshNotifications = useCallback(async () => {
     if (!user?.email) {
       setNotifications([])
@@ -40,6 +81,74 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
     setLoading(true)
     try {
       const authHeader = user.email
+      
+      // First, check user's role - if President, don't fetch or show notifications
+      const profileResponse = await fetch('/api/user-profile', {
+        headers: {
+          Authorization: `Bearer ${authHeader}`,
+        },
+      })
+      
+      let userRole: string | null = null
+      if (profileResponse.ok) {
+        const profile = await profileResponse.json()
+        userRole = profile.role || profile.user_role || null
+      }
+      
+      // If user is President, clear workroom score notifications but keep access request notifications
+      if (userRole === 'President') {
+        console.log('[Notifications] User has President role, filtering workroom score notifications')
+        
+        // Fetch notifications but filter out workroom performance notifications
+        // Keep System workroom notifications (access requests)
+        const response = await fetch('/api/notifications', {
+          headers: {
+            Authorization: `Bearer ${authHeader}`,
+          },
+        })
+        
+        if (response.ok) {
+          const result = await response.json()
+          const allNotifications = result.notifications || []
+          
+          // Only keep System workroom notifications (access requests)
+          const systemNotifications = allNotifications.filter((n: any) => {
+            const workroom = (n.workroom || '').trim()
+            return workroom === 'System'
+          })
+          
+          // Delete workroom performance notifications (not System)
+          const workroomNotifications = allNotifications.filter((n: any) => {
+            const workroom = (n.workroom || '').trim()
+            return workroom !== 'System'
+          })
+          
+          if (workroomNotifications.length > 0) {
+            const notificationIds = workroomNotifications.map((n: any) => n.id)
+            try {
+              await fetch('/api/notifications', {
+                method: 'DELETE',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${authHeader}`,
+                },
+                body: JSON.stringify({ notificationIds }),
+              })
+              console.log(`[Notifications] Deleted ${notificationIds.length} workroom performance notifications for President role`)
+            } catch (error) {
+              console.error('Error deleting workroom notifications for President:', error)
+            }
+          }
+          
+          // Show only System notifications (access requests)
+          setNotifications(systemNotifications)
+        } else {
+          setNotifications([])
+        }
+        setLoading(false)
+        return
+      }
+      
       const response = await fetch('/api/notifications', {
         headers: {
           Authorization: `Bearer ${authHeader}`,
@@ -51,16 +160,21 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
         const allNotifications = result.notifications || []
         
         // FILTER OUT old format notifications - don't even show them
+        // Keep: notifications with ⚠️ (new format) OR System workroom notifications (access requests)
         const newFormatOnly = allNotifications.filter((n: any) => {
           const messageLower = (n.message || '').toLowerCase()
-          // Only keep notifications with ⚠️ (new format)
-          return messageLower.includes('⚠️')
+          const workroom = (n.workroom || '').trim()
+          // Keep notifications with ⚠️ (new format) OR System workroom (access requests)
+          return messageLower.includes('⚠️') || workroom === 'System'
         })
         
         // If there were old format notifications, delete them from database
+        // Don't delete System workroom notifications (access requests)
         const oldFormatNotifications = allNotifications.filter((n: any) => {
           const messageLower = (n.message || '').toLowerCase()
-          return !messageLower.includes('⚠️')
+          const workroom = (n.workroom || '').trim()
+          // Delete old format (no ⚠️) but keep System workroom notifications
+          return !messageLower.includes('⚠️') && workroom !== 'System'
         })
         
         if (oldFormatNotifications.length > 0) {
@@ -84,8 +198,45 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
           }
         }
         
-        console.log(`[refreshNotifications] Showing ${newFormatOnly.length} new format notifications (filtered out ${oldFormatNotifications.length} old format)`)
-        setNotifications(newFormatOnly)
+        // Remove duplicate notifications (same workroom + same metric) - keep most recent
+        const deduplicatedNotifications = removeDuplicates(newFormatOnly)
+        if (newFormatOnly.length !== deduplicatedNotifications.length) {
+          const duplicateCount = newFormatOnly.length - deduplicatedNotifications.length
+          console.log(`[Notifications] 🧹 Found ${duplicateCount} duplicate notification(s), removing...`)
+          
+          // Delete duplicates from database (keep the most recent one)
+          const duplicateIds = newFormatOnly
+            .filter((n: any) => !deduplicatedNotifications.find((d: any) => d.id === n.id))
+            .map((n: any) => n.id)
+          
+          if (duplicateIds.length > 0) {
+            try {
+              const deleteResponse = await fetch('/api/notifications', {
+                method: 'DELETE',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${authHeader}`,
+                },
+                body: JSON.stringify({ notificationIds: duplicateIds }),
+              })
+              if (deleteResponse.ok) {
+                console.log(`[Notifications] ✅ Deleted ${duplicateIds.length} duplicate notification(s)`)
+              }
+            } catch (deleteError) {
+              console.error('Error deleting duplicate notifications:', deleteError)
+            }
+          }
+        }
+        
+        console.log(`[refreshNotifications] Showing ${deduplicatedNotifications.length} unique notifications (filtered out ${oldFormatNotifications.length} old format, ${newFormatOnly.length - deduplicatedNotifications.length} duplicates)`)
+        
+        // Log System notifications for debugging
+        const systemNotifications = deduplicatedNotifications.filter((n: any) => (n.workroom || '').trim() === 'System')
+        if (systemNotifications.length > 0) {
+          console.log(`[refreshNotifications] 📬 Found ${systemNotifications.length} System notification(s):`, systemNotifications.map((n: any) => n.message))
+        }
+        
+        setNotifications(deduplicatedNotifications)
       }
     } catch (error) {
       console.error('Error fetching notifications:', error)
@@ -224,6 +375,13 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
 
         const profile = await profileResponse.json()
         userWorkroom = profile.workroom || null
+        const userRole = profile.role || profile.user_role || null
+
+        // Skip notifications for President role
+        if (userRole === 'President') {
+          console.log('[Notifications] User has President role, skipping workroom score notifications')
+          return
+        }
 
         // Only send notifications for the user's assigned workroom
         if (!userWorkroom) {
@@ -339,6 +497,7 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
 
           // Calculate scores (same as VisualBreakdown) - MUST match exactly
           // VisualBreakdown line 845-859: includes 0 values in avgLTRFromSurvey check
+          // When LTR is N/A (no data), heatmap shows it as a hazard, so score should be < 70
           let ltrScore = 0
           if (avgLTRFromSurvey != null && avgLTRFromSurvey > 0) {
             // Use survey LTR score (0-10 scale) converted to 0-100
@@ -356,7 +515,9 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
               ltrScore = 0
             }
           } else {
-            ltrScore = 50 // Neutral if no data
+            // No data available (N/A) - treat as hazard (score < 70) to match heatmap
+            // Heatmap shows N/A as a warning, so we should notify about missing data
+            ltrScore = 50 // Below threshold of 70, so it will trigger notification
           }
 
           let detailsCycleTimeScore = 50
@@ -389,7 +550,7 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
             }
           }
 
-          let workOrderCycleTimeScore = 50
+          let workOrderCycleTimeScore = 50 // Default neutral (below threshold) - N/A case
           if (cycleTimeValue != null && cycleTimeValue > 0) {
             if (cycleTimeValue <= 15) {
               workOrderCycleTimeScore = 100
@@ -403,6 +564,8 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
               workOrderCycleTimeScore = 20
             }
           }
+          // When cycleTimeValue is null/undefined, score remains 50 (below threshold of 70)
+          // This matches heatmap behavior where N/A is shown as a warning
 
           let rescheduleRateScore = 50
           if (avgRescheduleRate != null && avgRescheduleRate > 0) {
@@ -439,11 +602,11 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
           const threshold = 70
 
           // LTR notification logic - must match heatmap exactly
-          // Heatmap shows hazard when ltrScore < 70 (including when score = 0)
+          // Heatmap shows hazard when ltrScore < 70 (including when score = 0 or N/A)
           if (ltrScore < threshold) {
             // Get the LTR value to display - MUST match VisualBreakdown display logic exactly
             // VisualBreakdown line 959: value: avgLTRFromSurvey != null ? avgLTRFromSurvey : (ltrPercent > 0 ? ltrPercent : null)
-            // VisualBreakdown line 1319: displays value with % only if avgLTRFromSurvey is null
+            // VisualBreakdown line 1319: displays "N/A" when value is null
             let ltrValue = ''
             if (avgLTRFromSurvey != null) {
               // avgLTRFromSurvey can be 0, which is valid - display it without %
@@ -451,20 +614,20 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
             } else if (ltrPercent > 0) {
               // Only use ltrPercent if it's > 0 (VisualBreakdown checks ltrPercent > 0)
               ltrValue = `${ltrPercent.toFixed(1)}%`
+            } else {
+              // No data available - show N/A (matches heatmap display)
+              ltrValue = 'N/A'
             }
             
-            if (ltrValue) {
-              console.log(`[Notifications] ✅ LTR hazard detected for ${w.name}: score=${ltrScore.toFixed(1)}, value=${ltrValue}, avgLTRFromSurvey=${avgLTRFromSurvey}, ltrPercent=${ltrPercent}`)
-              const ltrHazard = {
-                workroom: w.name,
-                metric: 'LTR',
-                message: `LTR performance is below standard ⚠️ ${ltrValue}`
-              }
-              console.log(`[Notifications] 📝 Adding LTR hazard to array:`, ltrHazard)
-              hazards.push(ltrHazard)
-            } else {
-              console.log(`[Notifications] ❌ LTR hazard for ${w.name} skipped: no valid value (avgLTRFromSurvey=${avgLTRFromSurvey}, ltrPercent=${ltrPercent})`)
+            // Always create notification if score is below threshold, even if value is N/A
+            console.log(`[Notifications] ✅ LTR hazard detected for ${w.name}: score=${ltrScore.toFixed(1)}, value=${ltrValue}, avgLTRFromSurvey=${avgLTRFromSurvey}, ltrPercent=${ltrPercent}`)
+            const ltrHazard = {
+              workroom: w.name,
+              metric: 'LTR',
+              message: `LTR performance is below standard ⚠️ ${ltrValue}`
             }
+            console.log(`[Notifications] 📝 Adding LTR hazard to array:`, ltrHazard)
+            hazards.push(ltrHazard)
           } else {
             console.log(`[Notifications] ⚠️ LTR for ${w.name} does not meet threshold: score=${ltrScore.toFixed(1)}, threshold=${threshold}, avgLTRFromSurvey=${avgLTRFromSurvey}, ltrPercent=${ltrPercent}`)
           }
@@ -485,11 +648,20 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
             })
           }
 
-          if (workOrderCycleTimeScore < threshold && workOrderCycleTimeScore > 0 && cycleTimeValue != null && cycleTimeValue > 0) {
+          if (workOrderCycleTimeScore < threshold) {
+            // Handle both cases: when value exists and when it's N/A
+            let workOrderCycleTimeValue = ''
+            if (cycleTimeValue != null && cycleTimeValue > 0) {
+              workOrderCycleTimeValue = `${cycleTimeValue.toFixed(1)}d`
+            } else {
+              // No data available - show N/A (matches heatmap display)
+              workOrderCycleTimeValue = 'N/A'
+            }
+            
             hazards.push({
               workroom: w.name,
               metric: 'Work Order Cycle Time',
-              message: `Work Order Cycle Time exceeds target ⚠️ ${cycleTimeValue.toFixed(1)}d`
+              message: `Work Order Cycle Time exceeds target ⚠️ ${workOrderCycleTimeValue}`
             })
           }
 
@@ -542,14 +714,76 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
               return false
             }
 
-            // Check if same metric and workroom
-            if (hazard.metric === 'LTR') {
-              return messageLower.includes('ltr') && messageLower.includes(hazardWorkroom)
+            // Check if same metric and workroom - use specific checks for each metric
+            // Note: Messages no longer include workroom name (removed redundant naming)
+            // Workroom is already matched above, so we only need to check the metric pattern
+            
+            // Extract metric identifier from message to ensure exact match
+            const extractMetricFromMessage = (msg: string): string | null => {
+              if (msg.includes('ltr') && msg.includes('performance is below standard')) return 'ltr'
+              if (msg.includes('reschedule rate') && msg.includes('above target')) return 'reschedule_rate'
+              if (msg.includes('job cycle time') && msg.includes('exceeds target')) return 'job_cycle_time'
+              if (msg.includes('work order cycle time') && msg.includes('exceeds target')) return 'work_order_cycle_time'
+              if (msg.includes('details cycle time') && msg.includes('exceeds target')) return 'details_cycle_time'
+              if (msg.includes('vendor debits') && (msg.includes('above target') || msg.includes('ratio is above'))) return 'vendor_debits'
+              return null
             }
             
-            // For other metrics, check metric name and workroom
+            // Get metric identifiers for both messages
+            const existingMetric = extractMetricFromMessage(messageLower)
+            const hazardMetricKey = hazard.metric === 'LTR' ? 'ltr' :
+                                   hazard.metric === 'Reschedule Rate' ? 'reschedule_rate' :
+                                   hazard.metric === 'Job Cycle Time' ? 'job_cycle_time' :
+                                   hazard.metric === 'Work Order Cycle Time' ? 'work_order_cycle_time' :
+                                   hazard.metric === 'Details Cycle Time' ? 'details_cycle_time' :
+                                   hazard.metric === 'Vendor Debits' ? 'vendor_debits' : null
+            
+            // If we can identify both metrics, compare them directly
+            if (existingMetric && hazardMetricKey && existingMetric === hazardMetricKey) {
+              return true // Same metric for same workroom = duplicate
+            }
+            
+            // Fallback: use pattern matching for each metric type
+            if (hazard.metric === 'LTR') {
+              return messageLower.includes('ltr') && 
+                     messageLower.includes('⚠️') &&
+                     messageLower.includes('performance is below standard')
+            }
+            
+            if (hazard.metric === 'Reschedule Rate') {
+              return messageLower.includes('reschedule rate') && 
+                     messageLower.includes('⚠️') &&
+                     messageLower.includes('above target')
+            }
+            
+            if (hazard.metric === 'Job Cycle Time') {
+              return messageLower.includes('job cycle time') && 
+                     messageLower.includes('⚠️') &&
+                     messageLower.includes('exceeds target')
+            }
+            
+            if (hazard.metric === 'Work Order Cycle Time') {
+              // Work Order Cycle Time can have N/A value, so check for both patterns
+              return messageLower.includes('work order cycle time') && 
+                     messageLower.includes('⚠️') &&
+                     (messageLower.includes('exceeds target') || messageLower.includes('n/a'))
+            }
+            
+            if (hazard.metric === 'Details Cycle Time') {
+              return messageLower.includes('details cycle time') && 
+                     messageLower.includes('⚠️') &&
+                     messageLower.includes('exceeds target')
+            }
+            
+            if (hazard.metric === 'Vendor Debits') {
+              return messageLower.includes('vendor debits') && 
+                     messageLower.includes('⚠️') &&
+                     (messageLower.includes('above target') || messageLower.includes('ratio is above'))
+            }
+            
+            // Fallback: check metric name (workroom already matched above)
             return messageLower.includes(hazard.metric.toLowerCase()) && 
-                   messageLower.includes(hazardWorkroom)
+                   messageLower.includes('⚠️')
           })
 
           if (existingNotification) {

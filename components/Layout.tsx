@@ -1,13 +1,14 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, usePathname } from 'next/navigation'
 import Sidebar from '@/components/Sidebar'
 import NotificationContainer from '@/components/NotificationContainer'
 import NotificationDropdown from '@/components/NotificationDropdown'
 import FirstTimeLoginModal from '@/components/FirstTimeLoginModal'
 import { useFilters } from '@/components/FilterContext'
 import { useAuth } from '@/components/AuthContext'
-import { LogOut, User, UserCog } from 'lucide-react'
+import { LogOut, User, UserCog, Menu, X } from 'lucide-react'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -17,6 +18,23 @@ export default function Layout({ children }: LayoutProps) {
   const { selectedWorkroom, setSelectedWorkroom, excludeCycleTime, setExcludeCycleTime } = useFilters()
   const { user, logout, isAdmin, accessRequests } = useAuth()
   const router = useRouter()
+  const pathname = usePathname()
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  // Detect mobile on mount and window resize
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768)
+      if (window.innerWidth > 768) {
+        setIsSidebarOpen(false) // Reset sidebar state when switching to desktop
+      }
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   const handleLogout = () => {
     logout()
@@ -31,11 +49,31 @@ export default function Layout({ children }: LayoutProps) {
     }
   }
 
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen)
+  }
+
+  const closeSidebar = () => {
+    setIsSidebarOpen(false)
+  }
+
+  // Close sidebar when route changes on mobile
+  useEffect(() => {
+    setIsSidebarOpen(false)
+  }, [pathname])
+
   return (
     <div className="dashboard-root">
       <header className="dashboard-header">
         <div className="dashboard-header-inner">
           <div className="dashboard-header-left">
+            <button
+              className="mobile-menu-button"
+              onClick={toggleSidebar}
+              aria-label="Toggle menu"
+            >
+              {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
             <div className="dashboard-logo-container">
               <img 
                 src="/logo.png" 
@@ -70,9 +108,16 @@ export default function Layout({ children }: LayoutProps) {
                     ) : (
                       <User size={28} />
                     )}
-                    <span style={{ fontSize: '1rem', fontWeight: 500 }}>
-                      {user.name || user.email}
-                    </span>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                      <span style={{ fontSize: '1rem', fontWeight: 500 }}>
+                        {user.name || user.email}
+                      </span>
+                      {user.jobTitle && (
+                        <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 400 }}>
+                          {user.jobTitle}
+                        </span>
+                      )}
+                    </div>
                     <svg
                       className="dropdown-arrow"
                       width="12"
@@ -115,12 +160,24 @@ export default function Layout({ children }: LayoutProps) {
         </div>
       </header>
 
+      {/* Mobile backdrop overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="mobile-sidebar-backdrop"
+          onClick={closeSidebar}
+          aria-hidden="true"
+        />
+      )}
+
       <div className="dashboard-layout">
         <Sidebar
           selectedWorkroom={selectedWorkroom}
           setSelectedWorkroom={setSelectedWorkroom}
           excludeCycleTime={excludeCycleTime}
           setExcludeCycleTime={setExcludeCycleTime}
+          isOpen={isSidebarOpen}
+          onClose={closeSidebar}
+          isMobile={isMobile}
         />
 
         <main className="dashboard-main">

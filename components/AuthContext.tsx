@@ -16,6 +16,7 @@ interface User {
   photoUrl?: string
   role?: 'admin' | 'user'
   lastLoginAt?: string
+  jobTitle?: string
 }
 
 interface AuthorizedUser {

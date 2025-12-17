@@ -5,10 +5,10 @@
 ALTER TABLE user_metadata
   DROP CONSTRAINT IF EXISTS user_metadata_user_role_check;
 
--- Step 2: Recreate the constraint with 'Corporate' included
+-- Step 2: Recreate the constraint with 'Corporate' and 'President' included
 ALTER TABLE user_metadata
   ADD CONSTRAINT user_metadata_user_role_check
-  CHECK (user_role IN ('GM', 'PC', 'Corporate', 'Other'));
+  CHECK (user_role IN ('GM', 'PC', 'Corporate', 'President', 'Other'));
 
 -- Step 3: Verify the constraint was updated
 SELECT 
@@ -17,3 +17,4 @@ SELECT
 FROM pg_constraint
 WHERE conrelid = 'user_metadata'::regclass
   AND conname = 'user_metadata_user_role_check';
+

@@ -138,8 +138,17 @@ export async function PUT(request: NextRequest) {
           return true
         }
         
-        // Extract metric from new format: "Workroom: Metric ⚠️ Value"
-        const extractMetric = (msg: string) => {
+        // Extract metric from new format with more precise matching
+        const extractMetric = (msg: string): string | null => {
+          // Use specific patterns to identify metrics accurately
+          if (msg.includes('ltr') && msg.includes('performance is below standard')) return 'ltr'
+          if (msg.includes('reschedule rate') && msg.includes('above target')) return 'reschedule_rate'
+          if (msg.includes('job cycle time') && msg.includes('exceeds target')) return 'job_cycle_time'
+          if (msg.includes('work order cycle time') && (msg.includes('exceeds target') || msg.includes('n/a'))) return 'work_order_cycle_time'
+          if (msg.includes('details cycle time') && msg.includes('exceeds target')) return 'details_cycle_time'
+          if (msg.includes('vendor debits') && (msg.includes('above target') || msg.includes('ratio is above'))) return 'vendor_debits'
+          
+          // Fallback to simple pattern matching
           const metrics = ['ltr', 'job cycle time', 'work order cycle time', 'details cycle time', 'reschedule rate', 'vendor debits']
           for (const metric of metrics) {
             if (msg.includes(metric)) {
@@ -149,25 +158,48 @@ export async function PUT(request: NextRequest) {
           return null
         }
         
-        // If new format (contains ⚠️), check by metric
+        // If new format (contains ⚠️), check by metric with precise matching
         if (messageLower.includes('⚠️')) {
           const newMetric = extractMetric(messageLower)
           const existingMetric = extractMetric(existingMessageLower)
           
           if (newMetric && existingMetric && newMetric === existingMetric) {
             // Same metric for same workroom = duplicate
+            console.log(`[Notifications API] Duplicate detected: ${newMetric} for ${workroomNormalized}`)
             return true
           }
         }
         
         // Also check if old format exists for same metric (treat as duplicate)
-        const metrics = ['ltr', 'job cycle time', 'work order cycle time', 'details cycle time', 'reschedule rate', 'vendor debit']
-        for (const metric of metrics) {
-          const hasMetricInNew = messageLower.includes(metric)
-          const hasMetricInExisting = existingMessageLower.includes(metric)
+        // Use more specific patterns to avoid false positives
+        const metricPatterns = [
+          { pattern: 'ltr', key: 'ltr' },
+          { pattern: 'job cycle time', key: 'job_cycle_time' },
+          { pattern: 'work order cycle time', key: 'work_order_cycle_time' },
+          { pattern: 'details cycle time', key: 'details_cycle_time' },
+          { pattern: 'reschedule rate', key: 'reschedule_rate' },
+          { pattern: 'vendor debit', key: 'vendor_debits' }
+        ]
+        
+        // For Work Order Cycle Time, also check for N/A pattern
+        if (messageLower.includes('work order cycle time') && existingMessageLower.includes('work order cycle time')) {
+          // Both have work order cycle time - check if one has N/A and the other doesn't
+          const newHasNA = messageLower.includes('n/a')
+          const existingHasNA = existingMessageLower.includes('n/a')
+          // If both have N/A or both don't have N/A, they're duplicates
+          if (newHasNA === existingHasNA) {
+            console.log(`[Notifications API] Duplicate detected by pattern: work_order_cycle_time for ${workroomNormalized}`)
+            return true
+          }
+        }
+        
+        for (const { pattern, key } of metricPatterns) {
+          const hasMetricInNew = messageLower.includes(pattern)
+          const hasMetricInExisting = existingMessageLower.includes(pattern)
           
           if (hasMetricInNew && hasMetricInExisting) {
             // Both contain same metric for same workroom = duplicate (regardless of format)
+            console.log(`[Notifications API] Duplicate detected by pattern: ${key} for ${workroomNormalized}`)
             return true
           }
         }

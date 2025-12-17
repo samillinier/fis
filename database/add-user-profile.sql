@@ -4,7 +4,7 @@
 -- Add workroom and role columns to user_metadata table
 ALTER TABLE user_metadata 
 ADD COLUMN IF NOT EXISTS workroom TEXT,
-ADD COLUMN IF NOT EXISTS user_role TEXT CHECK (user_role IN ('GM', 'PC', 'Corporate', 'Other'));
+ADD COLUMN IF NOT EXISTS user_role TEXT CHECK (user_role IN ('GM', 'PC', 'Corporate', 'President', 'Other'));
 
 -- Add index for workroom queries
 CREATE INDEX IF NOT EXISTS idx_user_metadata_workroom ON user_metadata(workroom);

@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import { useData } from '@/context/DataContext'
 import CountUpNumber from '@/components/CountUpNumber'
 import { getStoreName } from '@/data/storeNames'
+import WorkroomMap from '@/components/WorkroomMap'
 
 // Helper function to extract city name from full store name
 const extractCityName = (fullStoreName: string): string => {
@@ -1107,6 +1108,10 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
     <div className="space-y-0">
       {/* HEATMAP VISUALIZATION - MOVED TO TOP */}
       <section className="compact-section" style={{ marginBottom: '1.5rem' }}>
+        {/* Title */}
+        <div className="compact-section-header" style={{ marginBottom: '1rem' }}>
+          <h3 className="compact-section-title">Performance Operational Dashboard (POD)</h3>
+        </div>
         <div className="compact-chart-container" style={{ minHeight: '300px', padding: '1rem' }}>
           <div style={{ 
             display: 'grid', 
@@ -1118,21 +1123,21 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
           }}>
             {comprehensiveAnalysis.map((workroom) => {
               // Heatmap colors (flat, no glass)
-              let backgroundColor = '#ef4444' // Red - costing money
-              let heatmapLabel = 'Costing Money'
+              let backgroundColor = '#ef4444' // Red - Critical
+              let heatmapLabel = 'Critical'
               let textColor = '#ffffff'
               let borderColor = '#dc2626'
               let shadowColor = 'rgba(0, 0, 0, 0.15)'
               
               if (workroom.weightedPerformanceScore >= 85) {
                 backgroundColor = '#22c55e' // Green
-                heatmapLabel = 'Carrying Company'
+                heatmapLabel = 'Top Performing'
                 textColor = '#ffffff'
                 borderColor = '#16a34a'
                 shadowColor = 'rgba(34, 197, 94, 0.35)'
               } else if (workroom.weightedPerformanceScore >= 70) {
                 backgroundColor = '#facc15' // Yellow
-                heatmapLabel = 'Inconsistent'
+                heatmapLabel = 'Moderate'
                 textColor = '#1f2937'
                 borderColor = '#eab308'
                 shadowColor = 'rgba(234, 179, 8, 0.35)'
@@ -4333,6 +4338,42 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
           </div>
         </div>
       )}
+
+      {/* Geographic Map - Workroom Performance */}
+      <section className="compact-section" style={{ marginTop: '2rem' }}>
+        {useMemo(() => {
+          // Use the same comprehensiveAnalysis data that powers the heatmap
+          // This ensures the map uses the exact same WPI scoring calculation
+          const mapWorkrooms = comprehensiveAnalysis
+            .filter(w => w.name && isValidWorkroomName(w.name))
+            .map(w => {
+              // Use Labor PO $ as Sales (column AU)
+              // laborPO is stored in laborPOVolume.value in comprehensiveAnalysis
+              const sales = (w.laborPOVolume?.value || 0)
+              // For margin calculation: Cost is only Vendor Debit (not Labor PO + Vendor Debit)
+              // because Sales = Labor PO, so we don't count Labor PO as a cost
+              const vendorDebit = Math.abs(w.vendorDebitExposure?.value || 0)
+              const margin = sales - vendorDebit
+              const marginRate = sales > 0 ? (margin / sales) * 100 : 0
+
+              return {
+                name: w.name,
+                sales: sales, // Labor PO $ is used as Sales
+                marginRate,
+                records: w.records,
+                totalCost: vendorDebit, // Only Vendor Debit as cost for margin calculation
+                margin,
+                weightedPerformanceScore: w.weightedPerformanceScore,
+              }
+            })
+
+          return (
+            <WorkroomMap
+              workrooms={mapWorkrooms}
+            />
+          )
+        }, [filteredData, comprehensiveAnalysis])}
+      </section>
     </div>
   )
 }

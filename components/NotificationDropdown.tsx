@@ -255,7 +255,11 @@ export default function NotificationDropdown() {
                       }
                       
                       // Then handle navigation or other actions
-                      if (isRescheduleRateNotification(notification.message)) {
+                      if (notification.workroom === 'System' && notification.message.toLowerCase().includes('access request')) {
+                        // Navigate to Profile page for access requests
+                        router.push('/profile')
+                        setIsOpen(false)
+                      } else if (isRescheduleRateNotification(notification.message)) {
                         handleFixNow(undefined, notification)
                       } else if (isLTRNotification(notification.message)) {
                         handleFixNowLTR(undefined, notification)
