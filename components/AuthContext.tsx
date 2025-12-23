@@ -611,12 +611,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         try {
-          const photoResponse = await fetch('https://graph.microsoft.com/v1.0/me/photo/$value', {
-            headers: {
-              Authorization: `Bearer ${result.accessToken}`,
-            },
-          })
+          // Fetch user profile information (including job title) and photo concurrently
+          const [profileResponse, photoResponse] = await Promise.all([
+            fetch('https://graph.microsoft.com/v1.0/me', {
+              headers: {
+                Authorization: `Bearer ${result.accessToken}`,
+              },
+            }),
+            fetch('https://graph.microsoft.com/v1.0/me/photo/$value', {
+              headers: {
+                Authorization: `Bearer ${result.accessToken}`,
+              },
+            })
+          ])
 
+          // Get job title from profile
+          if (profileResponse.ok) {
+            const profileData = await profileResponse.json()
+            if (profileData.jobTitle) {
+              userData.jobTitle = profileData.jobTitle
+            }
+          }
+
+          // Get profile photo
           if (photoResponse.ok) {
             const photoBlob = await photoResponse.blob()
             const base64String = await new Promise<string>((resolve, reject) => {
@@ -628,7 +645,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             userData.photoUrl = base64String
           }
         } catch (error) {
-          console.log('Could not fetch profile photo:', error)
+          console.log('Could not fetch profile data:', error)
         }
 
         setUser(userData)

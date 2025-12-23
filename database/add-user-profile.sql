@@ -39,3 +39,5 @@ CREATE POLICY "Service role full access notifications" ON notifications
 
 
 
+
+

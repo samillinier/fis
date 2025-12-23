@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { getWorkroomCoordinates, getMapCenter } from '@/data/workroomCoordinates'
-import { getStoresWithCoordinates } from '@/data/storeCoordinates'
+import { getStoresWithCoordinates, type StoreCoordinates } from '@/data/storeCoordinates'
 
 // Dynamically import Leaflet to avoid SSR issues
 const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapContainer), { ssr: false })
@@ -123,6 +123,58 @@ function createPerformanceIcon(weightedPerformanceScore: number, L: any): any {
 // 10 miles in meters (1 mile = 1609.34 meters)
 const STORE_RADIUS_METERS = 10 * 1609.34 // Approximately 16,093 meters
 
+// Component to display location map thumbnail using Leaflet tile
+function LocationMapThumbnail({ lat, lng, storeName }: { lat: number; lng: number; storeName: string }) {
+  // Calculate tile coordinates for zoom level 15 (good detail level)
+  const zoom = 15
+  const n = Math.pow(2, zoom)
+  const x = Math.floor((lng + 180) / 360 * n)
+  const latRad = lat * Math.PI / 180
+  const y = Math.floor((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * n)
+  
+  // Get the center tile for this location
+  const tileUrl = `https://tile.openstreetmap.org/${zoom}/${x}/${y}.png`
+
+  return (
+    <div style={{ width: '150px', height: '120px', borderRadius: '4px', overflow: 'hidden', border: '1px solid #e5e7eb', flexShrink: 0, backgroundColor: '#f3f4f6', position: 'relative' }}>
+      <img
+        src={tileUrl}
+        alt={`Location map for ${storeName}`}
+        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+        loading="lazy"
+        onError={(e) => {
+          // Fallback: Show coordinates if tile fails to load
+          const target = e.target as HTMLImageElement
+          target.style.display = 'none'
+          const parent = target.parentElement
+          if (parent) {
+            parent.innerHTML = `<div style="padding: 0.5rem; text-align: center; font-size: 0.7rem; color: #6b7280; display: flex; flex-direction: column; justify-content: center; height: 100%;">
+              <div style="font-size: 1.5rem; margin-bottom: 0.25rem;">📍</div>
+              <div>${lat.toFixed(4)}</div>
+              <div>${lng.toFixed(4)}</div>
+            </div>`
+          }
+        }}
+      />
+      {/* Red marker pin overlay to show exact location */}
+      <div style={{
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: '16px',
+        height: '16px',
+        backgroundColor: '#ef4444',
+        borderRadius: '50%',
+        border: '2px solid white',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.4)',
+        pointerEvents: 'none',
+        zIndex: 10
+      }} />
+    </div>
+  )
+}
+
 export default function WorkroomMap({ workrooms }: WorkroomMapProps) {
   const [isClient, setIsClient] = useState(false)
   const [L, setL] = useState<any>(null)
@@ -168,10 +220,28 @@ export default function WorkroomMap({ workrooms }: WorkroomMapProps) {
       .filter((w): w is WorkroomMapData & { lat: number; lng: number } => w !== null)
   }, [workrooms])
   
-  // Get stores with coordinates
+  // Get stores with coordinates, deduplicated by location
   const storesWithCoords = useMemo(() => {
     if (!showStores) return []
-    return getStoresWithCoordinates()
+    const allStores = getStoresWithCoordinates()
+    
+    // Deduplicate stores at the same coordinates (remove repetitive locations)
+    // Use a Map to track unique coordinate pairs, keeping the first store at each location
+    const uniqueStores = new Map<string, StoreCoordinates>()
+    
+    allStores.forEach(store => {
+      if (store.lat !== null && store.lng !== null) {
+        // Create a key from coordinates (rounded to 4 decimal places to handle minor variations)
+        const coordKey = `${store.lat.toFixed(4)},${store.lng.toFixed(4)}`
+        
+        // Only keep the first store at each coordinate
+        if (!uniqueStores.has(coordKey)) {
+          uniqueStores.set(coordKey, store)
+        }
+      }
+    })
+    
+    return Array.from(uniqueStores.values())
   }, [showStores])
   
   const formatCurrency = (value: number) =>
@@ -235,8 +305,12 @@ export default function WorkroomMap({ workrooms }: WorkroomMapProps) {
           </div>
         )}
       </div>
-      <div className="h-96 w-full rounded-lg overflow-hidden border border-gray-200">
+      <div 
+        id="workroom-map-container"
+        className="h-96 w-full rounded-lg overflow-hidden border border-gray-200"
+      >
         <MapContainer
+          key="workroom-performance-map"
           center={[mapCenter.lat, mapCenter.lng]}
           zoom={7}
           style={{ height: '100%', width: '100%' }}
@@ -293,9 +367,9 @@ export default function WorkroomMap({ workrooms }: WorkroomMapProps) {
             const storePathOptions = {
               color: '#3b82f6', // Blue border
               fillColor: '#3b82f6', // Blue fill
-              fillOpacity: 0.15, // Transparent (15% opacity) - SAME FOR ALL
+              fillOpacity: 0.35, // More visible (35% opacity) - SAME FOR ALL
               weight: 2, // Border width
-              opacity: 0.4, // Border opacity - SAME FOR ALL
+              opacity: 0.6, // Border opacity - SAME FOR ALL
               interactive: true,
               bubblingMouseEvents: false,
             }
@@ -308,23 +382,30 @@ export default function WorkroomMap({ workrooms }: WorkroomMapProps) {
                 pathOptions={storePathOptions}
               >
                 <Popup>
-                  <div style={{ minWidth: '200px' }}>
-                    <h4 style={{ fontWeight: 600, marginBottom: '0.5rem', fontSize: '1rem' }}>
-                      {store.name}
-                    </h4>
-                    <div style={{ fontSize: '0.875rem', lineHeight: '1.6' }}>
-                      <div style={{ marginBottom: '0.25rem' }}>
-                        <strong>Store #:</strong> {store.number}
+                  <div style={{ minWidth: '250px', maxWidth: '400px' }}>
+                    <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                      <div style={{ flex: 1 }}>
+                        <h4 style={{ fontWeight: 600, marginBottom: '0.5rem', fontSize: '1rem' }}>
+                          {store.name}
+                        </h4>
+                        <div style={{ fontSize: '0.875rem', lineHeight: '1.6' }}>
+                          <div style={{ marginBottom: '0.25rem' }}>
+                            <strong>Store #:</strong> {store.number}
+                          </div>
+                          <div style={{ marginBottom: '0.25rem' }}>
+                            <strong>Workroom:</strong> {store.workroom}
+                          </div>
+                          <div style={{ marginBottom: '0.25rem', fontSize: '0.75rem', color: '#6b7280' }}>
+                            {store.fullAddress}
+                          </div>
+                          <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#6b7280', fontStyle: 'italic' }}>
+                            Coverage: 10 mile radius
+                          </div>
+                        </div>
                       </div>
-                      <div style={{ marginBottom: '0.25rem' }}>
-                        <strong>Workroom:</strong> {store.workroom}
-                      </div>
-                      <div style={{ marginBottom: '0.25rem', fontSize: '0.75rem', color: '#6b7280' }}>
-                        {store.fullAddress}
-                      </div>
-                      <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#6b7280', fontStyle: 'italic' }}>
-                        Coverage: 10 mile radius
-                      </div>
+                      {store.lat && store.lng && (
+                        <LocationMapThumbnail lat={store.lat} lng={store.lng} storeName={store.name} />
+                      )}
                     </div>
                   </div>
                 </Popup>
@@ -336,4 +417,6 @@ export default function WorkroomMap({ workrooms }: WorkroomMapProps) {
     </div>
   )
 }
+
+
 

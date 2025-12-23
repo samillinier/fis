@@ -198,3 +198,5 @@ console.log(`   Workrooms: ${workroomCoords.length}`);
 console.log(`   Stores: ${stores.length}`);
 console.log(`\n⚠️  Next step: Geocode store addresses to get coordinates for map display.`);
 
+
+

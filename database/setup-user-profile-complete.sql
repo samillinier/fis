@@ -68,3 +68,5 @@ ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Service role full access notifications" ON notifications;
 CREATE POLICY "Service role full access notifications" ON notifications
   FOR ALL USING (true) WITH CHECK (true);
+
+

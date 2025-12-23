@@ -26,3 +26,5 @@ CREATE POLICY "Service role full access user_metadata" ON user_metadata
 
 
 
+
+

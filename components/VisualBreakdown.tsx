@@ -2253,16 +2253,15 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                 />
                 <Bar
                   dataKey="avgLaborPO"
-                  fill="#3b82f6"
+                  fill="#10b981"
                   radius={[4, 4, 0, 0]}
                 >
                   {avgLaborPOByWorkroom.map((w, index) => {
-                    // Color based on average Labor PO value
-                    let fillColor = '#94a3b8' // neutral gray
+                    // Color based on average Labor PO value - only green, yellow, and red
+                    let fillColor = '#ef4444' // red - default for low values
                     const avg = w.avgLaborPO
-                    if (avg > 7000) fillColor = '#10b981' // green - high average
-                    else if (avg > 5000) fillColor = '#3b82f6' // blue - good
-                    else if (avg > 3000) fillColor = '#fbbf24' // yellow - moderate
+                    if (avg > 4000) fillColor = '#10b981' // green - high average
+                    else if (avg > 2000) fillColor = '#fbbf24' // yellow - moderate
                     else fillColor = '#ef4444' // red - low
 
                     return <Cell key={`cell-${index}`} fill={fillColor} />

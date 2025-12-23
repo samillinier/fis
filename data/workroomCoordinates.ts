@@ -1,6 +1,7 @@
 // Workroom geographic coordinates (latitude, longitude)
 // Used for displaying workrooms on a map
-// Generated from maps.xlsx (FIS WORKROOM & STORE MAP)
+// Generated from ../maps.xlsx - addresses from column A
+// Last updated: 2025-12-23T00:28:12.714Z
 
 export interface WorkroomCoordinates {
   name: string
