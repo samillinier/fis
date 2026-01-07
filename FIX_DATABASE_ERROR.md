@@ -1,92 +1,135 @@
-# 🔧 Fix: "requested path is invalid" Error
+# Fix "database_error" After QuickBooks Connection
 
-## What This Error Means
+## The Problem
 
-The error `{"error":"requested path is invalid"}` means Supabase can't connect to your database. This usually happens because:
+After successfully connecting to QuickBooks (OAuth worked!), you're getting a "database_error" when trying to save the connection.
 
-1. **Database tables don't exist yet** (most common)
-2. **Keys are in wrong format**
-3. **Database URL is incorrect**
+## Root Cause
 
-## ✅ Quick Fix (Most Likely Solution)
+The `quickbooks_connections` table either:
+1. **Doesn't exist** in your Supabase database
+2. **RLS policies are blocking** the insert (even though service_role should bypass RLS)
 
-### Step 1: Run the Database Schema
+## Solution: Create the Table
 
-The tables need to be created first. Here's how:
+### Step 1: Run SQL Migration in Supabase
 
-1. **Go to Supabase Dashboard:**
-   - Visit: https://supabase.com/dashboard/project/idkuchtgrgooqixdjjcc
-   - Or go to: https://supabase.com/dashboard → Select your project
+1. Go to **Supabase Dashboard** → Your Project
+2. Click **SQL Editor** in the left sidebar
+3. Click **"New query"**
+4. Copy and paste this entire SQL script:
 
-2. **Open SQL Editor:**
-   - Click **"SQL Editor"** in the left sidebar
-   - Click **"New Query"** button
+```sql
+-- QuickBooks Connections Table
+CREATE TABLE IF NOT EXISTS quickbooks_connections (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  realm_id TEXT NOT NULL,
+  access_token TEXT NOT NULL,
+  refresh_token TEXT,
+  expires_at TIMESTAMPTZ,
+  company_name TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(user_id)
+);
 
-3. **Run the Schema:**
-   - Open file: `database/schema.sql` from your project folder
-   - Copy ALL the SQL code (everything in that file)
-   - Paste into Supabase SQL Editor
-   - Click **"Run"** (or press Cmd+Enter)
-   - You should see: ✅ "Success. No rows returned"
+-- Create indexes
+CREATE INDEX IF NOT EXISTS idx_quickbooks_connections_user_id ON quickbooks_connections(user_id);
+CREATE INDEX IF NOT EXISTS idx_quickbooks_connections_realm_id ON quickbooks_connections(realm_id);
 
-4. **Verify Tables Created:**
-   - Click **"Table Editor"** in left sidebar
-   - You should see 3 tables:
-     - `users`
-     - `workroom_data`
-     - `historical_data`
+-- Enable RLS
+ALTER TABLE quickbooks_connections ENABLE ROW LEVEL SECURITY;
 
-### Step 2: Restart Your Server
+-- Drop existing policies if they exist (to recreate them)
+DROP POLICY IF EXISTS "Users can view own QuickBooks connections" ON quickbooks_connections;
+DROP POLICY IF EXISTS "Users can insert own QuickBooks connections" ON quickbooks_connections;
+DROP POLICY IF EXISTS "Users can update own QuickBooks connections" ON quickbooks_connections;
+DROP POLICY IF EXISTS "Users can delete own QuickBooks connections" ON quickbooks_connections;
 
-```bash
-npm run dev
+-- Create RLS policies
+-- Note: These policies use auth.uid(), but service_role bypasses RLS
+-- The API uses service_role key, so these policies won't block inserts
+CREATE POLICY "Users can view own QuickBooks connections"
+  ON quickbooks_connections FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own QuickBooks connections"
+  ON quickbooks_connections FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own QuickBooks connections"
+  ON quickbooks_connections FOR UPDATE
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own QuickBooks connections"
+  ON quickbooks_connections FOR DELETE
+  USING (auth.uid() = user_id);
 ```
 
-### Step 3: Test Again
+5. Click **"Run"** or press `Ctrl+Enter` (or `Cmd+Enter` on Mac)
+6. Wait for success message
 
-Try uploading data again. The error should be gone!
+### Step 2: Verify Table Created
 
-## 🔍 If That Doesn't Work
+1. In Supabase Dashboard, go to **Table Editor**
+2. Look for `quickbooks_connections` table
+3. It should show columns: `id`, `user_id`, `realm_id`, `access_token`, etc.
 
-### Check Your Keys Format
+### Step 3: Test Connection Again
 
-Your current keys use a custom format:
-- `sb_publishable_Vqo7Xww4Go4iQJ7U44t9vQ_ZbZokbID`
-- `sb_secret_1u_e0Fo-lp_LCy8Zjsw2nQ_7OWZqMBH`
+1. Go to: `https://fis-phi.vercel.app/finance-hub`
+2. Click "Connect to QuickBooks"
+3. Authorize the connection
+4. It should work now!
 
-**Standard Supabase keys are JWT tokens** that:
-- Start with `eyJ...`
-- Are 200+ characters long
-- Look like: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIs...`
+## Alternative: Disable RLS (If Policies Are Blocking)
 
-**To get the correct keys:**
+If the table exists but RLS is still blocking, you can temporarily disable RLS:
 
-1. Go to Supabase Dashboard → **Settings** → **API**
-2. Find **"Project API keys"** section
-3. Copy:
-   - **anon/public** key (the long JWT token starting with `eyJ...`)
-   - **service_role** key (the long JWT token starting with `eyJ...`)
-4. Update `.env.local`:
-   ```env
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...paste_your_long_jwt_token_here...
-   SUPABASE_SERVICE_ROLE_KEY=eyJ...paste_your_long_jwt_token_here...
-   ```
-5. Restart server: `npm run dev`
+```sql
+ALTER TABLE quickbooks_connections DISABLE ROW LEVEL SECURITY;
+```
 
-## 🎯 Most Common Fix
+**Note:** This is less secure, but since you're using service_role key in the API, RLS is already bypassed. The policies are mainly for direct database access.
 
-**99% of the time, the issue is:** The database tables don't exist yet.
+## Verify Table Exists
 
-**Solution:** Run `database/schema.sql` in Supabase SQL Editor (see Step 1 above).
+Run this query in Supabase SQL Editor to check:
 
-## 📝 Still Having Issues?
+```sql
+SELECT table_name 
+FROM information_schema.tables 
+WHERE table_schema = 'public' 
+AND table_name = 'quickbooks_connections';
+```
 
-1. Check browser console (F12) for full error message
-2. Check server terminal for error details
-3. Verify Supabase project is active (not paused)
-4. Make sure `.env.local` file exists and has correct values
+If it returns a row, the table exists. If empty, run the CREATE TABLE script above.
 
----
+## Common Issues
 
-**Note:** The app will automatically use localStorage as a fallback if the database fails, so you can still use the app while fixing the database connection!
+### Issue 1: Table Doesn't Exist
+- **Symptom:** "relation quickbooks_connections does not exist"
+- **Fix:** Run the CREATE TABLE script above
 
+### Issue 2: RLS Blocking (Even with Service Role)
+- **Symptom:** Insert fails with permission error
+- **Fix:** Disable RLS temporarily: `ALTER TABLE quickbooks_connections DISABLE ROW LEVEL SECURITY;`
+
+### Issue 3: Foreign Key Constraint
+- **Symptom:** "foreign key constraint fails"
+- **Fix:** Make sure `users` table exists and the `user_id` exists in it
+
+## Quick Test
+
+After creating the table, test with this query:
+
+```sql
+SELECT * FROM quickbooks_connections LIMIT 1;
+```
+
+If it runs without error, the table exists and is accessible.
+
+## Summary
+
+The "database_error" means the `quickbooks_connections` table doesn't exist. Run the SQL script above in Supabase SQL Editor to create it, then try connecting again!

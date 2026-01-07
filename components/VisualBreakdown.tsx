@@ -524,20 +524,6 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
     .sort((a, b) => b.wpiScore - a.wpiScore)
     .slice(0, 15)
 
-  // Workrooms Most Responsible for Moving Your Business - Top Load (Labor PO $ Average)
-  const topLoadWorkrooms = Array.from(performingWorkroomsMap.values())
-    .map((w) => {
-      const avgLaborPO = w.records > 0 ? w.laborPO / w.records : 0
-      return {
-        name: w.name,
-        totalLaborPO: w.laborPO,
-        avgLaborPO,
-        records: w.records,
-        stores: w.stores.size,
-      }
-    })
-    .sort((a, b) => b.avgLaborPO - a.avgLaborPO)
-    .slice(0, 4)
 
   // Workroom Performance Index (WPI) by Workroom
   // Weighted: 50% LTR, 30% Labor PO $, 20% Vendor Debit discipline
@@ -1102,6 +1088,26 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
              name !== '' && 
              !name.includes('location #') &&
              w.name.trim() !== ''
+    })
+
+  // Workrooms Most Responsible for Moving Your Business - Based on Heatmap WPI Score
+  const topLoadWorkrooms = comprehensiveAnalysis
+    .map((w) => ({
+      name: w.name,
+      wpiScore: w.weightedPerformanceScore,
+      records: w.records,
+      stores: w.storeMix?.count || 0,
+    }))
+    .sort((a, b) => b.wpiScore - a.wpiScore)
+    .slice(0, 4)
+    .map((w, index, array) => {
+      // Calculate percentage contribution based on WPI score
+      const totalWPI = array.reduce((sum, item) => sum + item.wpiScore, 0)
+      const wpiPercent = totalWPI > 0 ? (w.wpiScore / totalWPI) * 100 : 0
+      return {
+        ...w,
+        wpiPercent,
+      }
     })
 
   return (
@@ -1695,11 +1701,11 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
         <section className="compact-section">
           <div className="compact-section-header">
             <h3 className="compact-section-title">Workrooms Most Responsible for Moving Your Business</h3>
-            <p className="text-xs text-gray-500 mt-1">Top Load (Total Sales Average) - Top 4 Workrooms</p>
+            <p className="text-xs text-gray-500 mt-1">Top Performing Workrooms by WPI Score (Heatmap) - Top 4 Workrooms</p>
           </div>
 
           <div className="compact-chart-container">
-            <h4 className="text-xs font-semibold mb-3 text-gray-700 uppercase tracking-wider">Total Sales Distribution</h4>
+            <h4 className="text-xs font-semibold mb-3 text-gray-700 uppercase tracking-wider">WPI Score Distribution</h4>
             {topLoadWorkrooms.length > 0 ? (
               <ResponsiveContainer width="100%" height={240}>
                 <PieChart>
@@ -1708,19 +1714,19 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, percent, avgLaborPO }) =>
-                      `${name}: ${formatCurrency(avgLaborPO)} (${(percent * 100).toFixed(1)}%)`
+                    label={({ name, wpiPercent, wpiScore }) =>
+                      `${name}: ${wpiScore.toFixed(1)} (${wpiPercent.toFixed(1)}%)`
                     }
                     outerRadius={90}
                     fill="#8884d8"
-                    dataKey="avgLaborPO"
+                    dataKey="wpiScore"
                   >
                     {topLoadWorkrooms.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(value: number) => formatCurrency(value)}
+                    formatter={(value: number) => `WPI: ${value.toFixed(1)}`}
                     contentStyle={{
                       backgroundColor: '#fff',
                       border: '1px solid #e5e7eb',
@@ -1743,17 +1749,25 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                 <thead>
                   <tr>
                     <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Workroom</th>
-                    <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Avg Total Sales</th>
+                    <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>WPI Score</th>
                     <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Records</th>
                   </tr>
                 </thead>
                 <tbody>
                   {topLoadWorkrooms.map((workroom) => {
+                    // Determine badge color based on WPI score
+                    let badgeClass = 'badge-neutral'
+                    if (workroom.wpiScore >= 85) badgeClass = 'badge-positive'
+                    else if (workroom.wpiScore >= 70) badgeClass = 'badge-neutral'
+                    else badgeClass = 'badge-negative'
+                    
                     return (
                       <tr key={workroom.name}>
                         <td style={{ padding: '0.5rem 0.75rem', fontWeight: 600, fontSize: '0.75rem' }}>{workroom.name}</td>
-                        <td align="right" style={{ padding: '0.5rem 0.75rem', fontWeight: 600, fontSize: '0.75rem' }}>
-                          {formatCurrency(workroom.avgLaborPO)}
+                        <td align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.75rem' }}>
+                          <span className={badgeClass} style={{ fontSize: '0.7rem', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>
+                            {workroom.wpiScore.toFixed(1)}
+                          </span>
                         </td>
                         <td align="right" style={{ padding: '0.5rem 0.75rem', color: '#6b7280', fontSize: '0.75rem' }}>
                           {formatInt(workroom.records)}
@@ -1764,7 +1778,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   {topLoadWorkrooms.length === 0 && (
                     <tr>
                       <td colSpan={3} style={{ textAlign: 'center', padding: '2rem 0.75rem', color: '#6b7280', fontSize: '0.75rem' }}>
-                        Upload a T1/T2 scorecard to see top load workrooms.
+                        Upload a T1/T2 scorecard to see top performing workrooms.
                       </td>
                     </tr>
                   )}
@@ -1805,15 +1819,25 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                 </tr>
               </thead>
               <tbody>
-                {topPerformingWorkrooms.map((workroom, index) => {
+                {comprehensiveAnalysis.slice(0, 15).map((workroom, index) => {
+                  // Use the same weightedPerformanceScore from heatmap
+                  const wpiScore = workroom.weightedPerformanceScore
                   let wpiBadgeClass = 'badge-neutral'
-                  if (workroom.wpiScore > 70) wpiBadgeClass = 'badge-positive'
-                  else if (workroom.wpiScore < 40) wpiBadgeClass = 'badge-warning'
+                  if (wpiScore >= 85) wpiBadgeClass = 'badge-positive' // Top Performing
+                  else if (wpiScore >= 70) wpiBadgeClass = 'badge-neutral' // Moderate
+                  else wpiBadgeClass = 'badge-warning' // Critical
 
+                  // Get LTR% from comprehensiveAnalysis (same as heatmap)
+                  const ltrPercent = workroom.ltrPerformance?.value || 0
                   let ltrBadgeClass = 'badge-neutral'
                   // Lower LTR% is better (less labor cost relative to sales)
-                  if (workroom.ltrPercent < 20) ltrBadgeClass = 'badge-positive'
-                  else if (workroom.ltrPercent > 40) ltrBadgeClass = 'badge-warning'
+                  if (ltrPercent < 20) ltrBadgeClass = 'badge-positive'
+                  else if (ltrPercent > 40) ltrBadgeClass = 'badge-warning'
+
+                  // Get values from comprehensiveAnalysis (same as heatmap)
+                  const stores = workroom.storeMix?.count || 0
+                  const laborPO = workroom.laborPOVolume?.value || 0
+                  const vendorDebit = workroom.vendorDebitExposure?.value || 0
 
                   return (
                     <tr key={workroom.name}>
@@ -1822,28 +1846,28 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                       </td>
                       <td style={{ padding: '0.5rem 0.75rem', fontWeight: 600, fontSize: '0.75rem' }}>{workroom.name}</td>
                       <td align="right" style={{ padding: '0.5rem 0.75rem', color: '#6b7280', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
-                        {formatInt(workroom.stores)}
+                        {formatInt(stores)}
                       </td>
                       <td align="right" style={{ padding: '0.5rem 0.75rem' }}>
                         <span className={`badge-pill ${ltrBadgeClass}`} style={{ fontSize: '0.65rem', padding: '0.15rem 0.4rem', display: 'inline-block' }}>
-                          {workroom.ltrPercent.toFixed(1)}%
+                          {ltrPercent.toFixed(1)}%
                         </span>
                       </td>
                       <td align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
-                        {formatCurrency(workroom.laborPO)}
+                        {formatCurrency(laborPO)}
                       </td>
                       <td align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
-                        {formatCurrency(workroom.vendorDebit)}
+                        {formatCurrency(vendorDebit)}
                       </td>
                       <td align="right" style={{ padding: '0.5rem 0.75rem' }}>
                         <span className={`badge-pill ${wpiBadgeClass}`} style={{ fontSize: '0.65rem', padding: '0.15rem 0.4rem', fontWeight: 600, display: 'inline-block' }}>
-                          {workroom.wpiScore.toFixed(1)}
+                          {wpiScore.toFixed(1)}
                         </span>
                       </td>
                     </tr>
                   )
                 })}
-                {topPerformingWorkrooms.length === 0 && (
+                {comprehensiveAnalysis.length === 0 && (
                   <tr>
                     <td colSpan={7} style={{ textAlign: 'center', padding: '2rem 0.75rem', color: '#6b7280', fontSize: '0.75rem' }}>
                       Upload a T1/T2 scorecard to see top performing workrooms.
@@ -2052,20 +2076,20 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
         <div className="compact-section-header">
           <h3 className="compact-section-title">Workroom Performance Index (WPI) by Workroom</h3>
           <p className="text-xs text-gray-500 mt-1">
-            Weighted using: 50% LTR • 30% Total Sales • 20% Vendor Debit discipline
+            Using heatmap scoring: 50% LTR • 5% Details Cycle Time • 13% Job Cycle Time • 14% Work Order Cycle Time • 8% Reschedule Rate • 10% Vendor Debits
           </p>
         </div>
 
         <div className="analytics-grid-container">
           {/* BAR CHART */}
           <div className="compact-chart-container" style={{ minHeight: '500px', padding: '1rem' }}>
-            {wpiByWorkroom.length > 0 ? (
+            {comprehensiveAnalysis.length > 0 ? (
               <ResponsiveContainer width="100%" height={500}>
                 <BarChart
-                  data={wpiByWorkroom.map((w, index) => ({
+                  data={comprehensiveAnalysis.map((w, index) => ({
                     name: w.name.length > 15 ? w.name.substring(0, 15) + '...' : w.name,
                     fullName: w.name,
-                    wpi: Number(w.weightedWPI.toFixed(1)),
+                    wpi: Number(w.weightedPerformanceScore.toFixed(1)),
                     rank: index + 1,
                   }))}
                   margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
@@ -2114,11 +2138,12 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                     fill="#3b82f6"
                     radius={[4, 4, 0, 0]}
                   >
-                    {wpiByWorkroom.map((w, index) => {
-                      let fillColor = '#10b981' // green - default for excellent
-                      if (w.weightedWPI > 70) fillColor = '#10b981' // green - excellent
-                      else if (w.weightedWPI >= 40) fillColor = '#fbbf24' // yellow - warning/moderate
-                      else fillColor = '#ef4444' // red - poor/critical
+                    {comprehensiveAnalysis.map((w, index) => {
+                      // Use same color scheme as heatmap
+                      let fillColor = '#ef4444' // red - Critical
+                      if (w.weightedPerformanceScore >= 85) fillColor = '#10b981' // green - Top Performing
+                      else if (w.weightedPerformanceScore >= 70) fillColor = '#fbbf24' // yellow - Moderate
+                      else fillColor = '#ef4444' // red - Critical
 
                       return <Cell key={`cell-${index}`} fill={fillColor} />
                     })}
@@ -2146,34 +2171,43 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   <tr>
                     <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'left' }}>Workroom</th>
                     <th align="center" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>WPI</th>
-                    <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Avg Total Sales</th>
+                    <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Labor PO $</th>
                     <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>Avg Vendor Debits</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {wpiByWorkroom.map((workroom) => {
+                  {comprehensiveAnalysis.map((workroom) => {
+                    // Use same weightedPerformanceScore from heatmap
+                    const wpiScore = workroom.weightedPerformanceScore
                     let wpiBadgeClass = 'badge-neutral'
-                    if (workroom.weightedWPI > 70) wpiBadgeClass = 'badge-positive'
-                    else if (workroom.weightedWPI < 40) wpiBadgeClass = 'badge-warning'
+                    if (wpiScore >= 85) wpiBadgeClass = 'badge-positive' // Top Performing
+                    else if (wpiScore >= 70) wpiBadgeClass = 'badge-neutral' // Moderate
+                    else wpiBadgeClass = 'badge-warning' // Critical
+
+                    // Get Labor PO $ from comprehensiveAnalysis (same as heatmap)
+                    const laborPO = workroom.laborPOVolume?.value || 0
+                    // Calculate average vendor debits from comprehensiveAnalysis data (same as heatmap)
+                    const records = workroom.records || 1
+                    const avgVendorDebits = records > 0 ? (workroom.vendorDebitExposure?.value || 0) / records : 0
 
                     return (
                       <tr key={workroom.name}>
                         <td style={{ padding: '0.5rem 0.75rem', fontWeight: 600, fontSize: '0.75rem', textAlign: 'left' }}>{workroom.name}</td>
                         <td align="center" style={{ padding: '0.5rem 0.75rem' }}>
                           <span className={`badge-pill ${wpiBadgeClass}`} style={{ fontSize: '0.65rem', padding: '0.15rem 0.4rem', fontWeight: 600, display: 'inline-block' }}>
-                            {workroom.weightedWPI.toFixed(1)}
+                            {wpiScore.toFixed(1)}
                           </span>
                         </td>
                         <td align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
-                          {formatCurrency(workroom.avgLaborPO)}
+                          {formatCurrency(laborPO)}
                         </td>
                         <td align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
-                          {formatCurrency(workroom.avgVendorDebit)}
+                          {formatCurrency(avgVendorDebits)}
                         </td>
                       </tr>
                     )
                   })}
-                  {wpiByWorkroom.length === 0 && (
+                  {comprehensiveAnalysis.length === 0 && (
                     <tr>
                       <td colSpan={4} style={{ textAlign: 'center', padding: '2rem 0.75rem', color: '#6b7280', fontSize: '0.75rem' }}>
                         Upload a T1/T2 scorecard to see WPI by workroom.
@@ -2187,26 +2221,34 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
         </div>
       </section>
 
-      {/* Average Labour PO $ by Workroom */}
+      {/* Average Labor PO $ by Workroom - Using heatmap data source (comprehensiveAnalysis) */}
       <section className="compact-section" style={{ marginTop: '1.5rem' }}>
         <div className="compact-section-header">
-          <h3 className="compact-section-title">Average Total Sales by Workroom</h3>
+          <h3 className="compact-section-title">Average Labor PO $ by Workroom</h3>
           <p className="text-xs text-gray-500 mt-1">
-            Average Total Sales per record across all workrooms
+            Average Labor PO $ per record across all workrooms (using same data source as heatmap scoring)
           </p>
         </div>
 
         <div className="compact-chart-container" style={{ minHeight: '500px', padding: '1rem' }}>
-          {avgLaborPOByWorkroom.length > 0 ? (
+          {comprehensiveAnalysis.length > 0 ? (
             <ResponsiveContainer width="100%" height={500}>
               <BarChart
-                data={avgLaborPOByWorkroom.map((w) => ({
-                  name: w.name.length > 15 ? w.name.substring(0, 15) + '...' : w.name,
-                  fullName: w.name,
-                  avgLaborPO: Number(w.avgLaborPO.toFixed(2)),
-                  totalLaborPO: w.totalLaborPO,
-                  records: w.records,
-                }))}
+                // Using comprehensiveAnalysis - the exact same data source as the heatmap
+                data={comprehensiveAnalysis
+                  .map((w) => {
+                    // Use laborPOVolume.value from comprehensiveAnalysis (same as heatmap)
+                    const records = w.records || 1
+                    const avgLaborPO = records > 0 ? (w.laborPOVolume?.value || 0) / records : 0
+                    return {
+                      name: w.name.length > 15 ? w.name.substring(0, 15) + '...' : w.name,
+                      fullName: w.name,
+                      avgLaborPO: Number(avgLaborPO.toFixed(2)),
+                      totalLaborPO: w.laborPOVolume?.value || 0, // Same as heatmap
+                      records: records,
+                    }
+                  })
+                  .sort((a, b) => b.avgLaborPO - a.avgLaborPO)}
                 margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -2219,7 +2261,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   interval={0}
                 />
                 <YAxis
-                  label={{ value: 'Avg Total Sales', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#374151', fontSize: '0.75rem' } }}
+                  label={{ value: 'Avg Labor PO $', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#374151', fontSize: '0.75rem' } }}
                   tick={{ fontSize: '0.7rem', fill: '#374151' }}
                   tickFormatter={(value) => `$${value.toLocaleString()}`}
                 />
@@ -2240,10 +2282,10 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                             Records: {data.records}
                           </p>
                           <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#1f2937', marginTop: '0.25rem' }}>
-                            Avg Total Sales: {formatCurrency(data.avgLaborPO)}
+                            Avg Labor PO $: {formatCurrency(data.avgLaborPO)}
                           </p>
                           <p style={{ fontSize: '0.7rem', color: '#6b7280', marginTop: '0.25rem' }}>
-                            Total Sales: {formatCurrency(data.totalLaborPO)}
+                            Total Labor PO $: {formatCurrency(data.totalLaborPO)}
                           </p>
                         </div>
                       )
@@ -2256,22 +2298,29 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   fill="#10b981"
                   radius={[4, 4, 0, 0]}
                 >
-                  {avgLaborPOByWorkroom.map((w, index) => {
-                    // Color based on average Labor PO value - only green, yellow, and red
-                    let fillColor = '#ef4444' // red - default for low values
-                    const avg = w.avgLaborPO
-                    if (avg > 4000) fillColor = '#10b981' // green - high average
-                    else if (avg > 2000) fillColor = '#fbbf24' // yellow - moderate
-                    else fillColor = '#ef4444' // red - low
+                  {comprehensiveAnalysis
+                    .map((w) => {
+                      const records = w.records || 1
+                      const avgLaborPO = records > 0 ? (w.laborPOVolume?.value || 0) / records : 0
+                      return { name: w.name, avgLaborPO }
+                    })
+                    .sort((a, b) => b.avgLaborPO - a.avgLaborPO)
+                    .map((w, index) => {
+                      // Color based on average Labor PO value - only green, yellow, and red
+                      let fillColor = '#ef4444' // red - default for low values
+                      const avg = w.avgLaborPO
+                      if (avg > 4000) fillColor = '#10b981' // green - high average
+                      else if (avg > 2000) fillColor = '#fbbf24' // yellow - moderate
+                      else fillColor = '#ef4444' // red - low
 
-                    return <Cell key={`cell-${index}`} fill={fillColor} />
-                  })}
+                      return <Cell key={`cell-${index}`} fill={fillColor} />
+                    })}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
           ) : (
             <div style={{ textAlign: 'center', padding: '4rem 1rem', color: '#6b7280', fontSize: '0.875rem' }}>
-              Upload a T1/T2 scorecard to see average Total Sales by workroom.
+              Upload a T1/T2 scorecard to see average Labor PO $ by workroom.
             </div>
           )}
         </div>

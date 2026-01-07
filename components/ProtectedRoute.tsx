@@ -33,7 +33,6 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
         '/analytics',
         '/performance',
         '/store',
-        '/workroom-summary',
         '/workroom-report',
         '/profile',
       ]

@@ -19,7 +19,6 @@ export default function ExportButton() {
         '/': 'Visual Breakdown',
         '/analytics': 'Workroom Data',
         '/store': 'Store Overview',
-        '/workroom-summary': 'Workroom Summary',
         '/workroom-report': 'Workroom Report',
         '/survey-misc': 'Survey Misc',
       }
@@ -31,7 +30,6 @@ export default function ExportButton() {
     { path: '/analytics', title: 'Workroom Data' },
     { path: '/sales', title: 'Sales by Workroom' },
     { path: '/store', title: 'Store Overview' },
-    { path: '/workroom-summary', title: 'Workroom Summary' },
     { path: '/workroom-report', title: 'Workroom Report' },
   ]
 

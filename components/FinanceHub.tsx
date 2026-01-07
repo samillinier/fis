@@ -11,6 +11,27 @@ interface QuickBooksConnection {
   realmId?: string
 }
 
+interface CompanyInfo {
+  companyName?: string
+  legalName?: string
+  email?: string
+  phone?: string
+  webSite?: string
+  country?: string
+}
+
+interface Invoice {
+  id: string
+  docNumber: string
+  txnDate: string
+  dueDate?: string
+  customerRef: string
+  totalAmt: number
+  balance: number
+  status: string
+  currencyRef: string
+}
+
 export default function FinanceHub() {
   const { user } = useAuth()
   const [connection, setConnection] = useState<QuickBooksConnection>({ connected: false })
@@ -18,6 +39,9 @@ export default function FinanceHub() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [hasCheckedCallback, setHasCheckedCallback] = useState(false)
+  const [companyInfo, setCompanyInfo] = useState<CompanyInfo | null>(null)
+  const [invoices, setInvoices] = useState<Invoice[]>([])
+  const [loadingData, setLoadingData] = useState(false)
 
   // Production Client ID (from Keys & Credentials in Intuit Dashboard - Production tab)
   const CLIENT_ID = process.env.NEXT_PUBLIC_QUICKBOOKS_CLIENT_ID || 'ABrb8WSjbtNgNncrOBdtTktvg3o4ODoKA5cyEwdadWO0O6rPGS'
@@ -89,6 +113,48 @@ export default function FinanceHub() {
       checkConnectionStatus()
     }
   }, [user?.email, checkConnectionStatus])
+
+  // Fetch QuickBooks data when connected
+  useEffect(() => {
+    if (connection.connected && user?.email) {
+      fetchQuickBooksData()
+    }
+  }, [connection.connected, user?.email])
+
+  const fetchQuickBooksData = async () => {
+    if (!user?.email) return
+
+    setLoadingData(true)
+    try {
+      // Fetch company information
+      const companyResponse = await fetch('/api/quickbooks/company', {
+        headers: {
+          'Authorization': `Bearer ${user.email}`,
+        },
+      })
+
+      if (companyResponse.ok) {
+        const companyData = await companyResponse.json()
+        setCompanyInfo(companyData)
+      }
+
+      // Fetch invoices
+      const invoicesResponse = await fetch('/api/quickbooks/invoices?maxResults=10', {
+        headers: {
+          'Authorization': `Bearer ${user.email}`,
+        },
+      })
+
+      if (invoicesResponse.ok) {
+        const invoicesData = await invoicesResponse.json()
+        setInvoices(invoicesData.invoices || [])
+      }
+    } catch (err) {
+      console.error('Error fetching QuickBooks data:', err)
+    } finally {
+      setLoadingData(false)
+    }
+  }
 
   // Handle OAuth callback parameters - check URL on mount and when user becomes available
   useEffect(() => {
@@ -396,26 +462,130 @@ export default function FinanceHub() {
         )}
       </div>
 
-      {/* Features Section */}
+      {/* Company Information Section */}
+      {connection.connected && companyInfo && (
+        <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <DollarSign className="text-blue-600" size={24} />
+            Company Information
+          </h2>
+          {loadingData ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+              <p className="text-gray-600">Loading company data...</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Company Name</p>
+                <p className="font-semibold text-lg">{companyInfo.companyName || 'N/A'}</p>
+              </div>
+              {companyInfo.legalName && (
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Legal Name</p>
+                  <p className="font-medium">{companyInfo.legalName}</p>
+                </div>
+              )}
+              {companyInfo.email && (
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Email</p>
+                  <p className="font-medium">{companyInfo.email}</p>
+                </div>
+              )}
+              {companyInfo.phone && (
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Phone</p>
+                  <p className="font-medium">{companyInfo.phone}</p>
+                </div>
+              )}
+              {companyInfo.webSite && (
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Website</p>
+                  <a href={companyInfo.webSite} target="_blank" rel="noopener noreferrer" className="font-medium text-blue-600 hover:underline">
+                    {companyInfo.webSite}
+                  </a>
+                </div>
+              )}
+              {companyInfo.country && (
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Country</p>
+                  <p className="font-medium">{companyInfo.country}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Invoices Section */}
       {connection.connected && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-            <TrendingUp className="text-blue-600 mb-3" size={32} />
-            <h3 className="font-semibold mb-2">Financial Reports</h3>
-            <p className="text-gray-600 text-sm">Access profit & loss, balance sheets, and cash flow reports.</p>
-          </div>
-
-          <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-            <FileText className="text-green-600 mb-3" size={32} />
-            <h3 className="font-semibold mb-2">Invoices & Payments</h3>
-            <p className="text-gray-600 text-sm">View and manage invoices, payments, and transactions.</p>
-          </div>
-
-          <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-            <DollarSign className="text-purple-600 mb-3" size={32} />
-            <h3 className="font-semibold mb-2">Accounting Data</h3>
-            <p className="text-gray-600 text-sm">Sync and analyze your accounting data in real-time.</p>
-          </div>
+        <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <FileText className="text-green-600" size={24} />
+            Recent Invoices
+          </h2>
+          {loadingData ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-2"></div>
+              <p className="text-gray-600">Loading invoices...</p>
+            </div>
+          ) : invoices.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Invoice #</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Balance</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {invoices.map((invoice) => (
+                    <tr key={invoice.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {invoice.docNumber}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                        {new Date(invoice.txnDate).toLocaleDateString()}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                        {invoice.customerRef}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {new Intl.NumberFormat('en-US', {
+                          style: 'currency',
+                          currency: invoice.currencyRef || 'USD',
+                        }).format(invoice.totalAmt)}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                        {new Intl.NumberFormat('en-US', {
+                          style: 'currency',
+                          currency: invoice.currencyRef || 'USD',
+                        }).format(invoice.balance)}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          invoice.status === 'Paid' 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {invoice.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <FileText className="mx-auto mb-2 text-gray-400" size={48} />
+              <p>No invoices found</p>
+            </div>
+          )}
         </div>
       )}
 

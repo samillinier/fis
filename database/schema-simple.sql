@@ -107,4 +107,3 @@ CREATE POLICY "Service role full access authorized_users" ON authorized_users
 DROP POLICY IF EXISTS "Service role full access access_requests" ON access_requests;
 CREATE POLICY "Service role full access access_requests" ON access_requests
   FOR ALL USING (true) WITH CHECK (true);
-

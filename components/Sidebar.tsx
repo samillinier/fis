@@ -111,15 +111,6 @@ export default function Sidebar({
                 Store Overview
               </Link>
               <Link
-                href="/workroom-summary"
-                className={`sidebar-nav-button ${
-                  isActive('/workroom-summary') ? 'sidebar-nav-button--active' : ''
-                }`}
-                onClick={handleLinkClick}
-              >
-                Workroom Summary
-              </Link>
-              <Link
                 href="/workroom-report"
                 className={`sidebar-nav-button ${
                   isActive('/workroom-report') ? 'sidebar-nav-button--active' : ''
@@ -127,6 +118,15 @@ export default function Sidebar({
                 onClick={handleLinkClick}
               >
                 Workroom Report
+              </Link>
+              <Link
+                href="/finance-hub"
+                className={`sidebar-nav-button ${
+                  isActive('/finance-hub') ? 'sidebar-nav-button--active' : ''
+                }`}
+                onClick={handleLinkClick}
+              >
+                Finance Hub
               </Link>
             </>
           )}

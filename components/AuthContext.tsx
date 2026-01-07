@@ -68,37 +68,37 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
-const SUPER_ADMIN_EMAIL = 'sbiru@fiscorponline.com'
+  const SUPER_ADMIN_EMAIL = 'sbiru@fiscorponline.com'
 const normalizeEmail = (email?: string) => (email || '').trim().toLowerCase()
 
 const ensureSuperAdminLocal = (list: AuthorizedUser[]): AuthorizedUser[] => {
-  const normalizedSuper = SUPER_ADMIN_EMAIL.toLowerCase()
+    const normalizedSuper = SUPER_ADMIN_EMAIL.toLowerCase()
 
   const updatedList: AuthorizedUser[] = list.map((u): AuthorizedUser =>
-    u.email.toLowerCase() === normalizedSuper
-      ? {
-          ...u,
-          role: 'admin',
-          isActive: true,
-        }
-      : u
-  )
+      u.email.toLowerCase() === normalizedSuper
+        ? {
+            ...u,
+            role: 'admin',
+            isActive: true,
+          }
+        : u
+    )
 
-  if (updatedList.some((u) => u.email.toLowerCase() === normalizedSuper)) {
-    return updatedList
+    if (updatedList.some((u) => u.email.toLowerCase() === normalizedSuper)) {
+      return updatedList
+    }
+
+    const now = new Date().toISOString()
+    return [
+      {
+        email: SUPER_ADMIN_EMAIL,
+        role: 'admin',
+        isActive: true,
+        createdAt: now,
+      },
+      ...updatedList,
+    ]
   }
-
-  const now = new Date().toISOString()
-  return [
-    {
-      email: SUPER_ADMIN_EMAIL,
-      role: 'admin',
-      isActive: true,
-      createdAt: now,
-    },
-    ...updatedList,
-  ]
-}
 
 async function fetchAuthorizedUsersFromApi(actorEmail?: string): Promise<AuthorizedUser[]> {
   const headers: HeadersInit = {
@@ -187,39 +187,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return
     }
 
-    const storedAuthorized = localStorage.getItem('fis-authorized-users')
-    if (storedAuthorized) {
-      try {
+      const storedAuthorized = localStorage.getItem('fis-authorized-users')
+      if (storedAuthorized) {
+        try {
         const parsed = ensureSuperAdminLocal(JSON.parse(storedAuthorized))
-        setAuthorizedUsers(parsed)
-      } catch (error) {
-        console.error('Error parsing authorized users:', error)
+          setAuthorizedUsers(parsed)
+        } catch (error) {
+          console.error('Error parsing authorized users:', error)
         saveAuthorizedUsers(ensureSuperAdminLocal([]))
-      }
-    } else {
+        }
+      } else {
       saveAuthorizedUsers(ensureSuperAdminLocal([]))
-    }
-
-    const storedRequests = localStorage.getItem('fis-access-requests')
-    if (storedRequests) {
-      try {
-        const parsed: AccessRequest[] = JSON.parse(storedRequests)
-        setAccessRequests(parsed)
-      } catch (error) {
-        console.error('Error parsing access requests:', error)
-        saveAccessRequests([])
       }
-    }
 
-    const storedUser = localStorage.getItem('fis-user')
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser))
-      } catch (error) {
-        console.error('Error parsing stored user:', error)
-        localStorage.removeItem('fis-user')
+      const storedRequests = localStorage.getItem('fis-access-requests')
+      if (storedRequests) {
+        try {
+          const parsed: AccessRequest[] = JSON.parse(storedRequests)
+          setAccessRequests(parsed)
+        } catch (error) {
+          console.error('Error parsing access requests:', error)
+          saveAccessRequests([])
+        }
       }
-    }
+
+      const storedUser = localStorage.getItem('fis-user')
+      if (storedUser) {
+        try {
+          setUser(JSON.parse(storedUser))
+        } catch (error) {
+          console.error('Error parsing stored user:', error)
+          localStorage.removeItem('fis-user')
+        }
+      }
 
     setIsLoading(false)
   }, [])
@@ -263,9 +263,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           Authorization: `Bearer ${user?.email}`,
         },
         body: JSON.stringify({
-          email: normalizedEmail,
-          name: name?.trim(),
-          role: 'user',
+        email: normalizedEmail,
+        name: name?.trim(),
+        role: 'user',
         }),
       })
 
@@ -275,7 +275,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const data = await response.json()
       saveAuthorizedUsers(ensureSuperAdminLocal(data.authorizedUsers || []))
-      return true
+    return true
     } catch (error) {
       console.error('Error adding authorized user:', error)
       return false
@@ -329,7 +329,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({
           email: normalizedEmail,
           name: name?.trim(),
-          source,
+              source,
         }),
       })
 
@@ -347,18 +347,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ...accessRequests.filter((r) => r.email.toLowerCase() !== normalizedEmail),
       ])
 
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(
-          'fis-latest-access-request',
-          JSON.stringify({
-            email: normalizedEmail,
-            name: name?.trim(),
-            requestedAt: now,
-            source,
-          })
-        )
-      }
-      return true
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(
+        'fis-latest-access-request',
+        JSON.stringify({
+          email: normalizedEmail,
+          name: name?.trim(),
+          requestedAt: now,
+          source,
+        })
+      )
+    }
+    return true
     } catch (error) {
       console.error('Error requesting access:', error)
       return false
@@ -387,7 +387,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const data = await response.json()
       saveAuthorizedUsers(ensureSuperAdminLocal(data.authorizedUsers || []))
-      return true
+    return true
     } catch (error) {
       console.error('Error removing authorized user:', error)
       return false
@@ -408,9 +408,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         },
         body: JSON.stringify({
           email: normalizedEmail,
-          role,
+        role,
         }),
-      })
+    })
 
       if (!response.ok) {
         throw new Error('Failed to update role')
@@ -418,7 +418,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const data = await response.json()
       saveAuthorizedUsers(ensureSuperAdminLocal(data.authorizedUsers || []))
-      return true
+    return true
     } catch (error) {
       console.error('Error updating user role:', error)
       return false

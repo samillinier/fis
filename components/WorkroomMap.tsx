@@ -3,13 +3,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { getWorkroomCoordinates, getMapCenter } from '@/data/workroomCoordinates'
-import { getStoresWithCoordinates, type StoreCoordinates } from '@/data/storeCoordinates'
 
 // Dynamically import Leaflet to avoid SSR issues
 const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapContainer), { ssr: false })
 const TileLayer = dynamic(() => import('react-leaflet').then(mod => mod.TileLayer), { ssr: false })
 const Marker = dynamic(() => import('react-leaflet').then(mod => mod.Marker), { ssr: false })
-const Circle = dynamic(() => import('react-leaflet').then(mod => mod.Circle), { ssr: false })
 const Popup = dynamic(() => import('react-leaflet').then(mod => mod.Popup), { ssr: false })
 
 interface WorkroomMapData {
@@ -27,7 +25,7 @@ interface WorkroomMapProps {
 }
 
 // Component to adjust map view when workrooms change
-function MapController({ workrooms, stores }: { workrooms: WorkroomMapData[], stores?: Array<{ lat: number; lng: number }> }) {
+function MapController({ workrooms }: { workrooms: WorkroomMapData[] }) {
   const [MapControllerInner, setMapControllerInner] = useState<React.ComponentType<{ workrooms: WorkroomMapData[], stores?: Array<{ lat: number; lng: number }> }> | null>(null)
   
   useEffect(() => {
@@ -36,7 +34,7 @@ function MapController({ workrooms, stores }: { workrooms: WorkroomMapData[], st
     import('react-leaflet').then(mod => {
       const useMap = mod.useMap
       
-      const Inner = ({ workrooms, stores }: { workrooms: WorkroomMapData[], stores?: Array<{ lat: number; lng: number }> }) => {
+      const Inner = ({ workrooms }: { workrooms: WorkroomMapData[] }) => {
         const map = useMap()
         
         useEffect(() => {
@@ -54,15 +52,6 @@ function MapController({ workrooms, stores }: { workrooms: WorkroomMapData[], st
               }
             })
             
-            // Add store coordinates
-            if (stores) {
-              stores.forEach(s => {
-                if (s.lat && s.lng) {
-                  bounds.push([s.lat, s.lng])
-                }
-              })
-            }
-            
             if (bounds.length > 0) {
               try {
                 map.fitBounds(bounds, { padding: [50, 50] })
@@ -73,7 +62,7 @@ function MapController({ workrooms, stores }: { workrooms: WorkroomMapData[], st
           }, 100)
           
           return () => clearTimeout(timeoutId)
-        }, [workrooms, stores, map])
+        }, [workrooms, map])
         
         return null
       }
@@ -84,7 +73,7 @@ function MapController({ workrooms, stores }: { workrooms: WorkroomMapData[], st
   
   if (!MapControllerInner) return null
   
-  return <MapControllerInner workrooms={workrooms} stores={stores} />
+  return <MapControllerInner workrooms={workrooms} />
 }
 
 // Create custom icon based on weighted performance score (same as heatmap)
@@ -120,65 +109,11 @@ function createPerformanceIcon(weightedPerformanceScore: number, L: any): any {
   })
 }
 
-// 10 miles in meters (1 mile = 1609.34 meters)
-const STORE_RADIUS_METERS = 10 * 1609.34 // Approximately 16,093 meters
 
-// Component to display location map thumbnail using Leaflet tile
-function LocationMapThumbnail({ lat, lng, storeName }: { lat: number; lng: number; storeName: string }) {
-  // Calculate tile coordinates for zoom level 15 (good detail level)
-  const zoom = 15
-  const n = Math.pow(2, zoom)
-  const x = Math.floor((lng + 180) / 360 * n)
-  const latRad = lat * Math.PI / 180
-  const y = Math.floor((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * n)
-  
-  // Get the center tile for this location
-  const tileUrl = `https://tile.openstreetmap.org/${zoom}/${x}/${y}.png`
-
-  return (
-    <div style={{ width: '150px', height: '120px', borderRadius: '4px', overflow: 'hidden', border: '1px solid #e5e7eb', flexShrink: 0, backgroundColor: '#f3f4f6', position: 'relative' }}>
-      <img
-        src={tileUrl}
-        alt={`Location map for ${storeName}`}
-        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-        loading="lazy"
-        onError={(e) => {
-          // Fallback: Show coordinates if tile fails to load
-          const target = e.target as HTMLImageElement
-          target.style.display = 'none'
-          const parent = target.parentElement
-          if (parent) {
-            parent.innerHTML = `<div style="padding: 0.5rem; text-align: center; font-size: 0.7rem; color: #6b7280; display: flex; flex-direction: column; justify-content: center; height: 100%;">
-              <div style="font-size: 1.5rem; margin-bottom: 0.25rem;">📍</div>
-              <div>${lat.toFixed(4)}</div>
-              <div>${lng.toFixed(4)}</div>
-            </div>`
-          }
-        }}
-      />
-      {/* Red marker pin overlay to show exact location */}
-      <div style={{
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: '16px',
-        height: '16px',
-        backgroundColor: '#ef4444',
-        borderRadius: '50%',
-        border: '2px solid white',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.4)',
-        pointerEvents: 'none',
-        zIndex: 10
-      }} />
-    </div>
-  )
-}
 
 export default function WorkroomMap({ workrooms }: WorkroomMapProps) {
   const [isClient, setIsClient] = useState(false)
   const [L, setL] = useState<any>(null)
-  const [showStores, setShowStores] = useState(true)
   
   useEffect(() => {
     // Only initialize once on client side
@@ -220,29 +155,6 @@ export default function WorkroomMap({ workrooms }: WorkroomMapProps) {
       .filter((w): w is WorkroomMapData & { lat: number; lng: number } => w !== null)
   }, [workrooms])
   
-  // Get stores with coordinates, deduplicated by location
-  const storesWithCoords = useMemo(() => {
-    if (!showStores) return []
-    const allStores = getStoresWithCoordinates()
-    
-    // Deduplicate stores at the same coordinates (remove repetitive locations)
-    // Use a Map to track unique coordinate pairs, keeping the first store at each location
-    const uniqueStores = new Map<string, StoreCoordinates>()
-    
-    allStores.forEach(store => {
-      if (store.lat !== null && store.lng !== null) {
-        // Create a key from coordinates (rounded to 4 decimal places to handle minor variations)
-        const coordKey = `${store.lat.toFixed(4)},${store.lng.toFixed(4)}`
-        
-        // Only keep the first store at each coordinate
-        if (!uniqueStores.has(coordKey)) {
-          uniqueStores.set(coordKey, store)
-        }
-      }
-    })
-    
-    return Array.from(uniqueStores.values())
-  }, [showStores])
   
   const formatCurrency = (value: number) =>
     value === 0 ? '$0' : `$${value.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
@@ -275,15 +187,6 @@ export default function WorkroomMap({ workrooms }: WorkroomMapProps) {
     <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold">Geographic Map - Workroom Performance</h3>
-        <label className="flex items-center gap-2 text-sm cursor-pointer">
-          <input
-            type="checkbox"
-            checked={showStores}
-            onChange={(e) => setShowStores(e.target.checked)}
-            className="w-4 h-4 text-blue-600 rounded"
-          />
-          <span>Show Lowe's Stores</span>
-        </label>
       </div>
       <div className="mb-4 flex flex-wrap gap-4 text-sm">
         <div className="flex items-center gap-2">
@@ -298,12 +201,6 @@ export default function WorkroomMap({ workrooms }: WorkroomMapProps) {
           <div className="w-4 h-4 rounded-full bg-red-500 border-2 border-white shadow" style={{ backgroundColor: '#ef4444' }}></div>
           <span>Critical (WPI &lt; 70)</span>
         </div>
-        {showStores && (
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-full border-2 border-blue-500" style={{ backgroundColor: '#3b82f6', opacity: 0.2 }}></div>
-            <span>Lowe's Store (10 mile radius)</span>
-          </div>
-        )}
       </div>
       <div 
         id="workroom-map-container"
@@ -320,7 +217,7 @@ export default function WorkroomMap({ workrooms }: WorkroomMapProps) {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          <MapController workrooms={workroomsWithCoords} stores={storesWithCoords.map(s => ({ lat: s.lat!, lng: s.lng! }))} />
+          <MapController workrooms={workroomsWithCoords} />
           {workroomsWithCoords.map((workroom) => {
             // Determine performance label based on WPI score
             let performanceLabel = 'Critical'
@@ -360,56 +257,6 @@ export default function WorkroomMap({ workrooms }: WorkroomMapProps) {
                   </div>
                 </Popup>
               </Marker>
-            )
-          })}
-          {storesWithCoords.map((store) => {
-            // Consistent path options for ALL stores - same transparency
-            const storePathOptions = {
-              color: '#3b82f6', // Blue border
-              fillColor: '#3b82f6', // Blue fill
-              fillOpacity: 0.35, // More visible (35% opacity) - SAME FOR ALL
-              weight: 2, // Border width
-              opacity: 0.6, // Border opacity - SAME FOR ALL
-              interactive: true,
-              bubblingMouseEvents: false,
-            }
-            
-            return (
-              <Circle
-                key={`store-${store.number}`}
-                center={[store.lat!, store.lng!]}
-                radius={STORE_RADIUS_METERS}
-                pathOptions={storePathOptions}
-              >
-                <Popup>
-                  <div style={{ minWidth: '250px', maxWidth: '400px' }}>
-                    <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.5rem' }}>
-                      <div style={{ flex: 1 }}>
-                        <h4 style={{ fontWeight: 600, marginBottom: '0.5rem', fontSize: '1rem' }}>
-                          {store.name}
-                        </h4>
-                        <div style={{ fontSize: '0.875rem', lineHeight: '1.6' }}>
-                          <div style={{ marginBottom: '0.25rem' }}>
-                            <strong>Store #:</strong> {store.number}
-                          </div>
-                          <div style={{ marginBottom: '0.25rem' }}>
-                            <strong>Workroom:</strong> {store.workroom}
-                          </div>
-                          <div style={{ marginBottom: '0.25rem', fontSize: '0.75rem', color: '#6b7280' }}>
-                            {store.fullAddress}
-                          </div>
-                          <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#6b7280', fontStyle: 'italic' }}>
-                            Coverage: 10 mile radius
-                          </div>
-                        </div>
-                      </div>
-                      {store.lat && store.lng && (
-                        <LocationMapThumbnail lat={store.lat} lng={store.lng} storeName={store.name} />
-                      )}
-                    </div>
-                  </div>
-                </Popup>
-              </Circle>
             )
           })}
         </MapContainer>
