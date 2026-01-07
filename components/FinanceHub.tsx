@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { useAuth } from './AuthContext'
 import { DollarSign, Link2, Unlink, TrendingUp, FileText, AlertCircle, CheckCircle2 } from 'lucide-react'
 
@@ -13,6 +14,7 @@ interface QuickBooksConnection {
 
 export default function FinanceHub() {
   const { user } = useAuth()
+  const searchParams = useSearchParams()
   const [connection, setConnection] = useState<QuickBooksConnection>({ connected: false })
   const [isConnecting, setIsConnecting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -29,27 +31,7 @@ export default function FinanceHub() {
   // OAuth 2.0 authorization URL - must start with https://appcenter.intuit.com/connect/oauth2
   const INTUIT_AUTH_URL = 'https://appcenter.intuit.com/connect/oauth2'
 
-  useEffect(() => {
-    checkConnectionStatus()
-    
-    // Check for callback parameters
-    const urlParams = new URLSearchParams(window.location.search)
-    const connected = urlParams.get('connected')
-    const errorParam = urlParams.get('error')
-    
-    if (connected === 'true') {
-      // Connection successful, refresh status
-      checkConnectionStatus()
-      // Clean up URL
-      window.history.replaceState({}, '', '/finance-hub')
-    } else if (errorParam) {
-      setError(decodeURIComponent(errorParam))
-      // Clean up URL
-      window.history.replaceState({}, '', '/finance-hub')
-    }
-  }, [])
-
-  const checkConnectionStatus = async () => {
+  const checkConnectionStatus = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -100,7 +82,39 @@ export default function FinanceHub() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user?.email])
+
+  // Check connection status when component mounts and user is available
+  useEffect(() => {
+    if (user?.email) {
+      checkConnectionStatus()
+    }
+  }, [user?.email, checkConnectionStatus])
+
+  // Handle OAuth callback parameters (runs whenever URL search params change)
+  useEffect(() => {
+    const connected = searchParams.get('connected')
+    const errorParam = searchParams.get('error')
+    
+    if (connected === 'true') {
+      // Connection successful - wait a moment for database write to complete, then refresh
+      setTimeout(() => {
+        if (user?.email) {
+          checkConnectionStatus()
+        }
+      }, 500) // Small delay to ensure database write completes
+      // Clean up URL (remove query params)
+      if (typeof window !== 'undefined') {
+        window.history.replaceState({}, '', '/finance-hub')
+      }
+    } else if (errorParam) {
+      setError(decodeURIComponent(errorParam))
+      // Clean up URL (remove query params)
+      if (typeof window !== 'undefined') {
+        window.history.replaceState({}, '', '/finance-hub')
+      }
+    }
+  }, [searchParams, user?.email, checkConnectionStatus]) // Re-run when search params or user changes
 
   const handleConnect = () => {
     try {
