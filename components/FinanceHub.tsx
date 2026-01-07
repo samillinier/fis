@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useSearchParams } from 'next/navigation'
 import { useAuth } from './AuthContext'
 import { DollarSign, Link2, Unlink, TrendingUp, FileText, AlertCircle, CheckCircle2 } from 'lucide-react'
 
@@ -14,11 +13,11 @@ interface QuickBooksConnection {
 
 export default function FinanceHub() {
   const { user } = useAuth()
-  const searchParams = useSearchParams()
   const [connection, setConnection] = useState<QuickBooksConnection>({ connected: false })
   const [isConnecting, setIsConnecting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [hasCheckedCallback, setHasCheckedCallback] = useState(false)
 
   // Production Client ID (from Keys & Credentials in Intuit Dashboard - Production tab)
   const CLIENT_ID = process.env.NEXT_PUBLIC_QUICKBOOKS_CLIENT_ID || 'ABrb8WSjbtNgNncrOBdtTktvg3o4ODoKA5cyEwdadWO0O6rPGS'
@@ -91,30 +90,30 @@ export default function FinanceHub() {
     }
   }, [user?.email, checkConnectionStatus])
 
-  // Handle OAuth callback parameters (runs whenever URL search params change)
+  // Handle OAuth callback parameters - check URL on mount and when user becomes available
   useEffect(() => {
-    const connected = searchParams.get('connected')
-    const errorParam = searchParams.get('error')
+    if (!user?.email || hasCheckedCallback) return
+    
+    // Check URL parameters
+    const urlParams = new URLSearchParams(window.location.search)
+    const connected = urlParams.get('connected')
+    const errorParam = urlParams.get('error')
     
     if (connected === 'true') {
+      setHasCheckedCallback(true)
       // Connection successful - wait a moment for database write to complete, then refresh
       setTimeout(() => {
-        if (user?.email) {
-          checkConnectionStatus()
-        }
+        checkConnectionStatus()
       }, 500) // Small delay to ensure database write completes
       // Clean up URL (remove query params)
-      if (typeof window !== 'undefined') {
-        window.history.replaceState({}, '', '/finance-hub')
-      }
+      window.history.replaceState({}, '', '/finance-hub')
     } else if (errorParam) {
+      setHasCheckedCallback(true)
       setError(decodeURIComponent(errorParam))
       // Clean up URL (remove query params)
-      if (typeof window !== 'undefined') {
-        window.history.replaceState({}, '', '/finance-hub')
-      }
+      window.history.replaceState({}, '', '/finance-hub')
     }
-  }, [searchParams, user?.email, checkConnectionStatus]) // Re-run when search params or user changes
+  }, [user?.email, checkConnectionStatus, hasCheckedCallback])
 
   const handleConnect = () => {
     try {
