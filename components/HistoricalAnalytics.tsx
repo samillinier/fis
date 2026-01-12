@@ -1384,9 +1384,6 @@ export default function HistoricalAnalytics() {
 
                   // Fix This Now - visual data only
                   const fixNowBullets: string[] = []
-                  if (vendorDebitRatio > 0.3) {
-                    fixNowBullets.push(`Reduce vendor debit exposure (${(vendorDebitRatio * 100).toFixed(1)}%)`)
-                  }
                   if (ltrPercent != null && ltrPercent > 35) {
                     fixNowBullets.push(`Improve LTR% performance (${ltrPercent.toFixed(1)}%)`)
                   }

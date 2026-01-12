@@ -1001,9 +1001,6 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
       
       // "Fix this now" bullets - Actionable items
       const fixNowBullets: string[] = []
-      if (vendorDebitRatio > 0.3) {
-        fixNowBullets.push(`Reduce vendor debit exposure (currently ${(vendorDebitRatio * 100).toFixed(1)}%)`)
-      }
       // If LTR score is low (< 70), add detailed action items in a single box
       if (ltrScore < 70) {
         fixNowBullets.push('1. All communication with customers or IST runs through FIS workroom staff.\n2. Schedule to win by leveraging installer performance, not convenience.\n3. Maintain transparent communication with customers and document everything: SOW confirmation, materials, availability.\n4. Use a pre-installation checklist every time you schedule.\n5. Ensure installers understand their performance metrics and any corrective actions in play.')
@@ -1033,9 +1030,6 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
       }
       if (avgCostPerRecord > 10000) {
         fixNowBullets.push(`Optimize cost per record (currently ${formatCurrency(avgCostPerRecord)})`)
-      }
-      if (weightedPerformanceScore < 50) {
-        fixNowBullets.push(`Improve overall performance score (currently ${weightedPerformanceScore.toFixed(1)})`)
       }
       
       return {
