@@ -1385,6 +1385,15 @@ export default function HistoricalAnalytics() {
                     financialRisk = 'Critical'
                   }
 
+                  // Fix This Now - visual data only
+                  const fixNowBullets: string[] = []
+                  if (ltrPercent != null && ltrPercent > 35) {
+                    fixNowBullets.push(`Improve LTR% performance (${ltrPercent.toFixed(1)}%)`)
+                  }
+                  if (workroom.stores < 3) {
+                    fixNowBullets.push(`Expand store coverage (${workroom.stores} stores)`)
+                  }
+
                   // Calculate avg ticket sale
                   const avgTicketSale = workroom.records > 0 ? workroom.laborPO / workroom.records : 0
 
