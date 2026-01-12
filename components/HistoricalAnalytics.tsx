@@ -71,6 +71,8 @@ export default function HistoricalAnalytics() {
   const [availableMonths, setAvailableMonths] = useState<string[]>([])
   const [availableYears, setAvailableYears] = useState<string[]>([])
   const [filteredEntries, setFilteredEntries] = useState<HistoricalDataEntry[]>([])
+  const [selectedRiskWorkroom, setSelectedRiskWorkroom] = useState<any | null>(null)
+  const [isRiskDialogOpen, setIsRiskDialogOpen] = useState(false)
 
   // Load historical data on mount only (client-side)
   useEffect(() => {
@@ -1269,32 +1271,33 @@ export default function HistoricalAnalytics() {
 
       {/* Comprehensive Workroom Analysis Dashboard Table */}
       {isMounted && comprehensiveAnalysisData.length > 0 ? (
-        <section className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-          <div className="p-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">
-              Comprehensive Workroom Analysis Dashboard ({period} view)
-            </h3>
+        <section className="compact-section" style={{ marginTop: '1.5rem' }}>
+          <div className="compact-section-header">
+            <h3 className="compact-section-title">Comprehensive Workroom Analysis Dashboard ({period} view)</h3>
             <p className="text-xs text-gray-500 mt-1">
-              Store Mix • LTR Performance • Total Sales Volume • Vendor Debit Exposure • Weighted Performance Score • Operational Risks • Financial Risk Rating
+              LTR Performance • Work Order Cycle Time • Job Cycle Time • Total Sales Volume • Avg Ticket Sale • Vendor Debit Exposure • Reschedule Rate • Risk • Weighted Performance Score (Click any row for detailed analysis)
             </p>
           </div>
-          <div className="overflow-x-auto" style={{ maxHeight: '600px', overflowY: 'auto' }}>
-            <table className="professional-table professional-table-zebra" style={{ fontSize: '0.7rem' }}>
-              <thead>
-                <tr>
-                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', position: 'sticky', left: 0, backgroundColor: '#ffffff', zIndex: 10 }}>Workroom</th>
-                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Store Mix</th>
-                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>LTR Performance</th>
-                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Total Sales Volume</th>
-                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Vendor Debit Exposure</th>
-                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Weighted Score</th>
-                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Operational Risks</th>
-                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Financial Risk</th>
-                  <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', minWidth: '200px' }}>Fix This Now</th>
-                </tr>
-              </thead>
-              <tbody>
-                {comprehensiveAnalysisData.map((workroom) => {
+
+          <div className="compact-table-container">
+            <div className="overflow-x-auto" style={{ maxHeight: '800px', overflowY: 'auto' }}>
+              <table className="professional-table professional-table-zebra" style={{ fontSize: '0.7rem' }}>
+                <thead>
+                  <tr>
+                    <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', position: 'sticky', left: 0, background: 'linear-gradient(135deg, #1f2937 0%, #111827 100%)', color: '#ffffff', zIndex: 10, textAlign: 'center' }}>Workroom</th>
+                    <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>LTR Performance</th>
+                    <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Work Order Cycle Time</th>
+                    <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Job Cycle Time</th>
+                    <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Total Sales Volume</th>
+                    <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Avg Ticket Sale</th>
+                    <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Vendor Debit Exposure</th>
+                    <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Reschedule Rate</th>
+                    <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Risk</th>
+                    <th style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>Weighted Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {comprehensiveAnalysisData.map((workroom) => {
                   const getStoreMixBadge = (stores: number) => {
                     if (stores >= 10) return 'badge-positive'
                     if (stores >= 5) return 'badge-positive'
@@ -1382,32 +1385,88 @@ export default function HistoricalAnalytics() {
                     financialRisk = 'Critical'
                   }
 
-                  // Fix This Now - visual data only
-                  const fixNowBullets: string[] = []
-                  if (ltrPercent != null && ltrPercent > 35) {
-                    fixNowBullets.push(`Improve LTR% performance (${ltrPercent.toFixed(1)}%)`)
-                  }
-                  if (workroom.stores < 3) {
-                    fixNowBullets.push(`Expand store coverage (${workroom.stores} stores)`)
+                  // Calculate avg ticket sale
+                  const avgTicketSale = workroom.records > 0 ? workroom.laborPO / workroom.records : 0
+
+                  // Get LTR badge class
+                  const getLTRBadgeClass = (rating: string) => {
+                    if (rating === 'Excellent') return 'badge-positive'
+                    if (rating === 'Good') return 'badge-positive'
+                    if (rating === 'Moderate') return 'badge-neutral'
+                    if (rating === 'Poor') return 'badge-warning'
+                    if (rating === 'Critical') return 'badge-warning'
+                    return 'badge-neutral'
                   }
 
                   return (
-                    <tr key={workroom.name}>
+                    <tr 
+                      key={workroom.name}
+                      onClick={() => {
+                        // Create workroom object compatible with detail dialog (matching VisualBreakdown structure)
+                        const workroomForDialog = {
+                          name: workroom.name,
+                          weightedPerformanceScore: workroom.weightedPerformanceScore,
+                          records: workroom.records,
+                          sales: workroom.sales,
+                          laborPO: workroom.laborPO,
+                          vendorDebit: workroom.vendorDebit,
+                          totalCost: workroom.totalCost,
+                          stores: workroom.stores,
+                          ltrPercent: ltrPercent,
+                          avgLTR: workroom.avgLTR,
+                          operationalRisks: operationalRisks,
+                          financialRisk: financialRisk,
+                          avgTicketSale: avgTicketSale,
+                          cycleTime: null, // Not available in historical
+                          jobsWorkCycleTime: null, // Not available in historical
+                          rescheduleRate: null, // Not available in historical
+                          // Structure matching VisualBreakdown
+                          ltrPerformance: {
+                            value: ltrPercent || workroom.avgLTR || 0,
+                            rating: ltrRating,
+                            isSurveyData: workroom.avgLTR != null && ltrPercent == null
+                          },
+                          laborPOVolume: {
+                            value: workroom.laborPO,
+                            contribution: laborPOContribution,
+                            rating: laborPOVolume
+                          },
+                          vendorDebitExposure: {
+                            value: workroom.vendorDebit,
+                            ratio: vendorDebitRatio,
+                            rating: vendorDebitExposure
+                          },
+                          fixNowBullets: fixNowBullets
+                        }
+                        setSelectedRiskWorkroom(workroomForDialog)
+                        setIsRiskDialogOpen(true)
+                      }}
+                      style={{ 
+                        cursor: 'pointer',
+                        transition: 'background-color 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#f9fafb'
+                        const firstCell = e.currentTarget.querySelector('td:first-child') as HTMLElement
+                        if (firstCell) {
+                          firstCell.style.backgroundColor = '#f9fafb'
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = ''
+                        const firstCell = e.currentTarget.querySelector('td:first-child') as HTMLElement
+                        if (firstCell) {
+                          firstCell.style.backgroundColor = ''
+                        }
+                      }}
+                    >
                       <td style={{ padding: '0.5rem 0.75rem', fontWeight: 600, fontSize: '0.75rem', position: 'sticky', left: 0, backgroundColor: '#ffffff', zIndex: 5 }}>
                         {workroom.name}
                       </td>
                       <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                          <span className={`badge-pill ${getStoreMixBadge(workroom.stores)}`} style={{ fontSize: '0.65rem', padding: '0.1rem 0.35rem' }}>
-                            {workroom.stores} stores
-                          </span>
-                          <span style={{ fontSize: '0.65rem', color: '#6b7280' }}>{storeMixRating}</span>
-                        </div>
-                      </td>
-                      <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>
                         {ltrPercent != null ? (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                            <span className={`badge-pill ${getLTRBadge(ltrPercent)}`} style={{ fontSize: '0.65rem', padding: '0.1rem 0.35rem' }}>
+                            <span className={`badge-pill ${getLTRBadgeClass(ltrRating)}`} style={{ fontSize: '0.65rem', padding: '0.1rem 0.35rem' }}>
                               {ltrPercent.toFixed(1)}%
                             </span>
                             <span style={{ fontSize: '0.65rem', color: '#6b7280' }}>{ltrRating}</span>
@@ -1416,59 +1475,71 @@ export default function HistoricalAnalytics() {
                           <span style={{ fontSize: '0.65rem', color: '#9ca3af' }}>N/A</span>
                         )}
                       </td>
-                      <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                      <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>
+                        <span style={{ fontSize: '0.65rem', color: '#9ca3af' }}>N/A</span>
+                      </td>
+                      <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>
+                        <span style={{ fontSize: '0.65rem', color: '#9ca3af' }}>N/A</span>
+                      </td>
+                      <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', alignItems: 'center' }}>
                           <span style={{ fontWeight: 600, fontSize: '0.7rem' }}>{formatCurrency(workroom.laborPO)}</span>
                           <span style={{ fontSize: '0.65rem', color: '#6b7280' }}>
                             {laborPOVolume} ({laborPOContribution.toFixed(1)}%)
                           </span>
                         </div>
                       </td>
+                      <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>
+                        {avgTicketSale > 0 ? (
+                          <span style={{ fontWeight: 600, fontSize: '0.7rem' }}>
+                            ${avgTicketSale.toFixed(0)}
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: '0.65rem', color: '#9ca3af' }}>N/A</span>
+                        )}
+                      </td>
                       <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                          <span style={{ fontSize: '0.7rem' }}>{formatCurrency(workroom.vendorDebit)}</span>
-                          <span className={`badge-pill ${getVendorDebitBadge(workroom.vendorDebit)}`} style={{ fontSize: '0.65rem', padding: '0.1rem 0.35rem' }}>
+                          <span style={{ fontSize: '0.7rem', color: workroom.vendorDebit < 0 ? '#ef4444' : (workroom.vendorDebit > 0 ? '#ef4444' : '#111827') }}>{formatCurrency(workroom.vendorDebit)}</span>
+                          <span 
+                            className="badge-pill" 
+                            style={{ 
+                              fontSize: '0.65rem', 
+                              padding: '0.1rem 0.35rem',
+                              backgroundColor: workroom.vendorDebit !== 0 ? '#fee2e2' : '#e5e7eb',
+                              color: workroom.vendorDebit !== 0 ? '#dc2626' : '#4b5563'
+                            }}
+                          >
                             {(vendorDebitRatio * 100).toFixed(1)}% • {vendorDebitExposure}
                           </span>
                         </div>
                       </td>
+                      <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>
+                        <span style={{ fontSize: '0.65rem', color: '#9ca3af' }}>N/A</span>
+                      </td>
                       <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>
+                        <span className={`badge-pill ${getFinancialRiskBadge(financialRisk)}`} style={{ fontSize: '0.65rem', padding: '0.1rem 0.35rem', fontWeight: 600 }}>
+                          {financialRisk}
+                        </span>
+                      </td>
+                      <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', textAlign: 'center' }}>
                         <span className={`badge-pill ${getWPSBadge(workroom.weightedPerformanceScore)}`} style={{ fontSize: '0.65rem', padding: '0.1rem 0.35rem', fontWeight: 600 }}>
                           {workroom.weightedPerformanceScore.toFixed(1)}
                         </span>
                       </td>
-                      <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', maxWidth: '150px' }}>
-                        {operationalRisks.length > 0 ? (
-                          <ul style={{ margin: 0, paddingLeft: '1rem', fontSize: '0.65rem', color: '#dc2626' }}>
-                            {operationalRisks.map((risk, idx) => (
-                              <li key={idx}>{risk}</li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <span style={{ fontSize: '0.65rem', color: '#10b981' }}>✓ No risks</span>
-                        )}
-                      </td>
-                      <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>
-                        <span className={`badge-pill ${getFinancialRiskBadge(financialRisk)}`} style={{ fontSize: '0.65rem', padding: '0.1rem 0.35rem' }}>
-                          {financialRisk}
-                        </span>
-                      </td>
-                      <td style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem', minWidth: '200px' }}>
-                        {fixNowBullets.length > 0 ? (
-                          <ul style={{ margin: 0, paddingLeft: '1rem', fontSize: '0.65rem', color: '#dc2626' }}>
-                            {fixNowBullets.map((bullet, idx) => (
-                              <li key={idx}>{bullet}</li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <span style={{ fontSize: '0.65rem', color: '#10b981' }}>✓ No actions needed</span>
-                        )}
-                      </td>
                     </tr>
                   )
-                })}
-              </tbody>
-            </table>
+                  })}
+                  {comprehensiveAnalysisData.length === 0 && (
+                    <tr>
+                      <td colSpan={10} style={{ textAlign: 'center', padding: '2rem 0.75rem', color: '#6b7280', fontSize: '0.75rem' }}>
+                        Upload a T1/T2 scorecard to see comprehensive workroom analysis.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </section>
       ) : (
@@ -1478,6 +1549,409 @@ export default function HistoricalAnalytics() {
             Upload weekly data snapshots to see workroom data and trends.
           </p>
         </section>
+      )}
+
+      {/* Detail Analysis Dialog - Same as VisualBreakdown */}
+      {isRiskDialogOpen && selectedRiskWorkroom && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '1rem',
+          }}
+          onClick={() => {
+            setIsRiskDialogOpen(false)
+            setSelectedRiskWorkroom(null)
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '0.5rem',
+              padding: '1rem',
+              maxWidth: '900px',
+              width: '95%',
+              maxHeight: '95vh',
+              overflowY: 'auto',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'flex-start', 
+              marginBottom: '1rem',
+              paddingBottom: '0.75rem',
+              borderBottom: '2px solid #e5e7eb'
+            }}>
+              <div>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827', marginBottom: '0.25rem' }}>
+                  Detailed Analysis - {selectedRiskWorkroom.name}
+                </h2>
+                <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>
+                  Comprehensive performance review and actionable recommendations
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setIsRiskDialogOpen(false)
+                  setSelectedRiskWorkroom(null)
+                }}
+                style={{
+                  background: '#f3f4f6',
+                  border: 'none',
+                  fontSize: '1rem',
+                  cursor: 'pointer',
+                  color: '#6b7280',
+                  padding: '0.25rem',
+                  borderRadius: '0.375rem',
+                  lineHeight: 1,
+                  width: '1.75rem',
+                  height: '1.75rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#e5e7eb'
+                  e.currentTarget.style.color = '#111827'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#f3f4f6'
+                  e.currentTarget.style.color = '#6b7280'
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Key Metrics Overview */}
+            <div style={{ 
+              display: 'grid',
+              gridTemplateColumns: 'repeat(4, 1fr)', 
+              gap: '0.75rem', 
+              marginBottom: '1rem',
+            }}>
+              <div style={{
+                padding: '0.9rem 1rem',
+                backgroundColor: '#f8fafc',
+                borderRadius: '12px',
+                border: '1px solid #e2e8f0',
+                boxShadow: '0 10px 22px rgba(15, 23, 42, 0.08)',
+              }}>
+                <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Performance Score</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#111827' }}>
+                  {selectedRiskWorkroom.weightedPerformanceScore?.toFixed(1) || 'N/A'}
+                </div>
+              </div>
+              <div style={{
+                padding: '0.9rem 1rem',
+                backgroundColor: '#f8fafc',
+                borderRadius: '12px',
+                border: '1px solid #e2e8f0',
+                boxShadow: '0 10px 22px rgba(15, 23, 42, 0.08)',
+              }}>
+                <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Records</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#111827' }}>
+                  {selectedRiskWorkroom.records || 0}
+                </div>
+              </div>
+              <div style={{
+                padding: '0.9rem 1rem',
+                backgroundColor: '#f8fafc',
+                borderRadius: '12px',
+                border: '1px solid #e2e8f0',
+                boxShadow: '0 10px 22px rgba(15, 23, 42, 0.08)',
+              }}>
+                <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Reschedule Rate</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#111827' }}>
+                  {selectedRiskWorkroom.rescheduleRate != null && selectedRiskWorkroom.rescheduleRate !== undefined 
+                    ? `${selectedRiskWorkroom.rescheduleRate.toFixed(1)}%`
+                    : 'N/A'}
+                </div>
+              </div>
+              <div style={{
+                padding: '0.9rem 1rem',
+                backgroundColor: '#f8fafc',
+                borderRadius: '12px',
+                border: '1px solid #e2e8f0',
+                boxShadow: '0 10px 22px rgba(15, 23, 42, 0.08)',
+              }}>
+                <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Sales</div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827' }}>
+                  {formatCurrency(selectedRiskWorkroom.laborPOVolume?.value || selectedRiskWorkroom.laborPO || 0)}
+                </div>
+              </div>
+            </div>
+
+            {/* Financial Metrics */}
+            <div style={{ marginBottom: '1rem' }}>
+              <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#111827', marginBottom: '0.75rem', paddingBottom: '0.25rem', borderBottom: '1px solid #e5e7eb' }}>
+                Financial Metrics
+              </h3>
+              <div style={{ 
+                display: 'grid',
+                gridTemplateColumns: 'repeat(4, 1fr)',
+                gap: '0.75rem'
+              }}>
+                <div style={{
+                  padding: '0.9rem 1rem',
+                  backgroundColor: '#f8fafc',
+                  borderRadius: '12px',
+                  border: '1px solid #e2e8f0',
+                  boxShadow: '0 10px 22px rgba(15, 23, 42, 0.08)',
+                }}>
+                  <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: 500 }}>LTR Performance</div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827', marginBottom: '0.25rem' }}>
+                    {selectedRiskWorkroom.ltrPerformance?.value ? (
+                      <>
+                        {selectedRiskWorkroom.ltrPerformance.value.toFixed(1)}
+                        {selectedRiskWorkroom.ltrPerformance.isSurveyData ? '' : '%'}
+                      </>
+                    ) : 'N/A'}
+                  </div>
+                  <div style={{ fontSize: '0.65rem', color: '#6b7280' }}>
+                    Rating: {selectedRiskWorkroom.ltrPerformance?.rating || 'N/A'}
+                    {selectedRiskWorkroom.ltrPerformance?.isSurveyData && (
+                      <span style={{ fontSize: '0.65rem', color: '#3b82f6', marginLeft: '0.5rem' }}>(Survey Data)</span>
+                    )}
+                  </div>
+                </div>
+                <div style={{
+                  padding: '0.9rem 1rem',
+                  backgroundColor: '#f8fafc',
+                  borderRadius: '12px',
+                  border: '1px solid #e2e8f0',
+                  boxShadow: '0 10px 22px rgba(15, 23, 42, 0.08)',
+                }}>
+                  <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: 500 }}>Vendor Debit Exposure</div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 700, color: selectedRiskWorkroom.vendorDebitExposure?.value && selectedRiskWorkroom.vendorDebitExposure.value !== 0 ? '#ef4444' : '#111827', marginBottom: '0.25rem' }}>
+                    {formatCurrency(Math.abs(selectedRiskWorkroom.vendorDebitExposure?.value || selectedRiskWorkroom.vendorDebit || 0))}
+                  </div>
+                  <div style={{ fontSize: '0.65rem', color: '#6b7280' }}>
+                    {(selectedRiskWorkroom.vendorDebitExposure?.ratio * 100 || 0).toFixed(1)}% • {selectedRiskWorkroom.vendorDebitExposure?.rating || 'N/A'}
+                  </div>
+                </div>
+                <div style={{
+                  padding: '0.9rem 1rem',
+                  backgroundColor: '#f8fafc',
+                  borderRadius: '12px',
+                  border: '1px solid #e2e8f0',
+                  boxShadow: '0 10px 22px rgba(15, 23, 42, 0.08)',
+                }}>
+                  <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: 500 }}>Total Job Cycle Time</div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827', marginBottom: '0.25rem' }}>
+                    {selectedRiskWorkroom.jobsWorkCycleTime != null && selectedRiskWorkroom.jobsWorkCycleTime > 0 
+                      ? `${selectedRiskWorkroom.jobsWorkCycleTime.toFixed(1)} days`
+                      : 'N/A'}
+                  </div>
+                </div>
+                <div style={{
+                  padding: '0.9rem 1rem',
+                  backgroundColor: '#f8fafc',
+                  borderRadius: '12px',
+                  border: '1px solid #e2e8f0',
+                  boxShadow: '0 10px 22px rgba(15, 23, 42, 0.08)',
+                }}>
+                  <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: 500 }}>Total Work Order Cycle Time</div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827', marginBottom: '0.25rem' }}>
+                    {selectedRiskWorkroom.cycleTime != null && selectedRiskWorkroom.cycleTime > 0 
+                      ? `${selectedRiskWorkroom.cycleTime.toFixed(1)} days`
+                      : 'N/A'}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Cycle Time */}
+            {selectedRiskWorkroom.cycleTime != null && (
+              <div style={{ marginBottom: '1rem' }}>
+                <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#111827', marginBottom: '0.75rem', paddingBottom: '0.25rem', borderBottom: '1px solid #e5e7eb' }}>
+                  Cycle Time
+                </h3>
+                <div style={{ 
+                  padding: '0.9rem 1rem', 
+                  backgroundColor: '#f8fafc', 
+                  borderRadius: '12px',
+                  border: '1px solid #e2e8f0',
+                  boxShadow: '0 10px 22px rgba(15, 23, 42, 0.08)',
+                }}>
+                  <div style={{ fontSize: '0.875rem', color: '#374151' }}>
+                    Average: <strong style={{ fontSize: '1rem', color: '#111827' }}>{selectedRiskWorkroom.cycleTime.toFixed(1)} days</strong>
+                    {selectedRiskWorkroom.cycleTime > 30 && (
+                      <span style={{ color: '#ef4444', marginLeft: '0.5rem', fontSize: '0.75rem', fontWeight: 500 }}>⚠️ Above threshold</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Operational Risks */}
+            {selectedRiskWorkroom.operationalRisks && selectedRiskWorkroom.operationalRisks.length > 0 && (
+              <div style={{ marginBottom: '1rem' }}>
+                <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#111827', marginBottom: '0.75rem', paddingBottom: '0.25rem', borderBottom: '1px solid #e5e7eb' }}>
+                  Operational Risks
+                </h3>
+                <div style={{ 
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '0.5rem',
+                }}>
+                  {selectedRiskWorkroom.operationalRisks.map((risk: string, index: number) => (
+                    <div
+                      key={index}
+                      style={{
+                        padding: '0.5rem 0.75rem',
+                        backgroundColor: '#fef2f2',
+                        borderRadius: '0.375rem',
+                        border: '1px solid #fecaca',
+                        color: '#991b1b',
+                        fontSize: '0.75rem',
+                        lineHeight: '1.4',
+                        fontWeight: 500,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      <span>⚠️</span> {risk}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Issues to Fix */}
+            <div style={{ marginBottom: '1rem' }}>
+              <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#111827', marginBottom: '0.75rem', paddingBottom: '0.25rem', borderBottom: '1px solid #e5e7eb' }}>
+                Issues to Fix
+              </h3>
+              {selectedRiskWorkroom.fixNowBullets && selectedRiskWorkroom.fixNowBullets.length > 0 ? (
+                <div style={{ 
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.75rem',
+                }}>
+                  {selectedRiskWorkroom.fixNowBullets.map((bullet: string, index: number) => {
+                    // Replace numbering (1., 2., 3., etc.) with dashes (-) at the beginning of each line
+                    const replaceNumberingWithDash = (text: string): string => {
+                      return text.split('\n').map(line => {
+                        // Replace patterns like "1. ", "2. ", "10. ", etc. with "- " at the start of each line
+                        return line.replace(/^\d+\.\s*/, '- ').trim()
+                      }).join('\n')
+                    }
+                    return (
+                      <div
+                        key={index}
+                        style={{
+                          padding: '0.9rem 1rem',
+                          backgroundColor: '#f8fafc',
+                          borderRadius: '12px',
+                          border: '1px solid #e2e8f0',
+                          boxShadow: '0 10px 22px rgba(15, 23, 42, 0.08)',
+                          fontSize: '0.75rem',
+                          lineHeight: '1.5',
+                          fontWeight: 500,
+                          color: '#111827',
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: '0.5rem'
+                        }}
+                      >
+                        <span style={{ fontSize: '1rem' }}>🔧</span>
+                        <span style={{ whiteSpace: 'pre-line' }}>{replaceNumberingWithDash(bullet)}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div style={{ 
+                  padding: '0.9rem 1rem', 
+                  backgroundColor: '#f8fafc', 
+                  borderRadius: '12px',
+                  border: '1px solid #e2e8f0',
+                  boxShadow: '0 10px 22px rgba(15, 23, 42, 0.08)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  color: '#111827'
+                }}>
+                  <span>✓</span>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>No critical issues identified.</span>
+                </div>
+              )}
+            </div>
+
+            {/* Financial Risk Rating */}
+            {selectedRiskWorkroom.financialRisk && (
+              <div style={{ 
+                marginTop: '1rem', 
+                paddingTop: '1rem', 
+                borderTop: '2px solid #e5e7eb',
+              }}>
+                <div style={{
+                  display: 'inline-block',
+                  padding: '0.75rem 1rem',
+                  backgroundColor: selectedRiskWorkroom.financialRisk === 'Critical' || selectedRiskWorkroom.financialRisk === 'High' 
+                    ? '#fef2f2' 
+                    : selectedRiskWorkroom.financialRisk === 'Moderate'
+                    ? '#fffbeb'
+                    : '#f0fdf4',
+                  borderRadius: '0.375rem',
+                  border: `2px solid ${
+                    selectedRiskWorkroom.financialRisk === 'Critical' 
+                      ? '#dc2626' 
+                      : selectedRiskWorkroom.financialRisk === 'High'
+                      ? '#f59e0b'
+                      : selectedRiskWorkroom.financialRisk === 'Moderate'
+                      ? '#fbbf24'
+                      : '#10b981'
+                  }`,
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <div>
+                      <div style={{ fontSize: '0.65rem', color: '#6b7280', marginBottom: '0.25rem', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Financial Risk Rating</div>
+                      <div style={{ 
+                        fontSize: '1.25rem', 
+                        fontWeight: 700, 
+                        color: selectedRiskWorkroom.financialRisk === 'Critical' 
+                          ? '#991b1b' 
+                          : selectedRiskWorkroom.financialRisk === 'High'
+                          ? '#b45309'
+                          : selectedRiskWorkroom.financialRisk === 'Moderate'
+                          ? '#a16207'
+                          : '#166534'
+                      }}>
+                        {selectedRiskWorkroom.financialRisk}
+                      </div>
+                    </div>
+                    <div style={{ 
+                      fontSize: '1.5rem',
+                      opacity: 0.8
+                    }}>
+                      {selectedRiskWorkroom.financialRisk === 'Critical' || selectedRiskWorkroom.financialRisk === 'High' 
+                        ? '⚠️' 
+                        : selectedRiskWorkroom.financialRisk === 'Moderate'
+                        ? '⚡'
+                        : '✓'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   )
