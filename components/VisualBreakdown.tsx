@@ -1186,6 +1186,10 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                     justifyContent: 'space-between',
                     position: 'relative'
                   }}
+                  onClick={() => {
+                    setSelectedRiskWorkroom(workroom)
+                    setIsRiskDialogOpen(true)
+                  }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.transform = 'translateY(-2px) scale(1.01)'
                     e.currentTarget.style.boxShadow = `0 10px 22px ${shadowColor}`
