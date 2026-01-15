@@ -44,7 +44,45 @@ export default function LowesChatWidget() {
   const [isSending, setIsSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showDetails, setShowDetails] = useState(true)
+  const [userPhotos, setUserPhotos] = useState<Record<string, string>>({})
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  // Load user photos from localStorage and update when user changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('fis-user-photos')
+      const photos = stored ? JSON.parse(stored) : {}
+      
+      // Always add/update current user's photo if available
+      if (user?.photoUrl && user?.email) {
+        photos[user.email] = user.photoUrl
+        localStorage.setItem('fis-user-photos', JSON.stringify(photos))
+      }
+      
+      setUserPhotos(photos)
+    }
+  }, [user?.email, user?.photoUrl])
+
+  // Function to get photo for a sender
+  const getSenderPhoto = (senderEmail: string): string | null => {
+    // Check in userPhotos state
+    if (userPhotos[senderEmail]) {
+      return userPhotos[senderEmail]
+    }
+    
+    // Also check localStorage in case state hasn't updated
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('fis-user-photos')
+      if (stored) {
+        const photos = JSON.parse(stored)
+        if (photos[senderEmail]) {
+          return photos[senderEmail]
+        }
+      }
+    }
+    
+    return null
+  }
 
   // Fetch previous conversations when widget opens
   useEffect(() => {
@@ -421,11 +459,32 @@ export default function LowesChatWidget() {
                             key={message.id}
                             className={`flex ${isMine ? 'justify-end' : 'justify-start'} items-end gap-3 mb-4`}
                           >
-                            {!isMine && !isSystem && (
-                              <div className="w-12 h-12 bg-gradient-to-br from-[#80875d] to-[#6b7349] rounded-full flex items-center justify-center shadow-md flex-shrink-0 overflow-hidden ring-2 ring-white">
-                                <span className="text-white text-base font-bold">{message.sender_name.charAt(0)}</span>
-                              </div>
-                            )}
+                            {!isMine && !isSystem && (() => {
+                              const senderPhoto = getSenderPhoto(message.sender_email)
+                              return (
+                                <div className="w-12 h-12 bg-gradient-to-br from-[#80875d] to-[#6b7349] rounded-full flex items-center justify-center shadow-md flex-shrink-0 overflow-hidden ring-2 ring-white relative">
+                                  {senderPhoto ? (
+                                    <img 
+                                      src={senderPhoto} 
+                                      alt={message.sender_name}
+                                      className="w-full h-full object-cover"
+                                      onError={(e) => {
+                                        // Fallback to initial if image fails to load
+                                        e.currentTarget.style.display = 'none'
+                                        const fallback = e.currentTarget.parentElement?.querySelector('.initial-fallback') as HTMLElement
+                                        if (fallback) fallback.style.display = 'flex'
+                                      }}
+                                    />
+                                  ) : null}
+                                  <span 
+                                    className={`initial-fallback text-white text-base font-bold ${senderPhoto ? 'hidden' : 'flex'}`}
+                                    style={{ display: senderPhoto ? 'none' : 'flex' }}
+                                  >
+                                    {message.sender_name.charAt(0).toUpperCase()}
+                                  </span>
+                                </div>
+                              )
+                            })()}
                             <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'} max-w-[80%]`}>
                               {!isSystem && !isMine && (
                                 <div className="text-xs font-bold mb-2 px-2 text-gray-600 uppercase tracking-wide">

@@ -646,6 +646,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             })
             userData.photoUrl = base64String
             console.log('Profile photo fetched successfully for user:', userData.email)
+            
+            // Store photo in shared storage for chat display
+            if (typeof window !== 'undefined') {
+              const userPhotos = JSON.parse(localStorage.getItem('fis-user-photos') || '{}')
+              userPhotos[userData.email] = base64String
+              localStorage.setItem('fis-user-photos', JSON.stringify(userPhotos))
+            }
           } else {
             console.warn('Photo response not OK:', photoResponse.status, photoResponse.statusText)
             // Try to get photo metadata to see if photo exists
