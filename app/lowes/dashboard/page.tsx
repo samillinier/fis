@@ -89,11 +89,13 @@ export default function LowesDashboardPage() {
         })
 
         if (!response.ok) {
-          throw new Error('Failed to fetch conversations')
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.error || errorData.details || 'Failed to fetch conversations')
         }
 
         const data = await response.json()
         setConversations(data.conversations || [])
+        setError(null) // Clear any previous errors
       } catch (err: any) {
         console.error('Error fetching conversations:', err)
         setError(err.message || 'Failed to load conversations')
@@ -147,7 +149,9 @@ export default function LowesDashboardPage() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.error || 'Failed to create conversation')
+        const errorMessage = errorData.error || errorData.details || 'Failed to create conversation'
+        console.error('Failed to create conversation:', errorData)
+        throw new Error(errorMessage)
       }
 
       const result = await response.json()
@@ -160,13 +164,18 @@ export default function LowesDashboardPage() {
         const memberData = JSON.parse(teamMember)
         const response = await fetch('/api/lowes-chat/conversations/all', {
           headers: {
-            'Authorization': `Bearer ${memberData.email}`
+            'Authorization': `Bearer ${memberData.email}`,
+            'x-user-district': memberData.district || '',
+            'x-user-store-number': memberData.storeNumber || ''
           }
         })
 
         if (response.ok) {
           const data = await response.json()
           setConversations(data.conversations || [])
+        } else {
+          const errorData = await response.json().catch(() => ({}))
+          console.error('Error refreshing conversations:', errorData)
         }
       }
       await fetchConversations()

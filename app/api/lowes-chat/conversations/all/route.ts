@@ -30,8 +30,42 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Error fetching conversations:', error)
+      
+      // If error is about missing columns, try fallback filtering using district_store field
+      if (error.message?.includes('column') && (error.message?.includes('does not exist') || error.message?.includes('district') || error.message?.includes('store_number'))) {
+        console.log('New columns not found, using district_store field for filtering')
+        
+        // Fallback: filter by district_store field using pattern matching
+        const districtStorePattern = `${userDistrict.trim()} / Store ${userStoreNumber.trim()}`
+        const { data: fallbackConversations, error: fallbackError } = await supabase
+          .from('lowes_chat_conversations')
+          .select('*')
+          .ilike('district_store', `%${districtStorePattern}%`)
+          .order('last_message_at', { ascending: false })
+        
+        if (fallbackError) {
+          console.error('Fallback query also failed:', fallbackError)
+          // Last resort: return all conversations
+          const { data: allConversations, error: allError } = await supabase
+            .from('lowes_chat_conversations')
+            .select('*')
+            .order('last_message_at', { ascending: false })
+          
+          if (allError) {
+            return NextResponse.json(
+              { error: 'Failed to fetch conversations', details: allError.message },
+              { status: 500 }
+            )
+          }
+          
+          return NextResponse.json({ conversations: allConversations || [] })
+        }
+        
+        return NextResponse.json({ conversations: fallbackConversations || [] })
+      }
+      
       return NextResponse.json(
-        { error: 'Failed to fetch conversations' },
+        { error: 'Failed to fetch conversations', details: error.message },
         { status: 500 }
       )
     }

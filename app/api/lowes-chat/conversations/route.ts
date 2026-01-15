@@ -93,31 +93,90 @@ export async function POST(request: NextRequest) {
     const creatorDistrict = request.headers.get('x-user-district') || ''
     const creatorStoreNumber = request.headers.get('x-user-store-number') || ''
 
+    // Prepare conversation data
+    const conversationData: any = {
+      conversation_key: conversationKey,
+      lowes_email: body.lowesEmail.trim(),
+      user_name: body.name.trim(),
+      user_role: body.role.trim(),
+      district_store: `${body.district.trim()} / Store ${body.storeNumber.trim()}`,
+      quote_ims_number: body.quoteImsNumber.trim(),
+      flooring_category: body.flooringCategory.trim(),
+      question_types: Array.isArray(body.questionTypes) ? body.questionTypes : [body.questionTypes],
+      category: body.flooringCategory.trim(), // For routing
+      created_by: userEmail,
+      status: 'open'
+    }
+
+    // Only add district and store_number if they exist (for migration compatibility)
+    // Try to add them, but if columns don't exist, the insert will still work without them
+    const creatorDistrictValue = creatorDistrict.trim() || body.district.trim()
+    const creatorStoreNumberValue = creatorStoreNumber.trim() || body.storeNumber.trim()
+    
+    if (creatorDistrictValue && creatorStoreNumberValue) {
+      conversationData.district = creatorDistrictValue
+      conversationData.store_number = creatorStoreNumberValue
+    }
+
     // Create conversation with intake data
     const { data: conversation, error } = await supabase
       .from('lowes_chat_conversations')
-      .insert({
-        conversation_key: conversationKey,
-        lowes_email: body.lowesEmail.trim(),
-        user_name: body.name.trim(),
-        user_role: body.role.trim(),
-        district_store: `${body.district.trim()} / Store ${body.storeNumber.trim()}`,
-        district: creatorDistrict.trim() || body.district.trim(), // Store creator's district
-        store_number: creatorStoreNumber.trim() || body.storeNumber.trim(), // Store creator's store number
-        quote_ims_number: body.quoteImsNumber.trim(),
-        flooring_category: body.flooringCategory.trim(),
-        question_types: Array.isArray(body.questionTypes) ? body.questionTypes : [body.questionTypes],
-        category: body.flooringCategory.trim(), // For routing
-        created_by: userEmail,
-        status: 'open'
-      })
+      .insert(conversationData)
       .select()
       .single()
 
     if (error) {
       console.error('Error creating conversation:', error)
+      
+      // If error is about missing columns, try without them
+      if (error.message?.includes('column') && (error.message?.includes('does not exist') || error.message?.includes('district') || error.message?.includes('store_number'))) {
+        console.log('New columns not found, creating conversation without district/store_number fields')
+        delete conversationData.district
+        delete conversationData.store_number
+        
+        const { data: fallbackConversation, error: fallbackError } = await supabase
+          .from('lowes_chat_conversations')
+          .insert(conversationData)
+          .select()
+          .single()
+        
+        if (fallbackError) {
+          return NextResponse.json(
+            { error: 'Failed to create conversation', details: fallbackError.message },
+            { status: 500 }
+          )
+        }
+        
+        // Create audit log and system message for fallback
+        await supabase.from('lowes_chat_audit_logs').insert({
+          conversation_id: fallbackConversation.id,
+          action_type: 'created',
+          action_description: `Conversation created: ${body.flooringCategory} quote`,
+          user_email: userEmail,
+          user_name: body.name.trim(),
+          metadata: {
+            flooring_category: body.flooringCategory,
+            quote_number: body.quoteImsNumber
+          }
+        })
+        
+        await supabase.from('lowes_chat_messages').insert({
+          conversation_id: fallbackConversation.id,
+          message_text: `Conversation started. Quote/IMS: ${body.quoteImsNumber}. Category: ${body.flooringCategory}.`,
+          sender_email: 'system',
+          sender_name: 'System',
+          sender_role: 'system',
+          is_system_message: true
+        })
+        
+        return NextResponse.json({
+          conversation: fallbackConversation,
+          conversationKey: fallbackConversation.conversation_key
+        })
+      }
+      
       return NextResponse.json(
-        { error: 'Failed to create conversation' },
+        { error: 'Failed to create conversation', details: error.message },
         { status: 500 }
       )
     }
