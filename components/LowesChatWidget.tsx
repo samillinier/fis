@@ -54,6 +54,7 @@ export default function LowesChatWidget() {
       setIsLoadingConversations(true)
       try {
         // Fetch ALL conversations (started by Lowe's team) for FIS POD users to respond to
+        // Note: FIS POD users see all conversations, filtering is only for Lowe's team members
         const response = await fetch('/api/lowes-chat/conversations/all', {
           headers: { 'Authorization': `Bearer ${user.email}` }
         })

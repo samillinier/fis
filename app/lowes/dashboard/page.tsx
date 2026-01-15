@@ -79,10 +79,12 @@ export default function LowesDashboardPage() {
 
         const memberData = JSON.parse(teamMember)
 
-        // Fetch all conversations with auth header
+        // Fetch all conversations with auth header and user's district/store
         const response = await fetch('/api/lowes-chat/conversations/all', {
           headers: {
-            'Authorization': `Bearer ${memberData.email}`
+            'Authorization': `Bearer ${memberData.email}`,
+            'x-user-district': memberData.district || '',
+            'x-user-store-number': memberData.storeNumber || ''
           }
         })
 
@@ -136,7 +138,9 @@ export default function LowesDashboardPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${memberData.email}`
+          'Authorization': `Bearer ${memberData.email}`,
+          'x-user-district': memberData.district || '',
+          'x-user-store-number': memberData.storeNumber || ''
         },
         body: JSON.stringify(data)
       })

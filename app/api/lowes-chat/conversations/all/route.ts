@@ -8,10 +8,24 @@ export async function GET(request: NextRequest) {
     const authHeader = request.headers.get('authorization')
     const userEmail = authHeader ? authHeader.replace('Bearer ', '') : 'lowes-team'
 
-    // Fetch all conversations ordered by last message time
-    const { data: conversations, error } = await supabase
+    // Get user's district and store number from headers
+    const userDistrict = request.headers.get('x-user-district') || ''
+    const userStoreNumber = request.headers.get('x-user-store-number') || ''
+
+    // Build query - filter by matching district AND store_number
+    let query = supabase
       .from('lowes_chat_conversations')
       .select('*')
+
+    // Only filter if both district and storeNumber are provided
+    if (userDistrict && userStoreNumber) {
+      query = query
+        .eq('district', userDistrict.trim())
+        .eq('store_number', userStoreNumber.trim())
+    }
+
+    // Order by last message time
+    const { data: conversations, error } = await query
       .order('last_message_at', { ascending: false })
 
     if (error) {
@@ -22,7 +36,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    console.log(`[Lowes Dashboard] Fetched ${conversations?.length || 0} conversations for ${userEmail}`)
+    console.log(`[Lowes Dashboard] Fetched ${conversations?.length || 0} conversations for ${userEmail} (District: ${userDistrict}, Store: ${userStoreNumber})`)
     return NextResponse.json({ conversations: conversations || [] })
   } catch (error: any) {
     console.error('Error in GET /api/lowes-chat/conversations/all:', error)

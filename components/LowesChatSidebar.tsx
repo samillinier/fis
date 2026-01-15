@@ -42,7 +42,9 @@ export default function LowesChatSidebar({ currentConversationId, onConversation
 
         const response = await fetch('/api/lowes-chat/conversations/all', {
           headers: {
-            'Authorization': `Bearer ${memberData.email}`
+            'Authorization': `Bearer ${memberData.email}`,
+            'x-user-district': memberData.district || '',
+            'x-user-store-number': memberData.storeNumber || ''
           }
         })
 

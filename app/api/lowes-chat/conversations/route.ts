@@ -89,6 +89,10 @@ export async function POST(request: NextRequest) {
     // Use crypto to generate a URL-safe random string
     const conversationKey = randomBytes(9).toString('base64url') // e.g., "abc123xyz456"
 
+    // Get creator's district and storeNumber from request headers
+    const creatorDistrict = request.headers.get('x-user-district') || ''
+    const creatorStoreNumber = request.headers.get('x-user-store-number') || ''
+
     // Create conversation with intake data
     const { data: conversation, error } = await supabase
       .from('lowes_chat_conversations')
@@ -98,6 +102,8 @@ export async function POST(request: NextRequest) {
         user_name: body.name.trim(),
         user_role: body.role.trim(),
         district_store: `${body.district.trim()} / Store ${body.storeNumber.trim()}`,
+        district: creatorDistrict.trim() || body.district.trim(), // Store creator's district
+        store_number: creatorStoreNumber.trim() || body.storeNumber.trim(), // Store creator's store number
         quote_ims_number: body.quoteImsNumber.trim(),
         flooring_category: body.flooringCategory.trim(),
         question_types: Array.isArray(body.questionTypes) ? body.questionTypes : [body.questionTypes],
