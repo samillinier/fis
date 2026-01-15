@@ -543,12 +543,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (accounts.length > 0) {
         try {
           result = await instance.acquireTokenSilent({
-            scopes: ['User.Read'],
+            scopes: ['User.Read', 'User.ReadBasic.All'],
             account: accounts[0],
           })
         } catch (error) {
           result = await instance.loginPopup({
-            scopes: ['User.Read'],
+            scopes: ['User.Read', 'User.ReadBasic.All'],
           })
         }
       } else {
@@ -631,6 +631,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (profileData.jobTitle) {
               userData.jobTitle = profileData.jobTitle
             }
+          } else {
+            console.warn('Profile response not OK:', profileResponse.status, profileResponse.statusText)
           }
 
           // Get profile photo
@@ -643,9 +645,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               reader.readAsDataURL(photoBlob)
             })
             userData.photoUrl = base64String
+            console.log('Profile photo fetched successfully for user:', userData.email)
+          } else {
+            console.warn('Photo response not OK:', photoResponse.status, photoResponse.statusText)
+            // Try to get photo metadata to see if photo exists
+            try {
+              const photoMetaResponse = await fetch('https://graph.microsoft.com/v1.0/me/photo', {
+                headers: {
+                  Authorization: `Bearer ${result.accessToken}`,
+                },
+              })
+              if (photoMetaResponse.ok) {
+                const metaData = await photoMetaResponse.json()
+                console.log('Photo metadata:', metaData)
+                if (metaData.id) {
+                  // Photo exists, but we couldn't fetch it - might need different endpoint or permissions
+                  console.warn('Photo exists but could not be fetched. Status:', photoResponse.status)
+                }
+              }
+            } catch (metaError) {
+              console.log('Could not fetch photo metadata:', metaError)
+            }
           }
         } catch (error) {
-          console.log('Could not fetch profile data:', error)
+          console.error('Error fetching profile data:', error)
         }
 
         setUser(userData)

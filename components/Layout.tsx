@@ -6,6 +6,7 @@ import Sidebar from '@/components/Sidebar'
 import NotificationContainer from '@/components/NotificationContainer'
 import NotificationDropdown from '@/components/NotificationDropdown'
 import FirstTimeLoginModal from '@/components/FirstTimeLoginModal'
+import LowesChatWidget from '@/components/LowesChatWidget'
 import { useFilters } from '@/components/FilterContext'
 import { useAuth } from '@/components/AuthContext'
 import { LogOut, User, UserCog, Menu, X } from 'lucide-react'
@@ -201,6 +202,7 @@ export default function Layout({ children }: LayoutProps) {
       </footer>
       <NotificationContainer />
       <FirstTimeLoginModal />
+      <LowesChatWidget />
     </div>
   )
 }
