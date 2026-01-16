@@ -35,6 +35,38 @@ export default function LowesDashboardPage() {
   const [currentUser, setCurrentUser] = useState<any>(null)
   const profileDropdownRef = useRef<HTMLDivElement>(null)
 
+  // Format last activity time
+  const formatLastActivity = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffDays = Math.floor(diffMs / 86400000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffMinutes = Math.floor(diffMs / 60000)
+    
+    const timeString = date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    })
+    
+    if (diffDays === 0) {
+      if (diffHours === 0) {
+        if (diffMinutes < 1) {
+          return `Just now`
+        }
+        return `${diffMinutes}m ago at ${timeString}`
+      }
+      return `Today at ${timeString}`
+    } else if (diffDays === 1) {
+      return `Yesterday at ${timeString}`
+    } else if (diffDays < 7) {
+      return `${diffDays}d ago at ${timeString}`
+    } else {
+      return `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} at ${timeString}`
+    }
+  }
+
   // Check if logged in and get current user
   useEffect(() => {
     const teamMember = localStorage.getItem('lowes-team-member')
@@ -526,17 +558,11 @@ export default function LowesDashboardPage() {
                     </div>
                   </div>
                   
-                  {/* Timestamp */}
+                  {/* Last Activity */}
                   <div className="text-right text-xs text-gray-500 ml-4 flex-shrink-0">
-                    <div className="font-semibold mb-1">
-                      {new Date(conversation.last_message_at).toLocaleDateString()}
-                    </div>
-                    <div>
-                      {new Date(conversation.last_message_at).toLocaleTimeString('en-US', {
-                        hour: 'numeric',
-                        minute: '2-digit',
-                        hour12: true
-                      })}
+                    <div className="font-medium text-gray-600 mb-1">Last activity:</div>
+                    <div className="font-semibold text-gray-900">
+                      {formatLastActivity(conversation.last_message_at)}
                     </div>
                   </div>
                 </div>
