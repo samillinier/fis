@@ -4,12 +4,15 @@ import { useState, useRef, useEffect } from 'react'
 import { useData } from '@/context/DataContext'
 import { useNotification } from '@/components/NotificationContext'
 import { useAuth } from '@/components/AuthContext'
-import { Upload, FileText, CheckCircle2, XCircle } from 'lucide-react'
+import { Upload, FileText, CheckCircle2, XCircle, Lock } from 'lucide-react'
 import type { DashboardData, WorkroomData } from '@/context/DataContext'
 import * as XLSX from 'xlsx'
 import { workroomStoreData } from '@/data/workroomStoreData'
 import { getStoreName } from '@/data/storeNames'
 import { saveFileNames, loadFileNames } from '@/lib/database'
+
+// SUPER ADMIN - Only this user can upload data
+const SUPER_ADMIN_EMAIL = 'sbiru@fiscorponline.com'
 
 export default function DualFileUpload() {
   const [isUploadingVisual, setIsUploadingVisual] = useState(false)
@@ -1026,6 +1029,44 @@ export default function DualFileUpload() {
     }
   }
 
+  // Check if current user is admin (only admin can upload)
+  const isAdmin = user?.email?.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase()
+
+  // If not admin, show read-only message
+  if (!isAdmin) {
+    return (
+      <div className="space-y-3">
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <div className="flex items-center gap-2 text-gray-600 mb-2">
+            <Lock size={16} />
+            <span className="text-sm font-medium">Shared Data Mode</span>
+          </div>
+          <p className="text-xs text-gray-500">
+            Data is managed by the administrator. All users view the same shared data.
+          </p>
+          {(visualFileName || surveyFileName) && (
+            <div className="mt-3 pt-3 border-t border-gray-200">
+              <p className="text-xs font-medium text-gray-600 mb-2">Current Data Files:</p>
+              {visualFileName && (
+                <div className="flex items-center gap-2 text-xs text-gray-600 mb-1">
+                  <CheckCircle2 size={12} className="text-green-600" />
+                  <span className="truncate">Visual: {visualFileName}</span>
+                </div>
+              )}
+              {surveyFileName && (
+                <div className="flex items-center gap-2 text-xs text-gray-600">
+                  <CheckCircle2 size={12} className="text-green-600" />
+                  <span className="truncate">Survey: {surveyFileName}</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // Admin view - show upload controls
   return (
     <div className="space-y-3">
       {/* Visual Data Upload */}

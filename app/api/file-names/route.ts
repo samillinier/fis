@@ -1,8 +1,17 @@
 // API Route - File Names Storage
+// SHARED DATA MODEL - All users see admin's file names
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase, ensureUserExists } from '@/lib/supabase'
 
-// GET - Fetch file names for a user
+// SUPER ADMIN - File names are stored under admin's account (shared)
+const SUPER_ADMIN_EMAIL = 'sbiru@fiscorponline.com'
+
+// Helper to get admin user_id
+async function getAdminUserId(): Promise<string> {
+  return await ensureUserExists(SUPER_ADMIN_EMAIL)
+}
+
+// GET - Fetch file names (shared - from admin's account)
 export async function GET(request: NextRequest) {
   try {
     const authHeader = request.headers.get('authorization')
@@ -15,14 +24,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid user' }, { status: 401 })
     }
 
-    // Ensure user exists and get user ID
-    const userId = await ensureUserExists(userEmail)
+    // Get admin's user_id - all users see admin's file names
+    const adminUserId = await getAdminUserId()
 
-    // Fetch file names from user_metadata table
+    // Fetch file names from admin's user_metadata (shared)
     const { data, error } = await supabase
       .from('user_metadata')
       .select('visual_file_name, survey_file_name')
-      .eq('user_id', userId)
+      .eq('user_id', adminUserId)
       .single()
 
     if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
@@ -43,7 +52,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - Save file names for a user
+// POST - Save file names (ADMIN ONLY)
 export async function POST(request: NextRequest) {
   try {
     const authHeader = request.headers.get('authorization')
@@ -56,17 +65,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid user' }, { status: 401 })
     }
 
+    // Only admin can save file names
+    const isAdmin = userEmail.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase()
+    if (!isAdmin) {
+      return NextResponse.json({ 
+        error: 'Unauthorized: Only admin can save file names' 
+      }, { status: 403 })
+    }
+
     const body = await request.json()
     const { visualFileName, surveyFileName } = body
 
-    // Ensure user exists and get user ID
-    const userId = await ensureUserExists(userEmail)
+    // Use admin's user_id (shared data model)
+    const adminUserId = await getAdminUserId()
 
-    // Upsert file names (insert or update)
+    // Upsert file names under admin's account (shared)
     const { error } = await supabase
       .from('user_metadata')
       .upsert({
-        user_id: userId,
+        user_id: adminUserId,
         visual_file_name: visualFileName || null,
         survey_file_name: surveyFileName || null,
         updated_at: new Date().toISOString(),
@@ -87,7 +104,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// DELETE - Clear file names for a user
+// DELETE - Clear file names (ADMIN ONLY)
 export async function DELETE(request: NextRequest) {
   try {
     const authHeader = request.headers.get('authorization')
@@ -100,10 +117,18 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid user' }, { status: 401 })
     }
 
-    // Ensure user exists and get user ID
-    const userId = await ensureUserExists(userEmail)
+    // Only admin can delete file names
+    const isAdmin = userEmail.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase()
+    if (!isAdmin) {
+      return NextResponse.json({ 
+        error: 'Unauthorized: Only admin can delete file names' 
+      }, { status: 403 })
+    }
 
-    // Clear file names
+    // Use admin's user_id (shared data model)
+    const adminUserId = await getAdminUserId()
+
+    // Clear file names from admin's account
     const { error } = await supabase
       .from('user_metadata')
       .update({
@@ -111,7 +136,7 @@ export async function DELETE(request: NextRequest) {
         survey_file_name: null,
         updated_at: new Date().toISOString(),
       })
-      .eq('user_id', userId)
+      .eq('user_id', adminUserId)
 
     if (error) {
       throw error

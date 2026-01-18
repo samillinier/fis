@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
 
     // Allow access for:
     // 1. User who created the conversation
-    // 2. Lowe's pricing team (any authenticated user - access control at application level)
+    // 2. Lowe's Pro Connect (any authenticated user - access control at application level)
     // Always allow access if userEmail is provided (authentication handled at app level)
     const hasAccess = true // All authenticated requests can view messages
 

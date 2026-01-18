@@ -1,7 +1,7 @@
 # FIS POD Chat - Quick Guide
 
 ## Overview
-The chat widget allows you to respond to conversations started by the Lowe's pricing team. The chat appears as a floating button in the bottom-right corner of all pages.
+The chat widget allows you to respond to conversations started by Lowe's Pro Connect. The chat appears as a floating button in the bottom-right corner of all pages.
 
 ---
 
@@ -23,7 +23,7 @@ The chat widget allows you to respond to conversations started by the Lowe's pri
 
 ### Step 1: Select a Conversation
 - When you open chat, you'll see a list of conversations
-- Conversations are started by the Lowe's pricing team
+- Conversations are started by Lowe's Pro Connect
 - Click on any conversation to open it
 
 ### Step 2: View Conversation Details

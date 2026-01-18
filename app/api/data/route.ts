@@ -1,10 +1,19 @@
 // API Route - Supabase (Separate Visual and Survey Data)
-// IMPORTANT: RLS must be DISABLED for these tables for inserts to work
+// IMPORTANT: SHARED DATA MODEL - All users see the same data uploaded by admin
+// Only SUPER_ADMIN can upload data, everyone else just views
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase, ensureUserExists } from '@/lib/supabase'
 import type { DashboardData, WorkroomData } from '@/context/DataContext'
 
-// GET - Fetch all data (visual + survey) for a user
+// SUPER ADMIN - Only this user can upload data
+const SUPER_ADMIN_EMAIL = 'sbiru@fiscorponline.com'
+
+// Helper to get admin user_id (the one who uploads data for everyone)
+async function getAdminUserId(): Promise<string> {
+  return await ensureUserExists(SUPER_ADMIN_EMAIL)
+}
+
+// GET - Fetch SHARED data (everyone sees admin's data)
 export async function GET(request: NextRequest) {
   try {
     const authHeader = request.headers.get('authorization')
@@ -17,86 +26,29 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid user' }, { status: 401 })
     }
 
-    const userId = await ensureUserExists(userEmail)
-    console.log(`🔍 [GET /api/data] Loading data for user: ${userEmail} (ID: ${userId})`)
-    
-    // Debug: Check what user_ids exist in tables and what data exists
-    const { data: allVisualData } = await supabase
-      .from('visual_data')
-      .select('user_id, workroom_name, created_at')
-      .order('created_at', { ascending: false })
-      .limit(10)
-    const { data: allSurveyData } = await supabase
-      .from('survey_data')
-      .select('user_id, workroom_name, created_at')
-      .order('created_at', { ascending: false })
-      .limit(10)
-    
-    const uniqueVisualUserIds = Array.from(new Set(allVisualData?.map(d => d.user_id) || []))
-    const uniqueSurveyUserIds = Array.from(new Set(allSurveyData?.map(d => d.user_id) || []))
-    
-    console.log(`🔍 [GET /api/data] Total visual records in DB: ${allVisualData?.length || 0}`)
-    console.log(`🔍 [GET /api/data] Unique user_ids in visual_data:`, uniqueVisualUserIds)
-    console.log(`🔍 [GET /api/data] Total survey records in DB: ${allSurveyData?.length || 0}`)
-    console.log(`🔍 [GET /api/data] Unique user_ids in survey_data:`, uniqueSurveyUserIds)
-    console.log(`🔍 [GET /api/data] Your user_id: ${userId}`)
-    console.log(`🔍 [GET /api/data] Does your user_id match? Visual: ${uniqueVisualUserIds.includes(userId)}, Survey: ${uniqueSurveyUserIds.includes(userId)}`)
-    
-    // TEMPORARY FIX: If no data found for your user_id, load ALL data (for debugging)
-    // Remove this after fixing the user_id issue
-    if (allVisualData && allVisualData.length > 0 && !uniqueVisualUserIds.includes(userId)) {
-      console.log(`⚠️ [GET /api/data] WARNING: Data exists but with different user_id!`)
-      console.log(`⚠️ [GET /api/data] Your user_id: ${userId}`)
-      console.log(`⚠️ [GET /api/data] Data user_ids: ${uniqueVisualUserIds.join(', ')}`)
-      console.log(`💡 [GET /api/data] TEMPORARY: Loading ALL data regardless of user_id...`)
-    }
+    // Get admin's user_id - ALL users load data from admin's account
+    const adminUserId = await getAdminUserId()
+    console.log(`🔍 [GET /api/data] Loading SHARED data for user: ${userEmail}`)
+    console.log(`🔍 [GET /api/data] Using admin's data (user_id: ${adminUserId}) - SHARED DATA MODEL`)
 
-    // Load visual data and survey data separately
-    // First try with your user_id
+    // Load visual data and survey data from ADMIN's account (shared for all users)
     let [visualResult, surveyResult, metadataResult] = await Promise.all([
       supabase
         .from('visual_data')
         .select('*, data_jsonb')
-        .eq('user_id', userId)
+        .eq('user_id', adminUserId)
         .order('created_at', { ascending: false }),
       supabase
         .from('survey_data')
         .select('*, data_jsonb')
-        .eq('user_id', userId)
+        .eq('user_id', adminUserId)
         .order('created_at', { ascending: false }),
       supabase
         .from('dashboard_metadata')
         .select('*')
-        .eq('user_id', userId)
+        .eq('user_id', adminUserId)
         .maybeSingle()
     ])
-    
-    // TEMPORARY FIX: If no data found for your user_id, load ALL data (for debugging)
-    if ((!visualResult.data || visualResult.data.length === 0) && 
-        (!surveyResult.data || surveyResult.data.length === 0)) {
-      console.log(`⚠️ [GET /api/data] No data found for user_id ${userId}, loading ALL data as fallback...`)
-      const [allVisualResult, allSurveyResult] = await Promise.all([
-        supabase
-          .from('visual_data')
-          .select('*, data_jsonb')
-          .order('created_at', { ascending: false })
-          .limit(100),
-        supabase
-          .from('survey_data')
-          .select('*, data_jsonb')
-          .order('created_at', { ascending: false })
-          .limit(100)
-      ])
-      
-      if (allVisualResult.data && allVisualResult.data.length > 0) {
-        console.log(`⚠️ [GET /api/data] Found ${allVisualResult.data.length} visual records with different user_id`)
-        visualResult = allVisualResult
-      }
-      if (allSurveyResult.data && allSurveyResult.data.length > 0) {
-        console.log(`⚠️ [GET /api/data] Found ${allSurveyResult.data.length} survey records with different user_id`)
-        surveyResult = allSurveyResult
-      }
-    }
 
     // Check if tables don't exist yet (migration not run)
     if (visualResult.error && visualResult.error.message?.includes('does not exist')) {
@@ -202,11 +154,8 @@ export async function GET(request: NextRequest) {
 }
 
 // POST - Save data (separates visual and survey data)
-// IMPORTANT: This endpoint implements COMPLETE DATA REPLACEMENT
-// - Every upload DELETES ALL previous data for the user
-// - Then inserts ONLY the new data from the current upload
-// - NO data is preserved from previous uploads
-// - This prevents data collisions and ensures clean, up-to-date data
+// IMPORTANT: ONLY SUPER_ADMIN CAN UPLOAD DATA
+// All data is stored under admin's user_id and shared with everyone
 export async function POST(request: NextRequest) {
   try {
     const authHeader = request.headers.get('authorization')
@@ -219,8 +168,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid user' }, { status: 401 })
     }
 
+    // CRITICAL: Only super admin can upload data
+    const isAdmin = userEmail.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase()
+    if (!isAdmin) {
+      console.error(`❌ [POST /api/data] UNAUTHORIZED: ${userEmail} tried to upload data. Only ${SUPER_ADMIN_EMAIL} can upload.`)
+      return NextResponse.json({ 
+        error: 'Unauthorized: Only admin can upload data',
+        message: `Only ${SUPER_ADMIN_EMAIL} is authorized to upload data. All other users can only view the shared data.`
+      }, { status: 403 })
+    }
+
     const body: DashboardData = await request.json()
-    console.log(`📥 [POST /api/data] Received request with ${body.workrooms?.length || 0} workrooms`)
+    console.log(`📥 [POST /api/data] Admin upload: ${body.workrooms?.length || 0} workrooms`)
     
     if (!body.workrooms || !Array.isArray(body.workrooms)) {
       console.error('❌ [POST /api/data] Invalid data format - workrooms is not an array')
@@ -232,8 +191,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No workrooms to save' }, { status: 400 })
     }
 
-    const userId = await ensureUserExists(userEmail)
-    console.log(`💾 [POST /api/data] Saving data for user ${userEmail} (user_id: ${userId})`)
+    // Use admin's user_id for all data (SHARED DATA MODEL)
+    const userId = await getAdminUserId()
+    console.log(`💾 [POST /api/data] ADMIN uploading SHARED data (user_id: ${userId})`)
     console.log(`📊 [POST /api/data] First workroom sample:`, {
       name: body.workrooms[0]?.name,
       hasSales: body.workrooms[0]?.sales != null,

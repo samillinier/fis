@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
@@ -11,10 +11,33 @@ export default function LowesSignupPage() {
   const [role, setRole] = useState('')
   const [district, setDistrict] = useState('')
   const [storeNumber, setStoreNumber] = useState('')
+  const [selectedGroup, setSelectedGroup] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [groups, setGroups] = useState<any[]>([])
+  const [isLoadingGroups, setIsLoadingGroups] = useState(false)
+
+  // Load available groups on mount
+  useEffect(() => {
+    const loadGroups = async () => {
+      setIsLoadingGroups(true)
+      try {
+        // Fetch groups from public endpoint (no auth required for signup)
+        const response = await fetch('/api/lowes-groups/public')
+        if (response.ok) {
+          const data = await response.json()
+          setGroups(data.groups || [])
+        }
+      } catch (error) {
+        console.error('Error loading groups:', error)
+      } finally {
+        setIsLoadingGroups(false)
+      }
+    }
+    loadGroups()
+  }, [])
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -30,6 +53,12 @@ export default function LowesSignupPage() {
 
     if (password.length < 6) {
       setError('Password must be at least 6 characters')
+      setIsLoading(false)
+      return
+    }
+
+    if (!selectedGroup) {
+      setError('Please select a department/group')
       setIsLoading(false)
       return
     }
@@ -65,6 +94,10 @@ export default function LowesSignupPage() {
       members.push(newMember)
       localStorage.setItem('lowes-team-members', JSON.stringify(members))
 
+      // Note: We save the groupId in localStorage but don't auto-add to group via API
+      // This requires admin auth. The admin can manually approve and add them to the group
+      // Or we could create a separate endpoint for this in the future
+
       // Auto-login after signup - load user's profile
       const lowesTeamMember = {
         email: newMember.email,
@@ -72,6 +105,7 @@ export default function LowesSignupPage() {
         role: newMember.role,
         district: newMember.district,
         storeNumber: newMember.storeNumber,
+        groupId: selectedGroup,
         loggedIn: true,
         loggedInAt: new Date().toISOString(),
         photoUrl: newMember.profile.photoUrl // Load user's own profile photo
@@ -102,11 +136,11 @@ export default function LowesSignupPage() {
               style={{ maxHeight: '400px', display: 'block', marginBottom: '-8px', paddingBottom: '0' }}
             />
             <h2 className="text-center text-3xl font-bold text-white" style={{ marginTop: '0', marginBottom: '0', lineHeight: '1', paddingTop: '0' }}>
-              Lowe's Pricing Team
+              Lowe's Pro Connect
             </h2>
           </div>
           <p className="mt-2 text-center text-sm text-white opacity-90">
-            Create an account to access pricing validation chats
+            Create an account to access Lowe's Pro Connect
           </p>
         </div>
 
@@ -201,6 +235,44 @@ export default function LowesSignupPage() {
             </div>
 
             <div>
+              <label htmlFor="selectedGroup" className="block text-sm font-medium text-white mb-2">
+                Department/Group <span className="text-red-500">*</span>
+              </label>
+              {isLoadingGroups ? (
+                <div className="w-full px-4 py-3 border-0 rounded-xl bg-white text-gray-500 shadow-lg">
+                  Loading groups...
+                </div>
+              ) : (
+                <select
+                  id="selectedGroup"
+                  name="selectedGroup"
+                  required
+                  value={selectedGroup}
+                  onChange={(e) => setSelectedGroup(e.target.value)}
+                  className="w-full px-4 py-3 border-0 rounded-xl bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 shadow-lg appearance-none cursor-pointer"
+                  style={{
+                    backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 9L1 4h10z'/%3E%3C/svg%3E\")",
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'right 1rem center',
+                    paddingRight: '2.5rem'
+                  }}
+                >
+                  <option value="" className="text-gray-400">-- Select your department --</option>
+                  {groups.map((group) => (
+                    <option key={group.id} value={group.id} className="text-gray-900">
+                      {group.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {groups.length === 0 && !isLoadingGroups && (
+                <p className="text-xs text-white opacity-75 mt-1">
+                  No groups available. Please contact an admin.
+                </p>
+              )}
+            </div>
+
+            <div>
               <label htmlFor="password" className="block text-sm font-medium text-white mb-2">
                 Password
               </label>
@@ -265,7 +337,7 @@ export default function LowesSignupPage() {
           </div>
 
           <div className="text-center text-xs text-white opacity-75">
-            <p>For Lowe's Pricing Team members only</p>
+            <p>For Lowe's Pro Connect members only</p>
           </div>
         </form>
       </div>

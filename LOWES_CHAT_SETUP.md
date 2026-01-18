@@ -2,7 +2,7 @@
 
 ## Overview
 
-A gated, logged, category-routed chat system for Lowe's pricing team to validate flooring quotes. Built with Next.js, Supabase, and Microsoft authentication.
+A gated, logged, category-routed chat system for Lowe's Pro Connect to validate flooring quotes. Built with Next.js, Supabase, and Microsoft authentication.
 
 ## Features
 

@@ -45,7 +45,54 @@ export default function LowesChatWidget() {
   const [error, setError] = useState<string | null>(null)
   const [showDetails, setShowDetails] = useState(true)
   const [userPhotos, setUserPhotos] = useState<Record<string, string>>({})
+  const [deletingConversationId, setDeletingConversationId] = useState<string | null>(null)
+  const [hasChatAccess, setHasChatAccess] = useState<boolean | null>(null)
+  const [groupName, setGroupName] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  // Check if user has chat widget access
+  useEffect(() => {
+    if (!user?.email) {
+      setHasChatAccess(false)
+      return
+    }
+
+    const checkAccess = async () => {
+      try {
+        const response = await fetch('/api/chat-widget-access', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${user.email}`
+          }
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          
+          // If admin, response contains users list - check if current user has access
+          if (data.users && Array.isArray(data.users)) {
+            const currentUser = data.users.find((u: any) => 
+              u.email.toLowerCase() === user.email?.toLowerCase()
+            )
+            setHasChatAccess(currentUser?.chatWidgetEnabled === true)
+          } else if (typeof data.hasAccess === 'boolean') {
+            // Regular user response
+            setHasChatAccess(data.hasAccess === true)
+          } else {
+            // Fallback: if admin but can't find user in list, allow access
+            setHasChatAccess(true)
+          }
+        } else {
+          setHasChatAccess(false)
+        }
+      } catch (error) {
+        console.error('Error checking chat widget access:', error)
+        setHasChatAccess(false)
+      }
+    }
+
+    checkAccess()
+  }, [user?.email])
 
   // Load user photos from localStorage and update when user changes
   useEffect(() => {
@@ -116,10 +163,13 @@ export default function LowesChatWidget() {
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
-    if (isOpen && !isMinimized && messages.length > 0) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    if (isOpen && !isMinimized && messages.length > 0 && chatState === 'chat') {
+      // Use setTimeout to ensure DOM is updated
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+      }, 100)
     }
-  }, [messages, isOpen, isMinimized])
+  }, [messages, isOpen, isMinimized, chatState])
 
   // Fetch messages when chat is open
   useEffect(() => {
@@ -137,7 +187,17 @@ export default function LowesChatWidget() {
 
         if (response.ok) {
           const data = await response.json()
-          setMessages(data.messages || [])
+          const fetchedMessages = data.messages || []
+          setMessages(fetchedMessages)
+          
+          // Auto-scroll after messages are loaded
+          setTimeout(() => {
+            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+          }, 100)
+        } else {
+          console.error('Failed to fetch messages:', response.status, response.statusText)
+          const errorData = await response.json().catch(() => ({}))
+          console.error('Error details:', errorData)
         }
       } catch (err) {
         console.error('Error fetching messages:', err)
@@ -145,9 +205,44 @@ export default function LowesChatWidget() {
     }
 
     fetchMessages()
-    // Poll for new messages every 10 seconds
-    const interval = setInterval(fetchMessages, 10000)
+    // Poll for new messages every 5 seconds (more frequent)
+    const interval = setInterval(fetchMessages, 5000)
     return () => clearInterval(interval)
+  }, [isOpen, conversationId, user?.email, chatState])
+
+  // Also listen for custom events to refresh messages immediately
+  useEffect(() => {
+    if (!isOpen || !conversationId || chatState !== 'chat') return
+
+    const handleMessageUpdate = (event: CustomEvent) => {
+      if (event.detail?.conversationId === conversationId) {
+        // Refresh messages immediately when a new message is sent
+        const fetchMessages = async () => {
+          try {
+            const authHeader = `Bearer ${user?.email}`
+            const response = await fetch(
+              `/api/lowes-chat/messages?conversationId=${conversationId}`,
+              {
+                headers: { 'Authorization': authHeader }
+              }
+            )
+
+            if (response.ok) {
+              const data = await response.json()
+              setMessages(data.messages || [])
+            }
+          } catch (err) {
+            console.error('Error fetching messages:', err)
+          }
+        }
+        fetchMessages()
+      }
+    }
+
+    window.addEventListener('message-sent' as any, handleMessageUpdate as EventListener)
+    return () => {
+      window.removeEventListener('message-sent' as any, handleMessageUpdate as EventListener)
+    }
   }, [isOpen, conversationId, user?.email, chatState])
 
 
@@ -205,6 +300,7 @@ export default function LowesChatWidget() {
     setConversationId(conversation.id)
     setConversationKey(conversation.conversation_key)
     setCurrentConversation(conversation)
+    setGroupName(null) // Reset group name
     
     // Fetch full conversation details
     try {
@@ -212,6 +308,21 @@ export default function LowesChatWidget() {
       if (response.ok) {
         const data = await response.json()
         setCurrentConversation(data.conversation)
+        
+        // Fetch group name for the user who created this conversation
+        // Use created_by if available, otherwise use lowes_email
+        const userEmail = data.conversation.created_by || data.conversation.lowes_email
+        if (userEmail) {
+          try {
+            const groupResponse = await fetch(`/api/lowes-groups/user-group?email=${encodeURIComponent(userEmail)}`)
+            if (groupResponse.ok) {
+              const groupData = await groupResponse.json()
+              setGroupName(groupData.groupName || null)
+            }
+          } catch (err) {
+            console.error('Error fetching user group:', err)
+          }
+        }
       }
     } catch (err) {
       console.error('Error fetching conversation details:', err)
@@ -222,22 +333,99 @@ export default function LowesChatWidget() {
 
 
   const formatConversationDate = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffDays = Math.floor(diffMs / 86400000)
+    if (!dateString) return 'No activity'
     
-    if (diffDays === 0) return 'Today'
-    if (diffDays === 1) return 'Yesterday'
-    if (diffDays < 7) return `${diffDays} days ago`
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    try {
+      const date = new Date(dateString)
+      if (isNaN(date.getTime())) {
+        return 'Invalid date'
+      }
+      
+      const now = new Date()
+      const diffMs = now.getTime() - date.getTime()
+      const diffDays = Math.floor(diffMs / 86400000)
+      const diffHours = Math.floor(diffMs / 3600000)
+      const diffMinutes = Math.floor(diffMs / 60000)
+      
+      // Always get the time string
+      const hours = date.getHours()
+      const minutes = date.getMinutes()
+      const ampm = hours >= 12 ? 'PM' : 'AM'
+      const displayHours = hours % 12 || 12
+      const displayMinutes = minutes.toString().padStart(2, '0')
+      const timeString = `${displayHours}:${displayMinutes} ${ampm}`
+      
+      if (diffDays === 0) {
+        if (diffHours === 0) {
+          if (diffMinutes < 1) {
+            return `Just now`
+          }
+          return `${diffMinutes}m ago at ${timeString}`
+        }
+        return `Today at ${timeString}`
+      } else if (diffDays === 1) {
+        return `Yesterday at ${timeString}`
+      } else if (diffDays < 7) {
+        return `${diffDays}d ago at ${timeString}`
+      } else {
+        return `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} at ${timeString}`
+      }
+    } catch (error) {
+      console.error('Error formatting date:', error, dateString)
+      return 'Invalid date'
+    }
   }
 
   const isMyMessage = (message: Message) => {
     return message.sender_email === user?.email || message.sender_email === user?.email?.toLowerCase()
   }
 
+  const handleDeleteConversation = async (convIdToDelete: string, e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent selecting the conversation
+    
+    if (!confirm('Are you sure you want to delete this conversation? This action cannot be undone.')) {
+      return
+    }
+
+    setDeletingConversationId(convIdToDelete)
+    setError(null)
+
+    try {
+      const authHeader = `Bearer ${user?.email}`
+      const response = await fetch(`/api/lowes-chat/conversations/${convIdToDelete}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': authHeader
+        }
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || 'Failed to delete conversation')
+      }
+
+      // Remove from local state
+      setPreviousConversations(prev => prev.filter(conv => conv.id !== convIdToDelete))
+      
+      // If we're currently viewing this conversation, go back to select screen
+      if (conversationId === convIdToDelete) {
+        setChatState('select')
+        setConversationId(null)
+        setCurrentConversation(null)
+        setMessages([])
+      }
+    } catch (err: any) {
+      console.error('Error deleting conversation:', err)
+      setError(err.message || 'Failed to delete conversation')
+    } finally {
+      setDeletingConversationId(null)
+    }
+  }
+
   if (!user) return null
+  
+  // Don't show widget if user doesn't have access (wait for access check to complete)
+  if (hasChatAccess === false) return null
 
   return (
     <>
@@ -312,54 +500,85 @@ export default function LowesChatWidget() {
           {!isMinimized && (
             <>
               {chatState === 'select' && (
-                <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
+                <div className="flex-1 flex flex-col overflow-hidden bg-gray-50">
                   {isLoadingConversations ? (
                     <div className="flex items-center justify-center py-8">
                       <div className="text-gray-500 text-base">Loading conversations...</div>
                     </div>
                   ) : (
-                    <>
-                      <div className="mb-4">
+                    <div className="flex flex-col h-full">
+                      <div className="px-4 pt-4 pb-3 flex-shrink-0">
                         <h3 className="text-base font-bold text-gray-900 mb-2">Continue Conversation</h3>
                         <p className="text-sm text-gray-600">Select a previous conversation or start a new one</p>
                       </div>
                       
                       {previousConversations.length > 0 && (
-                        <div className="space-y-2 mb-4 max-h-[300px] overflow-y-auto">
-                          {previousConversations.map((conv) => (
-                            <button
-                              key={conv.id}
-                              onClick={() => handleSelectConversation(conv)}
-                              className="w-full text-left p-3 bg-white rounded-lg border border-gray-200 hover:border-[#80875d] hover:shadow-md transition-all"
-                            >
-                              <div className="flex items-start justify-between mb-1">
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2 mb-1.5">
-                                    <span className="text-sm font-semibold text-gray-900">Quote:</span>
-                                    <span className="text-sm font-bold text-gray-900">{conv.quote_ims_number}</span>
+                        <div className="relative flex-1 min-h-0 px-4 pb-4">
+                          <div className="space-y-2 h-full overflow-y-auto">
+                            {previousConversations.map((conv) => (
+                              <div
+                                key={conv.id}
+                                className="relative group"
+                              >
+                                <button
+                                  onClick={() => handleSelectConversation(conv)}
+                                  className="w-full text-left p-3 bg-white rounded-lg border border-gray-200 hover:border-[#80875d] hover:shadow-md transition-all"
+                                >
+                                  <div className="flex items-start justify-between mb-1">
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center gap-2 mb-1.5">
+                                        <span className="text-sm font-semibold text-gray-900">Quote:</span>
+                                        <span className="text-sm font-bold text-gray-900">{conv.quote_ims_number}</span>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-sm text-gray-600">Category:</span>
+                                        <span className="text-sm font-semibold text-gray-700">{conv.flooring_category}</span>
+                                      </div>
+                                    </div>
+                                    <span className={`px-2.5 py-1.5 text-sm font-bold rounded ${
+                                      conv.status === 'open' ? 'bg-blue-100 text-blue-800' :
+                                      conv.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800' :
+                                      conv.status === 'resolved' ? 'bg-green-100 text-green-800' :
+                                      'bg-gray-100 text-gray-800'
+                                    }`}>
+                                      {conv.status.replace('_', ' ').toUpperCase()}
+                                    </span>
                                   </div>
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-sm text-gray-600">Category:</span>
-                                    <span className="text-sm font-semibold text-gray-700">{conv.flooring_category}</span>
+                                <div className="flex items-center justify-between mt-2">
+                                  <div className="text-sm text-gray-500">
+                                    Last activity: {formatConversationDate(conv.last_message_at)}
                                   </div>
+                                  {/* Delete Button */}
+                                  <button
+                                    onClick={(e) => handleDeleteConversation(conv.id, e)}
+                                    disabled={deletingConversationId === conv.id}
+                                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    title="Delete conversation"
+                                  >
+                                    {deletingConversationId === conv.id ? (
+                                      <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                      </svg>
+                                    ) : (
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                      </svg>
+                                    )}
+                                  </button>
                                 </div>
-                                <span className={`px-2.5 py-1.5 text-sm font-bold rounded ${
-                                  conv.status === 'open' ? 'bg-blue-100 text-blue-800' :
-                                  conv.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800' :
-                                  conv.status === 'resolved' ? 'bg-green-100 text-green-800' :
-                                  'bg-gray-100 text-gray-800'
-                                }`}>
-                                  {conv.status.replace('_', ' ').toUpperCase()}
-                                </span>
+                              </button>
                               </div>
-                              <div className="text-sm text-gray-500 mt-2">
-                                Last activity: {formatConversationDate(conv.last_message_at)}
-                              </div>
-                            </button>
-                          ))}
+                            ))}
+                          </div>
+                          {previousConversations.length > 3 && (
+                            <div className="absolute bottom-4 left-4 right-4 h-8 bg-gradient-to-t from-gray-50 to-transparent pointer-events-none flex items-end justify-center">
+                              <span className="text-xs text-gray-400 font-medium">Scroll for more</span>
+                            </div>
+                          )}
                         </div>
                       )}
-                    </>
+                    </div>
                   )}
                 </div>
               )}
@@ -372,9 +591,26 @@ export default function LowesChatWidget() {
 
               {chatState === 'chat' && (
                 <>
-                  {/* Conversation Details Panel */}
+                  {/* Back Button and Conversation Details Panel */}
                   {currentConversation && (
                     <div className="border-b border-gray-200 bg-gradient-to-r from-[#f8f9fa] to-white">
+                      {/* Back Button */}
+                      <button
+                        onClick={() => {
+                          setChatState('select')
+                          setConversationId(null)
+                          setCurrentConversation(null)
+                          setMessages([])
+                        }}
+                        className="w-full px-4 py-2.5 flex items-center gap-2 hover:bg-gray-50 transition-colors border-b border-gray-200"
+                      >
+                        <svg className="w-5 h-5 text-[#80875d]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                        </svg>
+                        <span className="font-semibold text-[#80875d]">All Chats</span>
+                      </button>
+                      
+                      {/* Conversation Details Toggle */}
                       <button
                         onClick={() => setShowDetails(!showDetails)}
                         className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors"
@@ -415,6 +651,12 @@ export default function LowesChatWidget() {
                               <span className="text-gray-600 font-medium">Category:</span>
                               <p className="text-gray-900 font-semibold">{currentConversation.flooring_category || 'N/A'}</p>
                             </div>
+                            {groupName && (
+                              <div>
+                                <span className="text-gray-600 font-medium">Group:</span>
+                                <p className="text-gray-900 font-semibold">{groupName}</p>
+                              </div>
+                            )}
                           </div>
                           
                           {currentConversation.question_types && currentConversation.question_types.length > 0 && (
@@ -438,7 +680,7 @@ export default function LowesChatWidget() {
                   )}
                   
                   {/* Messages Area */}
-                  <div className="flex-1 overflow-y-auto p-5 bg-gradient-to-b from-gray-50 via-white to-gray-50">
+                  <div className="flex-1 overflow-y-auto p-5 bg-gradient-to-b from-gray-50 via-white to-gray-50" style={{ maxHeight: '400px', minHeight: '200px' }}>
                       {messages.length === 0 ? (
                         <div className="text-center py-12">
                           <div className="w-16 h-16 bg-gradient-to-br from-[#80875d] to-[#6b7349] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
@@ -540,7 +782,7 @@ export default function LowesChatWidget() {
                         )
                       })
                     )}
-                    <div ref={messagesEndRef} />
+                    <div ref={messagesEndRef} className="h-1" />
                   </div>
 
                   {/* Input Area */}

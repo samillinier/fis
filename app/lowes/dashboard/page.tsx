@@ -37,33 +37,61 @@ export default function LowesDashboardPage() {
 
   // Format last activity time
   const formatLastActivity = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffDays = Math.floor(diffMs / 86400000)
-    const diffHours = Math.floor(diffMs / 3600000)
-    const diffMinutes = Math.floor(diffMs / 60000)
+    if (!dateString) return 'No activity'
     
-    const timeString = date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    })
-    
-    if (diffDays === 0) {
-      if (diffHours === 0) {
-        if (diffMinutes < 1) {
-          return `Just now`
-        }
-        return `${diffMinutes}m ago at ${timeString}`
+    try {
+      const date = new Date(dateString)
+      if (isNaN(date.getTime())) {
+        console.error('Invalid date:', dateString)
+        return 'Invalid date'
       }
-      return `Today at ${timeString}`
-    } else if (diffDays === 1) {
-      return `Yesterday at ${timeString}`
-    } else if (diffDays < 7) {
-      return `${diffDays}d ago at ${timeString}`
-    } else {
-      return `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} at ${timeString}`
+      
+      const now = new Date()
+      const diffMs = now.getTime() - date.getTime()
+      const diffDays = Math.floor(diffMs / 86400000)
+      const diffHours = Math.floor(diffMs / 3600000)
+      const diffMinutes = Math.floor(diffMs / 60000)
+      
+      // Always get the time string - ensure it's formatted correctly
+      const hours = date.getHours()
+      const minutes = date.getMinutes()
+      const ampm = hours >= 12 ? 'PM' : 'AM'
+      const displayHours = hours % 12 || 12
+      const displayMinutes = minutes.toString().padStart(2, '0')
+      const timeString = `${displayHours}:${displayMinutes} ${ampm}`
+      
+      // Always show time, even for today
+      if (diffDays === 0) {
+        if (diffHours === 0) {
+          if (diffMinutes < 1) {
+            return `Just now`
+          }
+          return `${diffMinutes}m ago at ${timeString}`
+        }
+        // Always show time for today
+        return `Today at ${timeString}`
+      } else if (diffDays === 1) {
+        return `Yesterday at ${timeString}`
+      } else if (diffDays < 7) {
+        return `${diffDays}d ago at ${timeString}`
+      } else {
+        return `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} at ${timeString}`
+      }
+    } catch (error) {
+      console.error('Error formatting date:', error, dateString)
+      // Fallback: show raw date/time if formatting fails
+      try {
+        const fallbackDate = new Date(dateString)
+        return fallbackDate.toLocaleString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true
+        })
+      } catch (e) {
+        return 'Invalid date'
+      }
     }
   }
 
@@ -309,8 +337,8 @@ export default function LowesDashboardPage() {
             />
             <div className="flex-1 flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-white">Lowe's Pricing Team</h1>
-                <p className="text-base text-white opacity-90 font-medium">Quote Validation Chat</p>
+                <h1 className="text-2xl font-bold text-white">Lowe's Pro Connect</h1>
+                <p className="text-base text-white opacity-90 font-medium">Flooring Validation Chat</p>
               </div>
               <div className="relative" ref={profileDropdownRef}>
                 <button
@@ -561,8 +589,8 @@ export default function LowesDashboardPage() {
                   {/* Last Activity */}
                   <div className="text-right text-xs text-gray-500 ml-4 flex-shrink-0">
                     <div className="font-medium text-gray-600 mb-1">Last activity:</div>
-                    <div className="font-semibold text-gray-900">
-                      {formatLastActivity(conversation.last_message_at)}
+                    <div className="font-semibold text-gray-900 whitespace-nowrap">
+                      {conversation.last_message_at ? formatLastActivity(conversation.last_message_at) : 'No activity'}
                     </div>
                   </div>
                 </div>

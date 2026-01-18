@@ -81,7 +81,7 @@ export default function LowesLoginPage() {
               style={{ maxHeight: '400px', display: 'block', marginBottom: '-8px', paddingBottom: '0' }}
             />
             <h2 className="text-center text-3xl font-bold text-white" style={{ marginTop: '0', marginBottom: '0', lineHeight: '1', paddingTop: '0' }}>
-              Lowe's Pricing Team
+              Lowe's Pro Connect
             </h2>
           </div>
           <p className="mt-2 text-center text-sm text-white opacity-90">
@@ -162,7 +162,7 @@ export default function LowesLoginPage() {
           </div>
 
           <div className="text-center text-xs text-white opacity-75">
-            <p>For Lowe's Pricing Team members only</p>
+            <p>For Lowe's Pro Connect members only</p>
           </div>
         </form>
       </div>

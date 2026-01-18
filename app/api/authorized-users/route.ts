@@ -46,6 +46,7 @@ async function listAuthorizedUsers() {
       isActive: row.is_active !== false,
       createdAt: row.created_at || undefined,
       createdBy: row.created_by || undefined,
+      lastLoginAt: row.last_login_at || undefined,
     })) || []
   )
 }

@@ -139,7 +139,7 @@ export default function LowesChatPage() {
         body: JSON.stringify({
           conversationId,
           messageText: newMessage,
-          senderName: "Lowe's Pricing Team",
+          senderName: "Lowe's Pro Connect",
           senderRole: 'pricing_team',
           senderEmail: memberData.email
         })
@@ -154,6 +154,11 @@ export default function LowesChatPage() {
       setMessages(prev => [...prev, data.message])
       setNewMessage('')
       setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100)
+      
+      // Dispatch event to notify FIS POD widget to refresh messages immediately
+      window.dispatchEvent(new CustomEvent('message-sent', { 
+        detail: { conversationId } 
+      }))
     } catch (err: any) {
       console.error('Error sending message:', err)
       setError(err.message || 'Failed to send message')
@@ -247,7 +252,7 @@ export default function LowesChatPage() {
   }
 
   return (
-    <div className="min-h-screen flex" style={{ 
+    <div className="h-screen flex overflow-hidden" style={{ 
       background: 'radial-gradient(circle at top, #eff6ff 0, #ffffff 40%)',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif'
     }}>
@@ -255,7 +260,7 @@ export default function LowesChatPage() {
       <LowesChatSidebar currentConversationId={conversationId} />
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
         <header className="bg-white border-b border-gray-200 shadow-md">
           <div className="max-w-7xl mx-auto px-6 py-5">

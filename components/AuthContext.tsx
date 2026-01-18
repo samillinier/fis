@@ -425,7 +425,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const markUserLogin = (email: string) => {
+  const markUserLogin = async (email: string) => {
     const normalized = email.toLowerCase()
     const now = new Date().toISOString()
     const updated = authorizedUsers.map((u) =>
@@ -446,6 +446,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         : prev
     )
+
+    // Update last login in database
+    try {
+      console.log('Updating last login for:', normalized)
+      const response = await fetch('/api/authorized-users/last-login', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: normalized }),
+      })
+      const data = await response.json()
+      console.log('Last login update response:', data)
+    } catch (error) {
+      console.error('Error updating last login in database:', error)
+    }
   }
 
   const loadAuthorizedForEmail = useCallback(
@@ -495,7 +511,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         setUser(userData)
         localStorage.setItem('fis-user', JSON.stringify(userData))
-        markUserLogin(foundUser.email)
+        await markUserLogin(foundUser.email)
         await refreshAccessData(foundUser.email)
         return { success: true }
       }
@@ -680,7 +696,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         setUser(userData)
         localStorage.setItem('fis-user', JSON.stringify(userData))
-        markUserLogin(account.username)
+        await markUserLogin(account.username)
         await refreshAccessData(account.username)
         return { success: true }
       }
@@ -745,7 +761,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     setUser(userData)
     localStorage.setItem('fis-user', JSON.stringify(userData))
-    markUserLogin(email)
+    await markUserLogin(email)
     await refreshAccessData(email)
     return { success: true }
   }

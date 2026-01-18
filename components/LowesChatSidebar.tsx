@@ -124,9 +124,9 @@ export default function LowesChatSidebar({ currentConversationId, onConversation
   }
 
   return (
-    <div className="w-80 bg-[#004990] border-r border-[#003d73] flex flex-col h-screen shadow-lg" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif' }}>
+    <div className="w-80 bg-[#004990] border-r border-[#003d73] flex flex-col h-screen shadow-lg overflow-hidden" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif' }}>
       {/* Header */}
-      <div className="p-5 border-b border-[#003d73] bg-[#003d73]">
+      <div className="p-5 border-b border-[#003d73] bg-[#003d73] flex-shrink-0">
         {/* Logo */}
         <div className="mb-4 flex justify-center items-center">
           <img 
@@ -189,7 +189,7 @@ export default function LowesChatSidebar({ currentConversationId, onConversation
       </div>
 
       {/* Conversations List */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto min-h-0">
         {isLoading ? (
           <div className="p-4 text-center text-sm text-white opacity-75">Loading...</div>
         ) : filteredConversations.length === 0 ? (
@@ -199,12 +199,12 @@ export default function LowesChatSidebar({ currentConversationId, onConversation
               : 'No conversations yet'}
           </div>
         ) : (
-          <div className="space-y-2 p-2">
+          <div className="space-y-2 p-2 pb-4">
             {filteredConversations.map((conversation) => (
               <button
                 key={conversation.id}
                 onClick={() => handleConversationClick(conversation.id)}
-                className={`w-full text-left p-4 rounded-xl transition-all duration-200 ${
+                className={`w-full text-left p-4 rounded-xl transition-all duration-200 flex-shrink-0 ${
                   currentConversationId === conversation.id 
                     ? 'bg-white shadow-xl transform scale-[1.02]' 
                     : 'bg-white bg-opacity-10 hover:bg-opacity-20 hover:shadow-lg'
@@ -330,7 +330,7 @@ export default function LowesChatSidebar({ currentConversationId, onConversation
       </div>
 
       {/* Footer */}
-      <div className="p-4 border-t border-[#003d73] bg-[#003d73]">
+      <div className="p-4 border-t border-[#003d73] bg-[#003d73] flex-shrink-0">
         <div className="text-sm text-white opacity-85 text-center font-semibold">
           {filteredConversations.length} conversation{filteredConversations.length !== 1 ? 's' : ''}
         </div>

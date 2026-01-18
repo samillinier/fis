@@ -1,4 +1,4 @@
-# Lowe's Pricing Team - Quick Start Guide
+# Lowe's Pro Connect - Quick Start Guide
 
 ## Login & Sign Up
 
