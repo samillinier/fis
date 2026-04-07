@@ -10,6 +10,7 @@ export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json()
     const normalizedEmail = normalizeEmail(body.email)
+    const photoUrl = typeof body.photoUrl === 'string' ? body.photoUrl : null
     
     if (!normalizedEmail) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 })
@@ -17,15 +18,21 @@ export async function PATCH(request: NextRequest) {
 
     const now = new Date().toISOString()
 
+    const updates: Record<string, any> = { last_login_at: now }
+    // If provided, persist photo so other staff can see avatars in the chat widget
+    if (photoUrl && photoUrl.startsWith('data:image/')) {
+      updates.photo_url = photoUrl
+    }
+
     const { error } = await supabase
       .from('authorized_users')
-      .update({ last_login_at: now })
+      .update(updates)
       .eq('email', normalizedEmail)
 
     if (error) {
       // If column doesn't exist, log warning but don't fail
       if (error.code === '42703' || error.message?.includes('column')) {
-        console.warn('last_login_at column not found in authorized_users table')
+        console.warn('One or more columns not found in authorized_users table (last_login_at/photo_url)')
         return NextResponse.json({ success: true, lastLoginAt: now })
       }
       throw error

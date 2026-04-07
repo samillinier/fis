@@ -38,15 +38,15 @@ After deployment completes, add your Vercel URL to Azure:
 1. Go to: https://portal.azure.com
 2. Azure Active Directory → App registrations → "FIS POD"
 3. Authentication → Single-page application
-4. Add redirect URI: `https://fis-he6w.vercel.app/signin`
-5. Add redirect URI: `https://fis-he6w.vercel.app`
+4. Add redirect URI: `https://pod.floorinteriorservices.com/signin`
+5. Add redirect URI: `https://pod.floorinteriorservices.com`
 6. Save
 
 ### 4. Test Your Deployment
 
 Once deployment is complete:
 
-1. Visit: https://fis-he6w.vercel.app
+1. Visit: https://pod.floorinteriorservices.com
 2. Test sign-in with Microsoft
 3. Upload data - should work with localStorage!
 4. Verify everything works

@@ -34,11 +34,11 @@ The redirect URI used by the app doesn't match what's registered in Azure Portal
 **Add these URIs (one at a time):**
 
 1. **First URI:**
-   - `https://fis-he6w.vercel.app/signin`
+   - `https://pod.floorinteriorservices.com/signin`
    - Click **"Add"**
 
 2. **Second URI:**
-   - `https://fis-he6w.vercel.app`
+   - `https://pod.floorinteriorservices.com`
    - Click **"Add"**
 
 3. **Third URI (for local development):**
@@ -56,7 +56,7 @@ The redirect URI used by the app doesn't match what's registered in Azure Portal
 
 ### Step 5: Test Again
 
-1. Go to: https://fis-he6w.vercel.app/signin
+1. Go to: https://pod.floorinteriorservices.com/signin
 2. Click "Sign in with Microsoft"
 3. Should work now! ✅
 
@@ -64,8 +64,8 @@ The redirect URI used by the app doesn't match what's registered in Azure Portal
 
 Make sure these are all added in Azure Portal:
 
-- ✅ `https://fis-he6w.vercel.app/signin`
-- ✅ `https://fis-he6w.vercel.app`
+- ✅ `https://pod.floorinteriorservices.com/signin`
+- ✅ `https://pod.floorinteriorservices.com`
 - ✅ `http://localhost:3000/signin` (for local dev)
 - ✅ `http://localhost:3000` (for local dev)
 
@@ -78,8 +78,8 @@ Make sure these are all added in Azure Portal:
 ## 🔍 Verify Redirect URI Format:
 
 Your redirect URIs should look exactly like this in Azure:
-- `https://fis-he6w.vercel.app/signin` (not `https://fis-he6w.vercel.app/signin/`)
-- `https://fis-he6w.vercel.app` (not `https://fis-he6w.vercel.app/`)
+- `https://pod.floorinteriorservices.com/signin` (not `https://pod.floorinteriorservices.com/signin/`)
+- `https://pod.floorinteriorservices.com` (not `https://pod.floorinteriorservices.com/`)
 
 ---
 

@@ -772,7 +772,7 @@ export default function HistoricalAnalytics() {
         {!showUploadWizard ? (
           <button
             onClick={startUploadWizard}
-            className="w-full px-6 py-3 bg-[#80875d] text-white rounded-lg hover:bg-[#6d7350] transition-colors font-medium flex items-center justify-center gap-2"
+            className="w-full px-6 py-3 bg-[#89ac44] text-white rounded-lg hover:bg-[#6d8a35] transition-colors font-medium flex items-center justify-center gap-2"
           >
             <Upload size={20} />
             Start Upload Process
@@ -782,28 +782,28 @@ export default function HistoricalAnalytics() {
             {/* Progress Indicator */}
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${uploadStep >= 1 ? 'bg-[#80875d] text-white' : 'bg-gray-200 text-gray-500'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${uploadStep >= 1 ? 'bg-[#89ac44] text-white' : 'bg-gray-200 text-gray-500'}`}>
                   1
                 </div>
-                <span className={`text-sm font-medium ${uploadStep >= 1 ? 'text-[#80875d]' : 'text-gray-500'}`}>Date</span>
+                <span className={`text-sm font-medium ${uploadStep >= 1 ? 'text-[#89ac44]' : 'text-gray-500'}`}>Date</span>
               </div>
               <div className="flex-1 h-0.5 bg-gray-200 mx-2">
-                <div className={`h-full transition-all ${uploadStep >= 2 ? 'bg-[#80875d]' : 'bg-gray-200'}`} style={{ width: uploadStep >= 2 ? '100%' : '0%' }}></div>
+                <div className={`h-full transition-all ${uploadStep >= 2 ? 'bg-[#89ac44]' : 'bg-gray-200'}`} style={{ width: uploadStep >= 2 ? '100%' : '0%' }}></div>
               </div>
               <div className="flex items-center gap-2">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${uploadStep >= 2 ? 'bg-[#80875d] text-white' : 'bg-gray-200 text-gray-500'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${uploadStep >= 2 ? 'bg-[#89ac44] text-white' : 'bg-gray-200 text-gray-500'}`}>
                   2
                 </div>
-                <span className={`text-sm font-medium ${uploadStep >= 2 ? 'text-[#80875d]' : 'text-gray-500'}`}>Type</span>
+                <span className={`text-sm font-medium ${uploadStep >= 2 ? 'text-[#89ac44]' : 'text-gray-500'}`}>Type</span>
               </div>
               <div className="flex-1 h-0.5 bg-gray-200 mx-2">
-                <div className={`h-full transition-all ${uploadStep >= 3 ? 'bg-[#80875d]' : 'bg-gray-200'}`} style={{ width: uploadStep >= 3 ? '100%' : '0%' }}></div>
+                <div className={`h-full transition-all ${uploadStep >= 3 ? 'bg-[#89ac44]' : 'bg-gray-200'}`} style={{ width: uploadStep >= 3 ? '100%' : '0%' }}></div>
               </div>
               <div className="flex items-center gap-2">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${uploadStep >= 3 ? 'bg-[#80875d] text-white' : 'bg-gray-200 text-gray-500'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${uploadStep >= 3 ? 'bg-[#89ac44] text-white' : 'bg-gray-200 text-gray-500'}`}>
                   3
                 </div>
-                <span className={`text-sm font-medium ${uploadStep >= 3 ? 'text-[#80875d]' : 'text-gray-500'}`}>Files</span>
+                <span className={`text-sm font-medium ${uploadStep >= 3 ? 'text-[#89ac44]' : 'text-gray-500'}`}>Files</span>
               </div>
             </div>
 
@@ -986,7 +986,7 @@ export default function HistoricalAnalytics() {
                 )}
                 <button
                   onClick={nextStep}
-                  className="px-4 py-2 bg-[#80875d] text-white rounded-lg hover:bg-[#6d7350] transition-colors"
+                  className="px-4 py-2 bg-[#89ac44] text-white rounded-lg hover:bg-[#6d8a35] transition-colors"
                 >
                   {uploadStep === 3 ? 'Save & Complete' : 'Next'}
                 </button>

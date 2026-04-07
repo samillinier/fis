@@ -39,12 +39,12 @@ This is a **Vercel preview URL**, not the production URL.
 
 1. **Production Sign-in:**
    ```
-   https://fis-he6w.vercel.app/signin
+   https://pod.floorinteriorservices.com/signin
    ```
 
 2. **Production Root:**
    ```
-   https://fis-he6w.vercel.app
+   https://pod.floorinteriorservices.com
    ```
 
 3. **Local Development:**
@@ -68,12 +68,12 @@ This is a **Vercel preview URL**, not the production URL.
 **Vercel creates NEW preview URLs for each deployment/PR:**
 - Each preview deployment gets a unique URL like `fis-xxxxx-samilliniers-projects.vercel.app`
 - You may need to add new preview URLs as they change
-- **Better option:** Use the **production URL** (`https://fis-he6w.vercel.app`) which stays the same
+- **Better option:** Use the **production URL** (`https://pod.floorinteriorservices.com`) which stays the same
 
 ## 💡 Recommendation:
 
 1. **For now:** Add the current preview URL to get it working
-2. **For production:** Use `https://fis-he6w.vercel.app` which doesn't change
+2. **For production:** Use `https://pod.floorinteriorservices.com` which doesn't change
 3. **If preview URLs keep changing:** You might want to only test on production URL
 
 ---

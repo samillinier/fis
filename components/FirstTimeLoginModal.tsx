@@ -18,7 +18,7 @@ const WORKROOMS = [
   'Tampa',
 ]
 
-const ROLES = ['GM', 'PC', 'Corporate', 'Other'] as const
+const ROLES = ['GM', 'PC', 'Corporate', 'President', 'Finance', 'IT', 'Other'] as const
 
 export default function FirstTimeLoginModal() {
   const { user } = useAuth()
@@ -229,16 +229,16 @@ export default function FirstTimeLoginModal() {
               disabled={saving || !workroom || !role}
               className="flex-1 inline-flex items-center justify-center gap-2 text-white px-6 py-3 rounded-lg disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium shadow-sm hover:shadow-md"
               style={{ 
-                backgroundColor: (!workroom || !role) ? '#9ca3af' : '#80875d',
+                backgroundColor: (!workroom || !role) ? '#9ca3af' : '#89ac44',
               }}
               onMouseEnter={(e) => {
                 if (workroom && role) {
-                  e.currentTarget.style.backgroundColor = '#6b7350'
+                  e.currentTarget.style.backgroundColor = '#6d8a35'
                 }
               }}
               onMouseLeave={(e) => {
                 if (workroom && role) {
-                  e.currentTarget.style.backgroundColor = '#80875d'
+                  e.currentTarget.style.backgroundColor = '#89ac44'
                 }
               }}
             >

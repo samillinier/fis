@@ -20,10 +20,10 @@ Webhooks allow QuickBooks to notify your application immediately when data chang
 In the **Set up endpoints** section:
 
 - **Development**: `http://localhost:3000/api/quickbooks/webhook`
-- **Production**: `https://your-production-domain.vercel.app/api/quickbooks/webhook`
+- **Production**: `https://pod.floorinteriorservices.com/api/quickbooks/webhook`
 
 **Important:** 
-- Replace `your-production-domain.vercel.app` with your actual Vercel domain
+- Replace `pod.floorinteriorservices.com` with your actual Vercel domain
 - The URL must be publicly accessible (localhost only works for development with tunneling tools like ngrok)
 
 ### 3. Get Verifier Token

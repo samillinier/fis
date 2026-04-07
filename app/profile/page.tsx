@@ -15,6 +15,7 @@ export default function ProfilePage() {
     addAuthorizedUser,
     removeAuthorizedUser,
     isAdmin,
+    isOwner,
     user,
     accessRequests,
     approveAccessRequest,
@@ -46,6 +47,7 @@ export default function ProfilePage() {
   const [editMemberRole, setEditMemberRole] = useState('')
   const [editMemberDistrict, setEditMemberDistrict] = useState('')
   const [editMemberStoreNumber, setEditMemberStoreNumber] = useState('')
+  const [editMemberGroupId, setEditMemberGroupId] = useState('')
   const [editMemberPassword, setEditMemberPassword] = useState('')
   const [editMemberConfirmPassword, setEditMemberConfirmPassword] = useState('')
   const [showResetPassword, setShowResetPassword] = useState(false)
@@ -60,14 +62,17 @@ export default function ProfilePage() {
   const [newMemberGroupId, setNewMemberGroupId] = useState('')
 
   useEffect(() => {
-    if (!isAdmin) {
-      router.push('/')
-    } else {
+    // Only load data when user is confirmed admin
+    // Don't redirect - let ProtectedRoute handle auth
+    if (isAdmin || isOwner) {
       loadChatWidgetAccess()
       loadLowesTeamMembers()
       loadGroups()
     }
-  }, [isAdmin, router, authorizedUsers])
+  }, [isAdmin, isOwner, authorizedUsers])
+
+  const canViewAdminAccess = isAdmin || isOwner
+  const canEditAccess = isAdmin
 
   const sortedUsers = useMemo(
     () =>
@@ -123,7 +128,7 @@ export default function ProfilePage() {
     showNotification('Request removed.', 'success')
   }
 
-  const handleRoleChange = async (email: string, role: 'admin' | 'user') => {
+  const handleRoleChange = async (email: string, role: 'admin' | 'owner' | 'user' | 'accounting') => {
     const success = await setUserRole(email, role)
     if (success) {
       showNotification('Role updated.', 'success')
@@ -410,15 +415,31 @@ export default function ProfilePage() {
     }
   }
 
-  const handleStartEditMember = (member: any) => {
+  const handleStartEditMember = async (member: any) => {
     setEditingMember(member)
     setEditMemberName(member.name || '')
     setEditMemberRole(member.role || '')
     setEditMemberDistrict(member.district || '')
     setEditMemberStoreNumber(member.storeNumber || '')
+    setEditMemberGroupId('')
     setEditMemberPassword('')
     setEditMemberConfirmPassword('')
     setShowResetPassword(false)
+
+    // Fetch user's current group from database
+    try {
+      const response = await fetch(`/api/lowes-groups/user-group?email=${encodeURIComponent(member.email)}`)
+      const data = await response.json()
+      if (data.groupName) {
+        // Find the group ID by name
+        const group = groups.find(g => g.name === data.groupName)
+        if (group) {
+          setEditMemberGroupId(group.id)
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching member group:', err)
+    }
   }
 
   const handleCancelEditMember = () => {
@@ -427,6 +448,7 @@ export default function ProfilePage() {
     setEditMemberRole('')
     setEditMemberDistrict('')
     setEditMemberStoreNumber('')
+    setEditMemberGroupId('')
     setEditMemberPassword('')
     setEditMemberConfirmPassword('')
     setShowResetPassword(false)
@@ -437,69 +459,81 @@ export default function ProfilePage() {
 
     // Validate password if resetting
     if (showResetPassword) {
-      if (editMemberPassword.length < 6) {
+      const trimmedPassword = editMemberPassword.trim()
+      const trimmedConfirm = editMemberConfirmPassword.trim()
+      
+      if (!trimmedPassword || trimmedPassword.length < 6) {
         showNotification('Password must be at least 6 characters', 'error')
         return
       }
-      if (editMemberPassword !== editMemberConfirmPassword) {
+      if (trimmedPassword !== trimmedConfirm) {
         showNotification('Passwords do not match', 'error')
         return
       }
     }
 
     try {
-      // Get all members from localStorage
-      const storedMembers = localStorage.getItem('lowes-team-members')
-      const members = storedMembers ? JSON.parse(storedMembers) : []
+      // Update member in database via API (including password if provided)
+      const updateResponse = await fetch('/api/lowes-team-members', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user.email}`
+        },
+        body: JSON.stringify({
+          memberEmail: editingMember.email,
+          name: editMemberName.trim(),
+          role: editMemberRole.trim(),
+          district: editMemberDistrict.trim(),
+          storeNumber: editMemberStoreNumber.trim(),
+          groupId: editMemberGroupId || null,
+          password: showResetPassword && editMemberPassword.trim() ? editMemberPassword.trim() : undefined
+        })
+      })
 
-      // Find and update the member
-      const memberIndex = members.findIndex((m: any) => m.email === editingMember.email)
-      
-      if (memberIndex === -1) {
-        showNotification('Member not found in local storage', 'error')
+      if (!updateResponse.ok) {
+        const errorData = await updateResponse.json()
+        showNotification(errorData.error || 'Failed to update member in database', 'error')
         return
       }
 
-      // Update member data
-      members[memberIndex].name = editMemberName.trim()
-      members[memberIndex].role = editMemberRole.trim()
-      members[memberIndex].district = editMemberDistrict.trim()
-      members[memberIndex].storeNumber = editMemberStoreNumber.trim()
-      
-      if (showResetPassword && editMemberPassword) {
-        members[memberIndex].password = editMemberPassword
+      console.log(`[Profile] Successfully updated member ${editingMember.email} in Supabase (password updated: ${showResetPassword})`)
+
+      // Handle group assignment changes
+      // First, remove member from all groups
+      for (const group of groups) {
+        const memberInGroup = group.members?.find((m: any) => 
+          m.member_email.toLowerCase() === editingMember.email.toLowerCase()
+        )
+        if (memberInGroup) {
+          await fetch('/api/lowes-groups/members', {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${user.email}`
+            },
+            body: JSON.stringify({
+              groupId: group.id,
+              memberEmail: editingMember.email
+            })
+          })
+        }
       }
 
-      // Save back to localStorage
-      localStorage.setItem('lowes-team-members', JSON.stringify(members))
-
-      // Update group member names if they exist in groups
-      if (editMemberName.trim() !== editingMember.name) {
-        // Update member name in all groups
-        const groupIds = groups.map(g => g.id)
-        for (const groupId of groupIds) {
-          // Check if member is in this group
-          const group = groups.find(g => g.id === groupId)
-          const memberInGroup = group?.members.find((m: any) => 
-            m.member_email.toLowerCase() === editingMember.email.toLowerCase()
-          )
-          
-          if (memberInGroup) {
-            // Update via API
-            await fetch('/api/lowes-groups/members/update-name', {
-              method: 'PATCH',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${user.email}`
-              },
-              body: JSON.stringify({
-                groupId,
-                memberEmail: editingMember.email,
-                memberName: editMemberName.trim()
-              })
-            })
-          }
-        }
+      // Then, add member to the new group if one is selected
+      if (editMemberGroupId) {
+        await fetch('/api/lowes-groups/members', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${user.email}`
+          },
+          body: JSON.stringify({
+            groupId: editMemberGroupId,
+            memberEmail: editingMember.email,
+            memberName: editMemberName.trim()
+          })
+        })
       }
 
       showNotification('Member profile updated successfully', 'success')
@@ -545,34 +579,30 @@ export default function ProfilePage() {
     }
 
     try {
-      // Get existing members from localStorage
-      const storedMembers = localStorage.getItem('lowes-team-members')
-      const members = storedMembers ? JSON.parse(storedMembers) : []
+      // Create member in Supabase via API
+      const createResponse = await fetch('/api/lowes-team-members', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user.email}`
+        },
+        body: JSON.stringify({
+          email: newMemberEmail.trim(),
+          name: newMemberName.trim(),
+          role: newMemberRole.trim(),
+          district: newMemberDistrict.trim(),
+          storeNumber: newMemberStoreNumber.trim(),
+          password: newMemberPassword,
+          groupId: newMemberGroupId || null
+        })
+      })
 
-      // Check if email already exists
-      if (members.some((m: any) => m.email.toLowerCase() === newMemberEmail.toLowerCase())) {
-        showNotification('An account with this email already exists', 'error')
+      if (!createResponse.ok) {
+        const errorData = await createResponse.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('Create member error:', errorData)
+        showNotification(errorData.details || errorData.error || 'Failed to create member', 'error')
         return
       }
-
-      // Create new member
-      const newMember = {
-        name: newMemberName.trim(),
-        email: newMemberEmail.trim(),
-        password: newMemberPassword,
-        role: newMemberRole.trim(),
-        district: newMemberDistrict.trim(),
-        storeNumber: newMemberStoreNumber.trim(),
-        groupId: newMemberGroupId || null,
-        createdAt: new Date().toISOString(),
-        profile: {
-          photoUrl: null,
-          updatedAt: new Date().toISOString()
-        }
-      }
-
-      members.push(newMember)
-      localStorage.setItem('lowes-team-members', JSON.stringify(members))
 
       // If group selected, add member to group
       if (newMemberGroupId) {
@@ -667,7 +697,7 @@ export default function ProfilePage() {
     setExpandedGroups(newExpanded)
   }
 
-  if (!isAdmin) {
+  if (!canViewAdminAccess) {
     return null
   }
 
@@ -682,41 +712,49 @@ export default function ProfilePage() {
             <div>
               <h1 className="text-2xl font-semibold text-gray-900">Profile & Access Control</h1>
               <p className="text-sm text-gray-600">
-                Manage who is allowed to sign in. Only admins can change this list.
+                Manage who is allowed to sign in. Owners can review this information, while only admins can make changes.
               </p>
             </div>
           </div>
+
+          {!canEditAccess ? (
+            <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+              Owner mode is read-only. You can review all admin access data, but only admins can make changes.
+            </div>
+          ) : null}
 
           {/* User Settings Section */}
           <div className="border rounded-lg">
             <UserSettings />
           </div>
 
-          <div className="border rounded-lg p-4 space-y-4">
-            <div className="flex flex-col sm:flex-row gap-3">
-              <input
-                type="email"
-                placeholder="user@example.com"
-                value={newEmail}
-                onChange={(e) => setNewEmail(e.target.value)}
-                className="flex-1 border rounded-md px-3 py-2"
-              />
-              <input
-                type="text"
-                placeholder="Name (optional)"
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                className="flex-1 border rounded-md px-3 py-2"
-              />
-              <button
-                onClick={handleAdd}
-                className="inline-flex items-center justify-center gap-2 bg-[#80875d] text-white px-4 py-2 rounded-md hover:bg-[#6d7350] transition-colors"
-              >
-                <UserPlus size={18} />
-                Add User
-              </button>
+          {canEditAccess ? (
+            <div className="border rounded-lg p-4 space-y-4">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <input
+                  type="email"
+                  placeholder="user@example.com"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  className="flex-1 border rounded-md px-3 py-2"
+                />
+                <input
+                  type="text"
+                  placeholder="Name (optional)"
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  className="flex-1 border rounded-md px-3 py-2"
+                />
+                <button
+                  onClick={handleAdd}
+                  className="inline-flex items-center justify-center gap-2 bg-[#89ac44] text-white px-4 py-2 rounded-md hover:bg-[#6d8a35] transition-colors"
+                >
+                  <UserPlus size={18} />
+                  Add User
+                </button>
+              </div>
             </div>
-          </div>
+          ) : null}
 
           <div className="space-y-3">
             <div className="flex items-center gap-2">
@@ -745,7 +783,13 @@ export default function ProfilePage() {
                         <p className="font-medium text-gray-900">{entry.email}</p>
                         <p className="text-sm text-gray-500">
                           {entry.name ? `${entry.name} • ` : ''}
-                          {entry.role === 'admin' ? 'Admin' : 'User'}
+                          {entry.role === 'admin'
+                            ? 'Admin'
+                            : entry.role === 'owner'
+                              ? 'Owner'
+                            : entry.role === 'accounting'
+                              ? 'Accounting'
+                              : 'User'}
                         </p>
                         {entry.lastLoginAt && (
                           <p className="text-xs text-gray-400 mt-0.5">
@@ -755,17 +799,27 @@ export default function ProfilePage() {
                       </div>
                       <div className="flex items-center gap-3">
                         <select
-                          value={entry.role === 'admin' ? 'admin' : 'user'}
+                          value={
+                            entry.role === 'admin'
+                              ? 'admin'
+                              : entry.role === 'owner'
+                                ? 'owner'
+                                : entry.role === 'accounting'
+                                  ? 'accounting'
+                                  : 'user'
+                          }
                           onChange={(e) =>
                             handleRoleChange(
                               entry.email,
-                              e.target.value as 'admin' | 'user'
+                              e.target.value as 'admin' | 'owner' | 'user' | 'accounting'
                             )
                           }
-                          disabled={isSuperAdmin}
+                          disabled={isSuperAdmin || !canEditAccess}
                           className="border rounded-md px-2 py-1 text-sm"
                         >
                           <option value="user">User</option>
+                          <option value="owner">Owner</option>
+                          <option value="accounting">Accounting</option>
                           <option value="admin">Admin</option>
                         </select>
                         <label className="flex items-center gap-2 cursor-pointer">
@@ -775,7 +829,8 @@ export default function ProfilePage() {
                             onChange={(e) =>
                               handleChatWidgetAccessChange(entry.email, e.target.checked)
                             }
-                            className="w-4 h-4 text-[#80875d] border-gray-300 rounded focus:ring-[#80875d]"
+                            disabled={!canEditAccess}
+                            className="w-4 h-4 text-[#89ac44] border-gray-300 rounded focus:ring-[#89ac44]"
                             title="Chat Widget Access"
                           />
                           <span className="text-xs text-gray-600 whitespace-nowrap">
@@ -785,13 +840,15 @@ export default function ProfilePage() {
                         {isSelf && (
                           <span className="text-xs text-gray-500">You</span>
                         )}
-                        <button
-                          onClick={() => handleRemove(entry.email)}
-                          className="text-red-600 hover:text-red-700 inline-flex items-center gap-1 text-sm"
-                        >
-                          <Trash2 size={16} />
-                          Remove
-                        </button>
+                        {canEditAccess ? (
+                          <button
+                            onClick={() => handleRemove(entry.email)}
+                            className="text-red-600 hover:text-red-700 inline-flex items-center gap-1 text-sm"
+                          >
+                            <Trash2 size={16} />
+                            Remove
+                          </button>
+                        ) : null}
                       </div>
                     </div>
                   )
@@ -814,16 +871,18 @@ export default function ProfilePage() {
                   </p>
                 </div>
               </div>
-              <button
-                onClick={() => setShowNewGroupForm(!showNewGroupForm)}
-                className="inline-flex items-center gap-2 px-3 py-2 bg-[#80875d] text-white rounded-md hover:bg-[#6d7350] transition-colors text-sm"
-              >
-                <Plus size={16} />
-                New Group
-              </button>
+              {canEditAccess ? (
+                <button
+                  onClick={() => setShowNewGroupForm(!showNewGroupForm)}
+                  className="inline-flex items-center gap-2 px-3 py-2 bg-[#89ac44] text-white rounded-md hover:bg-[#6d8a35] transition-colors text-sm"
+                >
+                  <Plus size={16} />
+                  New Group
+                </button>
+              ) : null}
             </div>
 
-            {showNewGroupForm && (
+            {canEditAccess && showNewGroupForm && (
               <div className="border rounded-lg p-4 bg-gray-50 space-y-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -852,7 +911,7 @@ export default function ProfilePage() {
                 <div className="flex gap-2">
                   <button
                     onClick={handleCreateGroup}
-                    className="px-4 py-2 bg-[#80875d] text-white rounded-md hover:bg-[#6d7350] transition-colors"
+                    className="px-4 py-2 bg-[#89ac44] text-white rounded-md hover:bg-[#6d8a35] transition-colors"
                   >
                     Create Group
                   </button>
@@ -906,7 +965,7 @@ export default function ProfilePage() {
                                   e.stopPropagation()
                                   handleSaveEditGroup(group.id)
                                 }}
-                                className="px-2 py-1 bg-[#80875d] text-white rounded text-xs hover:bg-[#6d7350]"
+                                className="px-2 py-1 bg-[#89ac44] text-white rounded text-xs hover:bg-[#6d8a35]"
                               >
                                 <Save size={12} className="inline mr-1" />
                                 Save
@@ -935,7 +994,7 @@ export default function ProfilePage() {
                         )}
                       </div>
                       <div className="flex items-center gap-2">
-                        {editingGroupId !== group.id && (
+                        {canEditAccess && editingGroupId !== group.id && (
                           <>
                             <button
                               onClick={(e) => {
@@ -952,7 +1011,7 @@ export default function ProfilePage() {
                                 e.stopPropagation()
                                 setAddingMemberToGroup(group.id)
                               }}
-                              className="p-2 text-[#80875d] hover:bg-gray-100 rounded"
+                              className="p-2 text-[#89ac44] hover:bg-gray-100 rounded"
                               title="Add member"
                             >
                               <UserPlus size={18} />
@@ -981,7 +1040,7 @@ export default function ProfilePage() {
 
                     {expandedGroups.has(group.id) && (
                       <div className="border-t bg-gray-50 p-4 space-y-3">
-                        {addingMemberToGroup === group.id && (
+                        {canEditAccess && addingMemberToGroup === group.id && (
                           <div className="bg-white border rounded-lg p-3 space-y-2">
                             <div>
                               <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -1051,7 +1110,7 @@ export default function ProfilePage() {
                               <button
                                 onClick={() => handleAddMemberToGroup(group.id)}
                                 disabled={!memberEmailToAdd}
-                                className="px-3 py-1.5 bg-[#80875d] text-white rounded-md hover:bg-[#6d7350] text-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                className="px-3 py-1.5 bg-[#89ac44] text-white rounded-md hover:bg-[#6d8a35] text-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
                               >
                                 Add
                               </button>
@@ -1121,13 +1180,15 @@ export default function ProfilePage() {
                   </p>
                 </div>
               </div>
-              <button
-                onClick={() => setShowCreateMemberForm(true)}
-                className="inline-flex items-center gap-2 px-3 py-2 bg-[#80875d] text-white rounded-md hover:bg-[#6d7350] transition-colors text-sm"
-              >
-                <UserPlus size={16} />
-                Add Member
-              </button>
+              {canEditAccess ? (
+                <button
+                  onClick={() => setShowCreateMemberForm(true)}
+                  className="inline-flex items-center gap-2 px-3 py-2 bg-[#89ac44] text-white rounded-md hover:bg-[#6d8a35] transition-colors text-sm"
+                >
+                  <UserPlus size={16} />
+                  Add Member
+                </button>
+              ) : null}
             </div>
             {isLoadingLowesMembers ? (
               <p className="text-sm text-gray-500">Loading Lowe's team members...</p>
@@ -1159,20 +1220,24 @@ export default function ProfilePage() {
                           Inactive
                         </span>
                       )}
-                      <button
-                        onClick={() => handleStartEditMember(member)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded"
-                        title="Edit member profile"
-                      >
-                        <Edit2 size={18} />
-                      </button>
-                      <button
-                        onClick={() => handleRemoveLowesTeamMember(member.email)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded"
-                        title="Remove from all groups"
-                      >
-                        <UserX size={18} />
-                      </button>
+                      {canEditAccess ? (
+                        <>
+                          <button
+                            onClick={() => handleStartEditMember(member)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded"
+                            title="Edit member profile"
+                          >
+                            <Edit2 size={18} />
+                          </button>
+                          <button
+                            onClick={() => handleRemoveLowesTeamMember(member.email)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded"
+                            title="Remove from all groups"
+                          >
+                            <UserX size={18} />
+                          </button>
+                        </>
+                      ) : null}
                     </div>
                   </div>
                 ))}
@@ -1208,20 +1273,22 @@ export default function ProfilePage() {
                           {new Date(request.requestedAt).toLocaleString()}
                         </p>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleApproveRequest(request.email)}
-                          className="text-emerald-600 hover:text-emerald-700 inline-flex items-center gap-1 text-sm"
-                        >
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => handleRejectRequest(request.email)}
-                          className="text-red-600 hover:text-red-700 inline-flex items-center gap-1 text-sm"
-                        >
-                          Remove
-                        </button>
-                      </div>
+                      {canEditAccess ? (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleApproveRequest(request.email)}
+                            className="text-emerald-600 hover:text-emerald-700 inline-flex items-center gap-1 text-sm"
+                          >
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => handleRejectRequest(request.email)}
+                            className="text-red-600 hover:text-red-700 inline-flex items-center gap-1 text-sm"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ) : null}
                     </div>
                   ))}
               </div>
@@ -1229,7 +1296,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Edit Lowe's Team Member Modal */}
-          {editingMember && (
+          {canEditAccess && editingMember && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
               <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
                 <div className="p-6">
@@ -1312,6 +1379,22 @@ export default function ProfilePage() {
                       />
                     </div>
 
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Group
+                      </label>
+                      <select
+                        value={editMemberGroupId}
+                        onChange={(e) => setEditMemberGroupId(e.target.value)}
+                        className="w-full px-3 py-2 border rounded-md bg-white"
+                      >
+                        <option value="">No group assigned</option>
+                        {groups.map(group => (
+                          <option key={group.id} value={group.id}>{group.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
                     <div className="border-t pt-4">
                       <button
                         type="button"
@@ -1354,7 +1437,7 @@ export default function ProfilePage() {
                     <div className="flex gap-3 pt-4">
                       <button
                         type="submit"
-                        className="flex-1 px-4 py-2 bg-[#80875d] text-white rounded-md hover:bg-[#6d7350] transition-colors"
+                        className="flex-1 px-4 py-2 bg-[#89ac44] text-white rounded-md hover:bg-[#6d8a35] transition-colors"
                       >
                         Save Changes
                       </button>
@@ -1373,7 +1456,7 @@ export default function ProfilePage() {
           )}
 
           {/* Create Lowe's Team Member Modal */}
-          {showCreateMemberForm && (
+          {canEditAccess && showCreateMemberForm && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
               <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
                 <div className="p-6">
@@ -1508,7 +1591,7 @@ export default function ProfilePage() {
                     <div className="flex gap-3 pt-4">
                       <button
                         type="submit"
-                        className="flex-1 px-4 py-2 bg-[#80875d] text-white rounded-md hover:bg-[#6d7350] transition-colors"
+                        className="flex-1 px-4 py-2 bg-[#89ac44] text-white rounded-md hover:bg-[#6d8a35] transition-colors"
                       >
                         Create Account
                       </button>

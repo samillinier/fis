@@ -4,13 +4,13 @@
 
 **Your Microsoft sign-in is already configured!** The redirect URI is automatically detected from your domain, so it works on:
 - ✅ Local: `http://localhost:3000`
-- ✅ Production: `https://your-app.vercel.app` (after you add it to Azure)
+- ✅ Production: `https://pod.floorinteriorservices.com` (after you add it to Azure)
 
 ## 🚀 What You Need to Do After Deployment:
 
 ### 1. Deploy to Vercel
 - Follow `QUICK_DEPLOY.md`
-- Get your Vercel URL: `https://your-app.vercel.app`
+- Get your Vercel URL: `https://pod.floorinteriorservices.com`
 
 ### 2. Add Redirect URI to Azure (ONE TIME SETUP)
 
@@ -19,8 +19,8 @@
 2. Azure Active Directory → **App registrations** → **"FIS POD"**
 3. **Authentication** → **Single-page application**
 4. Add these 2 redirect URIs:
-   - `https://your-app.vercel.app/signin`
-   - `https://your-app.vercel.app`
+   - `https://pod.floorinteriorservices.com/signin`
+   - `https://pod.floorinteriorservices.com`
 5. Click **Save**
 
 ### 3. Environment Variables in Vercel

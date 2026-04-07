@@ -1,0 +1,19 @@
+-- Add 'Finance' and 'IT' to user_role constraint
+-- Run this SQL in your Supabase SQL Editor to update existing database
+
+-- Step 1: Drop the existing check constraint
+ALTER TABLE user_metadata
+  DROP CONSTRAINT IF EXISTS user_metadata_user_role_check;
+
+-- Step 2: Recreate the constraint with 'Finance' and 'IT' included
+ALTER TABLE user_metadata
+  ADD CONSTRAINT user_metadata_user_role_check
+  CHECK (user_role IN ('GM', 'PC', 'Corporate', 'President', 'Finance', 'IT', 'Other'));
+
+-- Step 3: Verify the constraint was updated
+SELECT 
+  conname AS constraint_name,
+  pg_get_constraintdef(oid) AS constraint_definition
+FROM pg_constraint
+WHERE conrelid = 'user_metadata'::regclass
+  AND conname = 'user_metadata_user_role_check';

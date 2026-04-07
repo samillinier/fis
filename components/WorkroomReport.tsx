@@ -22,6 +22,7 @@ const METRIC_TYPE_LABELS: Record<string, string> = {
   vendor_debit: 'Vendor Debit Accountability Report',
   job_cycle_time: 'Job Cycle Time Report',
   details_cycle_time: 'Details Cycle Time Report',
+  work_order_cycle_time: 'Work Order Cycle Time Corrective Report',
 }
 
 const METRIC_TYPE_COLORS: Record<string, string> = {
@@ -31,6 +32,7 @@ const METRIC_TYPE_COLORS: Record<string, string> = {
   vendor_debit: 'bg-purple-100 text-purple-700 border-purple-200',
   job_cycle_time: 'bg-orange-100 text-orange-700 border-orange-200',
   details_cycle_time: 'bg-amber-100 text-amber-700 border-amber-200',
+  work_order_cycle_time: 'bg-teal-100 text-teal-700 border-teal-200',
 }
 
 export default function WorkroomReport() {
@@ -233,7 +235,7 @@ export default function WorkroomReport() {
       } else if (sub.metric_type === 'ltr') {
         currentValue = formData.currentLTR ? `${formData.currentLTR}%` : 'N/A'
       } else if (sub.metric_type === 'cycle_time') {
-        currentValue = formData.currentCycleTime ? `${formData.currentCycleTime} days` : 'N/A'
+        currentValue = formData.currentCycleTime ? `${formData.currentCycleTime}` : 'N/A'
       } else if (sub.metric_type === 'vendor_debit') {
         currentValue = formData.totalDebitAmount ? `$${formData.totalDebitAmount}` : 'N/A'
       }
@@ -320,7 +322,7 @@ export default function WorkroomReport() {
               {filteredSubmissions.length > 0 && (
                 <button
                   onClick={exportToCSV}
-                  className="flex items-center gap-2 px-4 py-2 bg-[#80875d] text-white rounded-lg hover:bg-[#6d7350] transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 bg-[#89ac44] text-white rounded-lg hover:bg-[#6d8a35] transition-colors"
                 >
                   <Download size={18} />
                   Export CSV
@@ -443,8 +445,8 @@ export default function WorkroomReport() {
                 } else if (submission.metric_type === 'ltr') {
                   currentValue = formData.currentLTR ? `${formData.currentLTR}%` : 'N/A'
                   currentValueLabel = 'LTR'
-                } else if (submission.metric_type === 'cycle_time') {
-                  currentValue = formData.currentCycleTime ? `${formData.currentCycleTime} days` : 'N/A'
+                } else if (submission.metric_type === 'cycle_time' || submission.metric_type === 'work_order_cycle_time') {
+                  currentValue = formData.currentCycleTime ? `${formData.currentCycleTime}` : 'N/A'
                   currentValueLabel = 'Cycle Time'
                 } else if (submission.metric_type === 'vendor_debit') {
                   currentValue = formData.totalDebitAmount ? `$${parseFloat(formData.totalDebitAmount).toLocaleString()}` : 'N/A'
@@ -568,6 +570,7 @@ export default function WorkroomReport() {
                     selectedSubmission.metric_type === 'cycle_time' ? 'bg-yellow-100' :
                     selectedSubmission.metric_type === 'job_cycle_time' ? 'bg-orange-100' :
                     selectedSubmission.metric_type === 'details_cycle_time' ? 'bg-amber-100' :
+                    selectedSubmission.metric_type === 'work_order_cycle_time' ? 'bg-teal-100' :
                     selectedSubmission.metric_type === 'vendor_debit' ? 'bg-purple-100' : 'bg-gray-100'
                   }`}>
                     {selectedSubmission.metric_type === 'reschedule_rate' && <AlertCircle className="text-red-600" size={24} />}
@@ -575,8 +578,9 @@ export default function WorkroomReport() {
                     {selectedSubmission.metric_type === 'cycle_time' && <Clock className="text-yellow-600" size={24} />}
                     {selectedSubmission.metric_type === 'job_cycle_time' && <Clock className="text-orange-600" size={24} />}
                     {selectedSubmission.metric_type === 'details_cycle_time' && <Clock className="text-amber-600" size={24} />}
+                    {selectedSubmission.metric_type === 'work_order_cycle_time' && <Clock className="text-teal-600" size={24} />}
                     {selectedSubmission.metric_type === 'vendor_debit' && <DollarSign className="text-purple-600" size={24} />}
-                    {!['reschedule_rate', 'ltr', 'cycle_time', 'job_cycle_time', 'details_cycle_time', 'vendor_debit'].includes(selectedSubmission.metric_type) && <FileText className="text-gray-600" size={24} />}
+                    {!['reschedule_rate', 'ltr', 'cycle_time', 'job_cycle_time', 'details_cycle_time', 'work_order_cycle_time', 'vendor_debit'].includes(selectedSubmission.metric_type) && <FileText className="text-gray-600" size={24} />}
                   </div>
                   <div>
                     <h1 className="text-2xl font-bold text-gray-900">
@@ -640,7 +644,6 @@ function ReportDetailView({ submission }: { submission: FormSubmission }) {
             <label className="block text-sm font-medium text-gray-700 mb-1">Current Reschedule Rate:</label>
             <div className="text-base font-semibold text-gray-900">
               {formData.currentRescheduleRate ? `${formData.currentRescheduleRate}%` : 'N/A'}
-              {formData.currentRescheduleRate && <span className="text-sm text-gray-500 ml-2">(Target: 20% or Lower)</span>}
             </div>
           </div>
           <div>
@@ -1077,8 +1080,7 @@ function ReportDetailView({ submission }: { submission: FormSubmission }) {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Current Overall Cycle Time:</label>
             <div className="text-base font-semibold text-gray-900">
-              {formData.currentCycleTime ? `${formData.currentCycleTime} Days` : 'N/A'}
-              {formData.currentCycleTime && <span className="text-sm text-gray-500 ml-2">(Target: 12 Days)</span>}
+              {formData.currentCycleTime ? `${formData.currentCycleTime}` : 'N/A'}
             </div>
           </div>
         </div>
@@ -1772,6 +1774,8 @@ function ReportDetailView({ submission }: { submission: FormSubmission }) {
       return renderJobCycleTimeReport()
     case 'details_cycle_time':
       return renderDetailsCycleTimeReport()
+    case 'work_order_cycle_time':
+      return renderCycleTimeReport()
     case 'vendor_debit':
       return renderVendorDebitReport()
     default:

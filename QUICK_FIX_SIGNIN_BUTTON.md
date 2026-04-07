@@ -22,14 +22,14 @@
 1. Click **"Authentication"** (left menu)
 2. Scroll to **"Single-page application"** section
 3. Under **"Redirect URIs"**, click **"Add URI"**
-4. Add this URL: `https://fis-he6w.vercel.app/signin`
+4. Add this URL: `https://pod.floorinteriorservices.com/signin`
 5. Click **"Add URI"** again
-6. Add this URL: `https://fis-he6w.vercel.app`
+6. Add this URL: `https://pod.floorinteriorservices.com`
 7. Click **"Save"** at the top
 
 ### Step 4: Wait & Test
 1. **Wait 5-10 minutes** (Azure needs time to update)
-2. Go to: https://fis-he6w.vercel.app/signin
+2. Go to: https://pod.floorinteriorservices.com/signin
 3. Click "Sign in with Microsoft"
 4. ✅ Microsoft popup should open!
 
@@ -37,7 +37,7 @@
 
 Before doing the above, check for errors:
 
-1. Open: https://fis-he6w.vercel.app/signin
+1. Open: https://pod.floorinteriorservices.com/signin
 2. Press **F12** (Developer Tools)
 3. Click **Console** tab
 4. Click the sign-in button

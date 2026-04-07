@@ -28,13 +28,13 @@ Click **"Add URI"** button and add these URIs one by one:
 
 **URI 1:**
 ```
-https://fis-he6w.vercel.app/signin
+https://pod.floorinteriorservices.com/signin
 ```
 Click **"Add"**
 
 **URI 2:**
 ```
-https://fis-he6w.vercel.app
+https://pod.floorinteriorservices.com
 ```
 Click **"Add"**
 
@@ -58,15 +58,15 @@ Click **"Add"**
 ⚠️ **IMPORTANT:** Wait 5-10 minutes for Azure to update its configuration
 
 ### Step 7: Test Sign-In
-1. Go to: https://fis-he6w.vercel.app/signin
+1. Go to: https://pod.floorinteriorservices.com/signin
 2. Click "Sign in with Microsoft"
 3. ✅ Microsoft login popup should appear!
 
 ## 📋 Redirect URIs Checklist:
 
 Make sure all 4 of these are added:
-- [ ] `https://fis-he6w.vercel.app/signin`
-- [ ] `https://fis-he6w.vercel.app`
+- [ ] `https://pod.floorinteriorservices.com/signin`
+- [ ] `https://pod.floorinteriorservices.com`
 - [ ] `http://localhost:3000/signin`
 - [ ] `http://localhost:3000`
 

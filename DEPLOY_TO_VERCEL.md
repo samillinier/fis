@@ -17,8 +17,8 @@ You'll need these environment variables in Vercel:
 
 ### Supabase Database:
 - `NEXT_PUBLIC_SUPABASE_URL` = `https://idkuchtgrgooqixdjjcc.supabase.co`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY` = `sb_publishable_Vqo7Xww4Go4iQJ7U44t9vQ_ZbZokbID`
-- `SUPABASE_SERVICE_ROLE_KEY` = `sb_secret_1u_e0Fo-lp_LCy8Zjsw2nQ_7OWZqMBH`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` = (from Supabase **Project Settings → API** — do not commit real values)
+- `SUPABASE_SERVICE_ROLE_KEY` = (same screen, **service_role** — server-only in Vercel; never commit)
 
 ## 🚀 Step 2: Deploy to Vercel
 
@@ -63,21 +63,21 @@ You'll need these environment variables in Vercel:
      
      ```
      Name: NEXT_PUBLIC_SUPABASE_ANON_KEY
-     Value: sb_publishable_Vqo7Xww4Go4iQJ7U44t9vQ_ZbZokbID
+     Value: <paste anon/public key from Supabase>
      Environment: Production, Preview, Development
      ```
      
      ```
      Name: SUPABASE_SERVICE_ROLE_KEY
-     Value: sb_secret_1u_e0Fo-lp_LCy8Zjsw2nQ_7OWZqMBH
+     Value: <paste service_role key from Supabase — never expose in client code>
      Environment: Production, Preview, Development
      ```
 
 5. **Update Azure App Redirect URLs:**
-   - After deployment, Vercel will give you a URL like: `https://your-app.vercel.app`
+   - After deployment, Vercel will give you a URL like: `https://pod.floorinteriorservices.com`
    - Go to Azure Portal → Your App Registration → Authentication
-   - Add redirect URI: `https://your-app.vercel.app/signin`
-   - Add redirect URI: `https://your-app.vercel.app`
+   - Add redirect URI: `https://pod.floorinteriorservices.com/signin`
+   - Add redirect URI: `https://pod.floorinteriorservices.com`
 
 6. **Deploy:**
    - Click **"Deploy"**
@@ -118,8 +118,8 @@ After deployment, you'll get a Vercel URL. Add it to Azure:
 2. **Authentication Settings:**
    - Click **"Authentication"** (left menu)
    - Under **"Single-page application"** redirect URIs:
-   - Add: `https://your-app.vercel.app/signin`
-   - Add: `https://your-app.vercel.app`
+   - Add: `https://pod.floorinteriorservices.com/signin`
+   - Add: `https://pod.floorinteriorservices.com`
    - Click **"Save"**
 
 ## 🔍 Step 4: Test Your Deployment

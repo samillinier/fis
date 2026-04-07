@@ -35,10 +35,10 @@ NEXT_PUBLIC_SUPABASE_URL
 https://idkuchtgrgooqixdjjcc.supabase.co
 
 NEXT_PUBLIC_SUPABASE_ANON_KEY
-sb_publishable_Vqo7Xww4Go4iQJ7U44t9vQ_ZbZokbID
+<REDACTED_ANON_KEY>
 
 SUPABASE_SERVICE_ROLE_KEY
-sb_secret_1u_e0Fo-lp_LCy8Zjsw2nQ_7OWZqMBH
+<REDACTED_SERVICE_ROLE_KEY>
 ```
 
 **For each variable:**
@@ -52,14 +52,14 @@ sb_secret_1u_e0Fo-lp_LCy8Zjsw2nQ_7OWZqMBH
 
 ### 6. Update Azure Redirect URLs:
 
-After deployment, you'll get a URL like: `https://fis-xxxxx.vercel.app`
+After deployment, you'll get a URL like: `https://pod.floorinteriorservices.com`
 
 **Go to Azure Portal:**
 1. https://portal.azure.com
 2. Azure Active Directory → App registrations → "FIS POD"
 3. Authentication → Single-page application
-4. Add redirect URI: `https://your-app.vercel.app/signin`
-5. Add redirect URI: `https://your-app.vercel.app`
+4. Add redirect URI: `https://pod.floorinteriorservices.com/signin`
+5. Add redirect URI: `https://pod.floorinteriorservices.com`
 6. Save
 
 ## ✅ Done!

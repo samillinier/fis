@@ -11,7 +11,7 @@ The #1 cause is that **App Name is empty/undefined** in Intuit Developer Dashboa
 
 ### Step 1: Check Browser Console
 
-1. Open your app: `https://fis-bcbs9n06m-samilliniers-projects.vercel.app/finance-hub`
+1. Open your app: `https://pod.floorinteriorservices.com/finance-hub`
 2. Press **F12** to open Developer Tools
 3. Go to **Console** tab
 4. Click "Connect to QuickBooks"
@@ -45,7 +45,7 @@ The #1 cause is that **App Name is empty/undefined** in Intuit Developer Dashboa
 2. Scroll to **Redirect URIs** section
 3. Check if this EXACT URI is listed:
    ```
-   https://fis-bcbs9n06m-samilliniers-projects.vercel.app/api/quickbooks/callback
+   https://pod.floorinteriorservices.com/api/quickbooks/callback
    ```
 
 **Check for:**
@@ -74,7 +74,7 @@ The #1 cause is that **App Name is empty/undefined** in Intuit Developer Dashboa
 
 1. Go to Vercel Dashboard → Your Project → Settings → Environment Variables
 2. Check if `QUICKBOOKS_REDIRECT_URI` is set
-3. Value should be: `https://fis-bcbs9n06m-samilliniers-projects.vercel.app/api/quickbooks/callback`
+3. Value should be: `https://pod.floorinteriorservices.com/api/quickbooks/callback`
 4. Make sure it's enabled for **all environments**
 
 ### Step 6: Test the OAuth URL Directly
@@ -83,7 +83,7 @@ The #1 cause is that **App Name is empty/undefined** in Intuit Developer Dashboa
 2. After clicking "Connect to QuickBooks", look for the logged OAuth URL
 3. Copy the full URL (it will look like):
    ```
-   https://appcenter.intuit.com/connect/oauth2?client_id=694ad793-ff6f-442d-8fce-1ece6e00117b&scope=com.intuit.quickbooks.accounting&redirect_uri=https://fis-bcbs9n06m-samilliniers-projects.vercel.app/api/quickbooks/callback&response_type=code&state=***&access_type=offline
+   https://appcenter.intuit.com/connect/oauth2?client_id=694ad793-ff6f-442d-8fce-1ece6e00117b&scope=com.intuit.quickbooks.accounting&redirect_uri=https://pod.floorinteriorservices.com/api/quickbooks/callback&response_type=code&state=***&access_type=offline
    ```
 4. Manually visit this URL in a new tab
 5. Does it show the same error, or does it work?

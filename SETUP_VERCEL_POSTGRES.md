@@ -67,7 +67,7 @@ If you haven't deployed recently:
 
 ### Step 5: Test Your App
 
-1. **Visit:** https://fis-he6w.vercel.app (or your Vercel URL)
+1. **Visit:** https://pod.floorinteriorservices.com (or your Vercel URL)
 2. **Sign in** with Microsoft
 3. **Upload data** (visual data or survey data)
 4. **Check database:**

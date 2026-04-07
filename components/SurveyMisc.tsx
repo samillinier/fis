@@ -36,6 +36,7 @@ const cleanStoreName = (storeName: string | null | undefined): string => {
 interface WorkroomSurveyRow {
   workroom: string
   laborCategory: string
+  categories?: string[]
   storeNumber: string
   storeName: string
   surveyCount: number
@@ -52,6 +53,15 @@ interface WorkroomSurveyRow {
 export default function SurveyMisc() {
   const { data } = useData()
   const { user } = useAuth()
+
+  const normalizeStoreNumber = (val: unknown): string => {
+    if (val == null) return ''
+    const raw = String(val).trim()
+    // Keep digits only so "Store 1924" and 1924 match
+    const digits = raw.replace(/[^\d]/g, '')
+    return digits || raw
+  }
+
   const [userWorkroom, setUserWorkroom] = useState<string | null>(null)
   const [tableWorkroomFilter, setTableWorkroomFilter] = useState<string>('all')
   
@@ -162,6 +172,9 @@ export default function SurveyMisc() {
         columnPSum: number
         columnQSum: number
         count: number
+        categoriesSet: Set<string>
+        storeNumbersSet: Set<string>
+        storeNamesSet: Set<string>
       }
     >()
     const validWorkrooms = data.workrooms.filter((w) => isValidWorkroomName(w.name || ''))
@@ -176,18 +189,20 @@ export default function SurveyMisc() {
 
       const workroomName = w.name || 'Unknown'
       const laborCategory = w.laborCategory || (w as any).laborCategory || (w as any).category || 'N/A'
-      const storeNumber = w.store ? String(w.store) : 'Unknown'
+      const storeNumber = w.store ? normalizeStoreNumber(w.store) : 'Unknown'
       const storeName = getStoreName(w.store as any)
       const company = w.company || (w as any).company || ''
       const installerName = w.installerName || (w as any).installerName || ''
       const customerName = w.customerName || (w as any).customerName || ''
       const poNumber = w.poNumber || (w as any).poNumber || ''
-      // Group by installer name and company instead of store/workroom/category
-      const key = `${installerName}|||${company}`
+      // Group by WORKROOM + installer/company (single row per installer job).
+      // This prevents Sarasota/Naples mixing because workroom is part of the key,
+      // while still avoiding duplicate rows caused by multiple stores/categories.
+      const key = `${workroomName}|||${installerName}|||${company}`
         const existing =
         map.get(key) || {
           workroom: workroomName, // Keep first workroom found
-          laborCategory, // Keep first labor category found
+          laborCategory, // Display category (may become "Multiple")
           storeNumber, // Keep first store number found
           storeName, // Keep first store name found
           surveyCount: 0,
@@ -207,10 +222,16 @@ export default function SurveyMisc() {
           columnPSum: 0,
           columnQSum: 0,
           count: 0,
+          categoriesSet: new Set<string>(),
+          storeNumbersSet: new Set<string>(),
+          storeNamesSet: new Set<string>(),
         }
 
       existing.surveyCount += 1
       existing.count += 1
+      if (laborCategory && laborCategory !== 'N/A') existing.categoriesSet.add(laborCategory.trim())
+      if (storeNumber && storeNumber !== 'Unknown') existing.storeNumbersSet.add(String(storeNumber).trim())
+      if (storeName && storeName !== '—') existing.storeNamesSet.add(String(storeName).trim())
       if (w.ltrScore != null) existing.ltrSum += w.ltrScore
       if (w.craftScore != null) existing.craftSum += w.craftScore
       if (w.profScore != null) existing.profSum += w.profScore
@@ -224,6 +245,15 @@ export default function SurveyMisc() {
 
     const rows: WorkroomSurveyRow[] = Array.from(map.values())
       .map((r) => {
+        const categories = Array.from(r.categoriesSet.values()).filter(Boolean).sort()
+        const laborCategoryDisplay =
+          categories.length === 0 ? 'N/A' : categories.length === 1 ? categories[0] : 'Multiple'
+        const storeNumbers = Array.from(r.storeNumbersSet.values()).filter(Boolean).sort()
+        const storeNames = Array.from(r.storeNamesSet.values()).filter(Boolean).sort()
+        const storeNumberDisplay =
+          storeNumbers.length === 0 ? r.storeNumber : storeNumbers.length === 1 ? storeNumbers[0] : 'Multiple'
+        const storeNameDisplay =
+          storeNames.length === 0 ? r.storeName : storeNames.length === 1 ? storeNames[0] : 'Multiple'
         // Calculate weighted average: (L*0.60 + M*0.20 + N*0.10 + P*0.02 + Q*0.03)
         const ltrAvg = r.count > 0 ? r.ltrSum / r.count : 0
         const columnMAvg = r.count > 0 ? r.columnMSum / r.count : 0
@@ -234,9 +264,10 @@ export default function SurveyMisc() {
         
         return {
           workroom: r.workroom,
-          laborCategory: r.laborCategory,
-          storeNumber: r.storeNumber,
-          storeName: r.storeName,
+          laborCategory: laborCategoryDisplay,
+          categories,
+          storeNumber: storeNumberDisplay,
+          storeName: storeNameDisplay,
           surveyCount: r.surveyCount,
           ltrAvg,
           craftAvg: r.count > 0 ? r.craftSum / r.count : 0,
@@ -249,16 +280,14 @@ export default function SurveyMisc() {
         }
       })
       .sort((a, b) => {
-        // Sort primarily by numeric store number when possible, then by workroom
-        const aNum = parseInt(a.storeNumber, 10)
-        const bNum = parseInt(b.storeNumber, 10)
-        if (!isNaN(aNum) && !isNaN(bNum) && aNum !== bNum) {
-          return aNum - bNum
-        }
-        if (a.workroom !== b.workroom) {
-          return a.workroom.localeCompare(b.workroom)
-        }
-        return a.laborCategory.localeCompare(b.laborCategory)
+        // Sort by workroom, then installer/company (stable list)
+        if (a.workroom !== b.workroom) return a.workroom.localeCompare(b.workroom)
+        const aInst = (a.installerName || '').toLowerCase()
+        const bInst = (b.installerName || '').toLowerCase()
+        if (aInst !== bInst) return aInst.localeCompare(bInst)
+        const aCo = (a.company || '').toLowerCase()
+        const bCo = (b.company || '').toLowerCase()
+        return aCo.localeCompare(bCo)
       })
 
     const uniqueWorkrooms = Array.from(
@@ -266,8 +295,12 @@ export default function SurveyMisc() {
     ).sort()
 
     const uniqueCategories = Array.from(
-      new Set(rows.map((r) => r.laborCategory))
-    ).sort()
+      new Set(
+        rows.flatMap((r) => (r.categories && r.categories.length > 0 ? r.categories : [r.laborCategory]))
+      )
+    )
+      .filter((c) => c && c !== 'Multiple')
+      .sort()
 
     // By default, chart shows top 15 by survey count
     const chartData = [...rows]
@@ -334,7 +367,10 @@ export default function SurveyMisc() {
         matchesWorkroom = row.workroom === tableWorkroomFilter
       }
       
-      const matchesCategory = selectedCategory === 'all' || row.laborCategory === selectedCategory
+      const matchesCategory =
+        selectedCategory === 'all' ||
+        row.laborCategory === selectedCategory ||
+        (row.categories || []).includes(selectedCategory)
       return matchesWorkroom && matchesCategory
     })
 
@@ -824,7 +860,7 @@ export default function SurveyMisc() {
 
                       return (
                         <tr 
-                          key={`${row.installerName}-${row.company}`}
+                          key={`${row.workroom}-${row.installerName}-${row.company}`}
                           style={{ cursor: 'pointer' }}
                           onClick={() => {
                             setSelectedRow(row)
@@ -996,10 +1032,14 @@ export default function SurveyMisc() {
               <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#111827', marginBottom: '0.75rem', flexShrink: 0 }}>
                 Individual Survey Records ({(() => {
                   const matchingRecords = data.workrooms.filter((w) => {
-                    const matchesInstaller = (w.installerName || (w as any).installerName || '').trim() === (selectedRow.installerName || '').trim()
-                    const matchesCompany = (w.company || (w as any).company || '').trim() === (selectedRow.company || '').trim()
+                    const matchesWorkroom = (w.name || '').trim() === (selectedRow.workroom || '').trim()
+                    const matchesInstaller =
+                      ((w.installerName || (w as any).installerName || '').trim() ===
+                        (selectedRow.installerName || '').trim())
+                    const matchesCompany =
+                      ((w.company || (w as any).company || '').trim() === (selectedRow.company || '').trim())
                     const hasSurveyData = w.ltrScore != null || w.craftScore != null || w.profScore != null || w.surveyDate || w.surveyComment
-                    return matchesInstaller && matchesCompany && hasSurveyData
+                    return matchesWorkroom && matchesInstaller && matchesCompany && hasSurveyData
                   })
                   
                   // Remove duplicates
@@ -1021,12 +1061,16 @@ export default function SurveyMisc() {
               </h3>
               <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', minHeight: 0 }}>
                 {(() => {
-                  // Filter matching records by installer name and company
+                  // Filter matching records by store number + installer/company (prevents cross-store mixing while grouping properly)
                   const matchingRecords = data.workrooms.filter((w) => {
-                    const matchesInstaller = (w.installerName || (w as any).installerName || '').trim() === (selectedRow.installerName || '').trim()
-                    const matchesCompany = (w.company || (w as any).company || '').trim() === (selectedRow.company || '').trim()
+                    const matchesWorkroom = (w.name || '').trim() === (selectedRow.workroom || '').trim()
+                    const matchesInstaller =
+                      ((w.installerName || (w as any).installerName || '').trim() ===
+                        (selectedRow.installerName || '').trim())
+                    const matchesCompany =
+                      ((w.company || (w as any).company || '').trim() === (selectedRow.company || '').trim())
                     const hasSurveyData = w.ltrScore != null || w.craftScore != null || w.profScore != null || w.surveyDate || w.surveyComment
-                    return matchesInstaller && matchesCompany && hasSurveyData
+                    return matchesWorkroom && matchesInstaller && matchesCompany && hasSurveyData
                   })
 
                   // Remove duplicates by creating a unique key for each record

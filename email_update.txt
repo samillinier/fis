@@ -1,0 +1,18 @@
+Subject: POD Update - WPI Score Information Feature
+
+Hi [Name],
+
+I apologize for the late update. I wanted to let you know that I've added a new feature to the POD (Operational Dashboard).
+
+I've added an information icon (ℹ️) next to the WPI Score on each workroom card in the heatmap. When users click on it, they'll see a detailed explanation of how the WPI Score is calculated, including:
+
+- The complete calculation formula
+- Component weights for each metric (LTR Performance 50%, Work Order Cycle Time 14%, Job Cycle Time 13%, Vendor Debits 10%, Reschedule Rate 8%, Details Cycle Time 5%)
+- WPI Score rating guidelines (85-100: Top Performing, 70-84: Moderate, Below 70: Critical)
+
+This should help users better understand how their workroom performance scores are determined.
+
+Please let me know what you think. I'm happy to make any adjustments or add additional information if needed.
+
+Best regards,
+[Your Name]

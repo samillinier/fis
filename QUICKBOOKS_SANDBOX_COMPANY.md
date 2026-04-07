@@ -30,7 +30,7 @@ Your code is already configured for sandbox:
 
 ### Step 2: Connect to QuickBooks
 
-1. Go to: `https://fis-phi.vercel.app/finance-hub`
+1. Go to: `https://pod.floorinteriorservices.com/finance-hub`
 2. Click "Connect to QuickBooks"
 3. **Sign in with your Intuit Developer account** (the one that has access to the sandbox company)
 4. **Select the sandbox company** with ID `9341455998950460`

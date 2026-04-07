@@ -1,11 +1,11 @@
-# QuickBooks Setup with New Domain: fis-phi.vercel.app
+# QuickBooks Setup with New Domain: pod.floorinteriorservices.com
 
 ## Your New Domain
-`https://fis-phi.vercel.app`
+`https://pod.floorinteriorservices.com`
 
 ## Redirect URI (Full Path)
 ```
-https://fis-phi.vercel.app/api/quickbooks/callback
+https://pod.floorinteriorservices.com/api/quickbooks/callback
 ```
 
 ## Step-by-Step Setup
@@ -17,7 +17,7 @@ https://fis-phi.vercel.app/api/quickbooks/callback
 3. Go to **Settings** → **Redirect URIs** → **Development** tab
 4. Add this EXACT redirect URI:
    ```
-   https://fis-phi.vercel.app/api/quickbooks/callback
+   https://pod.floorinteriorservices.com/api/quickbooks/callback
    ```
 5. **Important:**
    - ✅ No trailing slash
@@ -32,7 +32,7 @@ https://fis-phi.vercel.app/api/quickbooks/callback
 1. Go to Vercel Dashboard → Your Project → Settings → Environment Variables
 2. Add or update:
    - **Key**: `NEXT_PUBLIC_QUICKBOOKS_PRODUCTION_DOMAIN`
-   - **Value**: `https://fis-phi.vercel.app`
+   - **Value**: `https://pod.floorinteriorservices.com`
    - **Note**: Don't include `/api/quickbooks/callback` - the code adds that automatically
    - **Environments**: ✅ Production
 3. Click **Save**
@@ -46,16 +46,16 @@ After updating the environment variable:
 
 ### Step 4: Test
 
-1. Go to: `https://fis-phi.vercel.app/finance-hub`
+1. Go to: `https://pod.floorinteriorservices.com/finance-hub`
 2. Click "Connect to QuickBooks"
 3. It should work!
 
 ## Important Notes
 
 ### Redirect URI Must Be Full Path
-- ✅ **Correct**: `https://fis-phi.vercel.app/api/quickbooks/callback`
-- ❌ **Wrong**: `https://fis-phi.vercel.app/`
-- ❌ **Wrong**: `https://fis-phi.vercel.app`
+- ✅ **Correct**: `https://pod.floorinteriorservices.com/api/quickbooks/callback`
+- ❌ **Wrong**: `https://pod.floorinteriorservices.com/`
+- ❌ **Wrong**: `https://pod.floorinteriorservices.com`
 
 The `/api/quickbooks/callback` path is required because that's where your callback handler is located.
 
@@ -64,34 +64,34 @@ The `/api/quickbooks/callback` path is required because that's where your callba
 Make sure:
 - ✅ Redirect URI in Intuit Dashboard matches exactly
 - ✅ Environment variable in Vercel uses the same domain
-- ✅ You're testing on the same domain (`fis-phi.vercel.app`)
+- ✅ You're testing on the same domain (`pod.floorinteriorservices.com`)
 
 ## Verification Checklist
 
 Before testing:
 
 - [ ] Redirect URI added to Intuit Dashboard → Settings → Redirect URIs → Development
-- [ ] Redirect URI is: `https://fis-phi.vercel.app/api/quickbooks/callback` (full path)
-- [ ] `NEXT_PUBLIC_QUICKBOOKS_PRODUCTION_DOMAIN` set to `https://fis-phi.vercel.app` in Vercel
+- [ ] Redirect URI is: `https://pod.floorinteriorservices.com/api/quickbooks/callback` (full path)
+- [ ] `NEXT_PUBLIC_QUICKBOOKS_PRODUCTION_DOMAIN` set to `https://pod.floorinteriorservices.com` in Vercel
 - [ ] App redeployed after environment variable change
 - [ ] Waited 10-15 minutes after Intuit Dashboard changes
-- [ ] Testing on: `https://fis-phi.vercel.app/finance-hub`
+- [ ] Testing on: `https://pod.floorinteriorservices.com/finance-hub`
 
 ## If You Have Multiple Domains
 
 If you have both:
-- `fis-phi.vercel.app` (new)
-- `fis-bcbs9n06m-samilliniers-projects.vercel.app` (old)
+- `pod.floorinteriorservices.com` (new)
+- `pod.floorinteriorservices.com` (old)
 
 You can add BOTH redirect URIs to Intuit Dashboard:
-1. `https://fis-phi.vercel.app/api/quickbooks/callback`
-2. `https://fis-bcbs9n06m-samilliniers-projects.vercel.app/api/quickbooks/callback`
+1. `https://pod.floorinteriorservices.com/api/quickbooks/callback`
+2. `https://pod.floorinteriorservices.com/api/quickbooks/callback`
 
 This way, either domain will work.
 
 ## Code Updated
 
-I've updated the code to use `https://fis-phi.vercel.app` as the default domain. After you:
+I've updated the code to use `https://pod.floorinteriorservices.com` as the default domain. After you:
 1. Add the redirect URI to Intuit Dashboard
 2. Update the environment variable in Vercel
 3. Redeploy

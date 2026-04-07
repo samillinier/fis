@@ -19,7 +19,7 @@ Your app uses **Microsoft Authentication Library (MSAL)** with:
 ### Step 1: Deploy to Vercel
 
 1. Deploy your app to Vercel (follow `QUICK_DEPLOY.md`)
-2. Note your Vercel URL: `https://your-app.vercel.app`
+2. Note your Vercel URL: `https://pod.floorinteriorservices.com`
 
 ### Step 2: Add Production Redirect URLs to Azure
 
@@ -46,8 +46,8 @@ Your app uses **Microsoft Authentication Library (MSAL)** with:
    - Or click **"Add URI"** under Single-page application
    - Add these 2 URLs (replace `your-app` with your actual Vercel app name):
      ```
-     https://your-app.vercel.app/signin
-     https://your-app.vercel.app
+     https://pod.floorinteriorservices.com/signin
+     https://pod.floorinteriorservices.com
      ```
    - Click **"Save"** at the top
 
@@ -75,8 +75,8 @@ After setup, you should have:
 - `http://localhost:3000`
 
 **Production:**
-- `https://your-app.vercel.app/signin`
-- `https://your-app.vercel.app`
+- `https://pod.floorinteriorservices.com/signin`
+- `https://pod.floorinteriorservices.com`
 
 **Preview (Optional - for Vercel preview deployments):**
 - `https://your-app-git-branch.vercel.app/signin`
@@ -92,7 +92,7 @@ redirectUri: window.location.origin + '/signin'
 
 This means:
 - **Local**: `http://localhost:3000/signin`
-- **Production**: `https://your-app.vercel.app/signin`
+- **Production**: `https://pod.floorinteriorservices.com/signin`
 - **No code changes needed!** ✨
 
 ## ⚠️ Common Issues
@@ -101,7 +101,7 @@ This means:
 
 **Fix:**
 - The Vercel URL is not added to Azure redirect URIs
-- Add `https://your-app.vercel.app/signin` to Azure Portal
+- Add `https://pod.floorinteriorservices.com/signin` to Azure Portal
 
 ### Error: "AADSTS50020: User account does not exist in tenant"
 

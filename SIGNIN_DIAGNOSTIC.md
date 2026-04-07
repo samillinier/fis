@@ -4,7 +4,7 @@
 
 ### Step 1: Check Browser Console ⚠️ DO THIS FIRST
 
-1. Go to: https://fis-he6w.vercel.app/signin
+1. Go to: https://pod.floorinteriorservices.com/signin
 2. Press **F12** (or Cmd+Option+I on Mac)
 3. Click **Console** tab
 4. Click "Sign in with Microsoft" button
@@ -19,7 +19,7 @@
 **Fix:** Add environment variable in Vercel (see below)
 
 #### Error: `Popup blocked`
-**Fix:** Allow popups for `fis-he6w.vercel.app` in browser settings
+**Fix:** Allow popups for `pod.floorinteriorservices.com` in browser settings
 
 #### No error, but nothing happens
 **Fix:** Check Azure redirect URIs (see below)
@@ -30,8 +30,8 @@
 2. Azure AD → App registrations → "FIS POD"
 3. Authentication → Single-page application
 4. Make sure these URIs are listed:
-   - `https://fis-he6w.vercel.app/signin`
-   - `https://fis-he6w.vercel.app`
+   - `https://pod.floorinteriorservices.com/signin`
+   - `https://pod.floorinteriorservices.com`
 5. If missing, add them and click **Save**
 6. Wait 5-10 minutes
 
@@ -47,7 +47,7 @@
 ### Step 5: Check Popup Blocker
 
 - Look for popup blocked notification in browser
-- Allow popups for `fis-he6w.vercel.app`
+- Allow popups for `pod.floorinteriorservices.com`
 - Try in Incognito/Private window
 
 ---

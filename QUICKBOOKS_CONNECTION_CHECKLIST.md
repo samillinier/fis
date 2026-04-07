@@ -8,13 +8,13 @@ Add these to **Vercel Dashboard** → Your Project → Settings → Environment 
 ```env
 QUICKBOOKS_CLIENT_ID=694ad793-ff6f-442d-8fce-1ece6e00117b
 QUICKBOOKS_CLIENT_SECRET=hpb2sXyBG1AZBb5typR2c4hnt3O0GTQG5LZZKV5L
-QUICKBOOKS_REDIRECT_URI=https://your-production-domain.vercel.app/api/quickbooks/callback
+QUICKBOOKS_REDIRECT_URI=https://pod.floorinteriorservices.com/api/quickbooks/callback
 QUICKBOOKS_ENVIRONMENT=sandbox
 QUICKBOOKS_WEBHOOK_VERIFIER_TOKEN=your_verifier_token_from_intuit_dashboard
 ```
 
 **Important:**
-- Replace `your-production-domain.vercel.app` with your actual Vercel domain
+- Replace `pod.floorinteriorservices.com` with your actual Vercel domain
 - For production, set `QUICKBOOKS_ENVIRONMENT=production`
 - Make sure to select **ALL environments** (Production, Preview, Development)
 - `QUICKBOOKS_WEBHOOK_VERIFIER_TOKEN` is optional but recommended for webhook security
@@ -25,7 +25,7 @@ QUICKBOOKS_WEBHOOK_VERIFIER_TOKEN=your_verifier_token_from_intuit_dashboard
 2. Find your app (App ID: `694ad793-ff6f-442d-8fce-1ece6e00117b`)
 3. Click on **Keys & OAuth** section
 4. Under **Redirect URIs**, add **EXACTLY** (case-sensitive, no trailing slash):
-   - `https://your-production-domain.vercel.app/api/quickbooks/callback`
+   - `https://pod.floorinteriorservices.com/api/quickbooks/callback`
    - `http://localhost:3000/api/quickbooks/callback` (for local testing)
 
 **Critical:** The redirect URI must match **EXACTLY** - no extra spaces, no trailing slashes, exact case.
@@ -36,7 +36,7 @@ QUICKBOOKS_WEBHOOK_VERIFIER_TOKEN=your_verifier_token_from_intuit_dashboard
 2. Select **Development** or **Production** environment
 3. Set **Endpoint URL**:
    - Development: `http://localhost:3000/api/quickbooks/webhook`
-   - Production: `https://your-production-domain.vercel.app/api/quickbooks/webhook`
+   - Production: `https://pod.floorinteriorservices.com/api/quickbooks/webhook`
 4. Click **Show verifier token** and copy it
 5. Add token to environment variables as `QUICKBOOKS_WEBHOOK_VERIFIER_TOKEN`
 6. Select subscribed events (Account, Invoice, Customer, etc.)

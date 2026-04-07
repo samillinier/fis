@@ -25,13 +25,13 @@ QUICKBOOKS_CLIENT_ID=ABrb8WSjbtNgNncrOBdtTktvg3o4ODoKA5cyEwdadWO0O6rPGS
 QUICKBOOKS_CLIENT_SECRET=RV6biSiVZ4mO0cFyGlDIV7fDSyH299YSV7b7FgAU
 QUICKBOOKS_REDIRECT_URI=http://localhost:3000/api/quickbooks/callback
 QUICKBOOKS_ENVIRONMENT=production
-NEXT_PUBLIC_QUICKBOOKS_PRODUCTION_DOMAIN=https://fis-phi.vercel.app
+NEXT_PUBLIC_QUICKBOOKS_PRODUCTION_DOMAIN=https://pod.floorinteriorservices.com
 
 # QuickBooks Webhook Configuration (optional but recommended)
 QUICKBOOKS_WEBHOOK_VERIFIER_TOKEN=your_verifier_token_from_intuit_dashboard
 
 # For production deployment:
-# QUICKBOOKS_REDIRECT_URI=https://fis-phi.vercel.app/api/quickbooks/callback
+# QUICKBOOKS_REDIRECT_URI=https://pod.floorinteriorservices.com/api/quickbooks/callback
 ```
 
 ## Intuit Developer Dashboard Configuration
@@ -43,7 +43,7 @@ QUICKBOOKS_WEBHOOK_VERIFIER_TOKEN=your_verifier_token_from_intuit_dashboard
 3. Navigate to **Settings** → **Redirect URIs**
 4. Click the **"Production"** tab (not Development)
 5. Add the following redirect URIs:
-   - **Production**: `https://fis-phi.vercel.app/api/quickbooks/callback`
+   - **Production**: `https://pod.floorinteriorservices.com/api/quickbooks/callback`
    - **Local Development**: `http://localhost:3000/api/quickbooks/callback`
 
 ### Webhook Configuration
@@ -53,7 +53,7 @@ QUICKBOOKS_WEBHOOK_VERIFIER_TOKEN=your_verifier_token_from_intuit_dashboard
 3. Set up your webhook endpoint:
    - **Endpoint URL**: 
      - Development: `http://localhost:3000/api/quickbooks/webhook`
-     - Production: `https://your-production-domain.com/api/quickbooks/webhook`
+     - Production: `https://pod.floorinteriorservices.com/api/quickbooks/webhook`
 4. Click **Show verifier token** and copy the token
 5. Add the verifier token to your environment variables as `QUICKBOOKS_WEBHOOK_VERIFIER_TOKEN`
 6. Select the events you want to subscribe to:
@@ -180,6 +180,11 @@ intuit-signature: {signature} (if verifier token is configured)
 5. You should be redirected back with a success message
 
 ## Troubleshooting
+
+### "You need admin permissions to connect this app"
+- This is a QuickBooks permission issue (it happens on Intuit’s authorization screen before returning to your app).
+- Sign in to QuickBooks as a **Master Admin** or **Company Admin**, then try again.
+- If you are not an admin for that QuickBooks company, ask your company admin to connect/authorize the app.
 
 ### "Token exchange failed"
 - Verify `QUICKBOOKS_CLIENT_SECRET` is set correctly

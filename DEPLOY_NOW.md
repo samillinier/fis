@@ -62,13 +62,13 @@ After deployment, add your Vercel URL to Azure Portal:
 - https://portal.azure.com
 - Azure Active Directory → App registrations → "FIS POD"
 - Authentication → Single-page application
-- Add: `https://fis-he6w.vercel.app/signin`
-- Add: `https://fis-he6w.vercel.app`
+- Add: `https://pod.floorinteriorservices.com/signin`
+- Add: `https://pod.floorinteriorservices.com`
 - Save
 
 ### 2. Test Your Deployment
 
-- Visit: https://fis-he6w.vercel.app
+- Visit: https://pod.floorinteriorservices.com
 - Test sign-in
 - Verify everything works
 

@@ -4,8 +4,8 @@
 
 ### ✅ Environment Variables (`.env.local`)
 - ✅ `NEXT_PUBLIC_SUPABASE_URL` = `https://idkuchtgrgooqixdjjcc.supabase.co`
-- ✅ `NEXT_PUBLIC_SUPABASE_ANON_KEY` = `sb_publishable_Vqo7Xww4Go4iQJ7U44t9vQ_ZbZokbID`
-- ✅ `SUPABASE_SERVICE_ROLE_KEY` = `sb_secret_1u_e0Fo-lp_LCy8Zjsw2nQ_7OWZqMBH`
+- ✅ `NEXT_PUBLIC_SUPABASE_ANON_KEY` = `<REDACTED_ANON_KEY>`
+- ✅ `SUPABASE_SERVICE_ROLE_KEY` = `<REDACTED_SERVICE_ROLE_KEY>`
 - ✅ Microsoft Auth keys (existing)
 
 ### ✅ Code Setup

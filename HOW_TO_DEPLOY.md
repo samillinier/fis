@@ -44,7 +44,7 @@ Code is already pushed! Vercel will auto-deploy when:
 
 After deployment completes:
 
-1. Visit: https://fis-he6w.vercel.app/signin
+1. Visit: https://pod.floorinteriorservices.com/signin
 2. Click "Sign in with Microsoft"
 3. Should work! ✅
 
@@ -56,8 +56,8 @@ Add redirect URIs to Azure Portal:
 2. Azure AD → App registrations → "FIS POD"
 3. Authentication → Single-page application
 4. Add redirect URIs:
-   - `https://fis-he6w.vercel.app/signin`
-   - `https://fis-he6w.vercel.app`
+   - `https://pod.floorinteriorservices.com/signin`
+   - `https://pod.floorinteriorservices.com`
 5. Save and wait 5-10 minutes
 
 ## 📝 Summary:

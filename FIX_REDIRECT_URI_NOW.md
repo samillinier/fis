@@ -11,7 +11,7 @@ invalid_request: The provided value for the input parameter 'redirect_uri' is no
 Let's check what the app is actually sending:
 
 1. **Open Browser Developer Tools:**
-   - Go to: https://fis-he6w.vercel.app/signin
+   - Go to: https://pod.floorinteriorservices.com/signin
    - Press **F12** (or Cmd+Option+I on Mac)
    - Click **"Network"** tab
 
@@ -26,7 +26,7 @@ Let's check what the app is actually sending:
    - Find the `redirect_uri` parameter
 
 4. **Copy the EXACT redirect_uri value:**
-   - It might look like: `https://fis-he6w.vercel.app/signin`
+   - It might look like: `https://pod.floorinteriorservices.com/signin`
    - Copy it EXACTLY as shown (including any special characters)
 
 ## ✅ Step 2: Verify in Azure Portal
@@ -79,8 +79,8 @@ Let's check what the app is actually sending:
 
 The app sends: `window.location.origin + '/signin'`
 
-So from `https://fis-he6w.vercel.app/signin`, it should send:
-- `https://fis-he6w.vercel.app/signin`
+So from `https://pod.floorinteriorservices.com/signin`, it should send:
+- `https://pod.floorinteriorservices.com/signin`
 
 Make sure this EXACT value is in Azure Portal.
 
@@ -96,8 +96,8 @@ Make sure this EXACT value is in Azure Portal.
 ## 📋 Double-Check Your Azure Configuration:
 
 **Must Have (all 4):**
-- [ ] `https://fis-he6w.vercel.app/signin`
-- [ ] `https://fis-he6w.vercel.app`
+- [ ] `https://pod.floorinteriorservices.com/signin`
+- [ ] `https://pod.floorinteriorservices.com`
 - [ ] `http://localhost:3000/signin`
 - [ ] `http://localhost:3000`
 

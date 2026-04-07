@@ -28,7 +28,7 @@ However, instead of showing the authorization screen, they receive an error page
 
 The error URL includes these parameters:
 - client_id: ABMV1B9HBoITUbAgKwba2l6UmW5h7bCYRE83jo8jalFVgbc414
-- redirect_uri: https://fis-phi.vercel.app/api/quickbooks/callback
+- redirect_uri: https://pod.floorinteriorservices.com/api/quickbooks/callback
 - scope: com.intuit.quickbooks.accounting
 - response_type: code
 - access_type: offline
@@ -38,14 +38,14 @@ I have verified the following in the Intuit Developer Dashboard:
 
 1. App Name: Set to "FISPOD" (not empty/undefined) in Settings → Basic app info
 2. Redirect URI: Registered in Settings → Redirect URIs → Development tab
-   - URI: https://fis-phi.vercel.app/api/quickbooks/callback
+   - URI: https://pod.floorinteriorservices.com/api/quickbooks/callback
    - Exact match verified (no trailing slash, correct case, includes https://)
 3. Client ID: Matches between my application code and Intuit Dashboard
    - Dashboard shows: ABMV1B9HBoITUbAgKwba2l6UmW5h7bCYRE83jo8jalFVgbc414
    - Application uses: ABMV1B9HBoITUbAgKwba2l6UmW5h7bCYRE83jo8jalFVgbc414
 4. App Status: Shows "IN DEVELOPMENT" in App Overview
 5. Keys & Credentials: Client ID and Client Secret are visible in Development environment
-6. Redirect URI Endpoint: Verified that https://fis-phi.vercel.app/api/quickbooks/callback exists and responds correctly
+6. Redirect URI Endpoint: Verified that https://pod.floorinteriorservices.com/api/quickbooks/callback exists and responds correctly
 
 TROUBLESHOOTING ATTEMPTS:
 - Verified App Name is set (not empty/undefined)
@@ -61,7 +61,7 @@ The OAuth request parameters appear to be correct, but Intuit's system is unable
 
 QUESTIONS:
 1. Is the app properly activated for OAuth 2.0 connections in the Development environment?
-2. Is the redirect URI https://fis-phi.vercel.app/api/quickbooks/callback correctly registered in your system?
+2. Is the redirect URI https://pod.floorinteriorservices.com/api/quickbooks/callback correctly registered in your system?
 3. Are there any additional configuration steps required beyond setting the App Name and registering the redirect URI?
 4. Could there be an issue with the app status or activation that would prevent OAuth connections?
 5. Is there a known issue with the "undefined didn't connect" error for apps in Development status?

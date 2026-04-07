@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     const userEmail = authHeader.replace('Bearer ', '')
     const normalizedEmail = normalizeEmail(userEmail)
 
-    // Check if requester is admin
+    // Check if requester is allowed to review chat widget access
     const { data: actorData } = await supabase
       .from('authorized_users')
       .select('role')
@@ -26,9 +26,10 @@ export async function GET(request: NextRequest) {
       .maybeSingle()
 
     const isAdmin = actorData?.role === 'admin'
+    const isOwner = actorData?.role === 'owner'
 
-    // If admin, return list of all users with their access status
-    if (isAdmin) {
+    // If admin or owner, return list of all users with their access status
+    if (isAdmin || isOwner) {
       const { data: users, error: fetchError } = await supabase
         .from('authorized_users')
         .select('email, name, role, is_active, chat_widget_enabled')
@@ -46,7 +47,7 @@ export async function GET(request: NextRequest) {
             users: usersWithoutColumn?.map((u) => ({
               email: u.email,
               name: u.name || undefined,
-              role: u.role === 'admin' ? 'admin' : 'user',
+              role: u.role === 'admin' || u.role === 'owner' || u.role === 'accounting' ? u.role : 'user',
               isActive: u.is_active !== false,
               chatWidgetEnabled: false, // Default to false if column doesn't exist
             })) || [],
@@ -64,7 +65,7 @@ export async function GET(request: NextRequest) {
         users: users?.map((u) => ({
           email: u.email,
           name: u.name || undefined,
-          role: u.role === 'admin' ? 'admin' : 'user',
+          role: u.role === 'admin' || u.role === 'owner' || u.role === 'accounting' ? u.role : 'user',
           isActive: u.is_active !== false,
           chatWidgetEnabled: u.chat_widget_enabled === true,
         })) || [],

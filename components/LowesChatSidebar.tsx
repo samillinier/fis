@@ -306,23 +306,7 @@ export default function LowesChatSidebar({ currentConversationId, onConversation
                   </div>
                 )}
 
-                {/* Footer */}
-                <div className={`flex items-center gap-1.5 pt-2.5 border-t ${
-                  currentConversationId === conversation.id 
-                    ? 'border-gray-200' 
-                    : 'border-white border-opacity-20'
-                }`}>
-                  <svg className={`w-3.5 h-3.5 ${
-                    currentConversationId === conversation.id ? 'text-gray-400' : 'text-white opacity-60'
-                  }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span className={`text-xs font-medium ${
-                    currentConversationId === conversation.id ? 'text-gray-500' : 'text-white opacity-70'
-                  }`}>
-                    {formatTime(conversation.last_message_at)}
-                  </span>
-                </div>
+                {/* Footer removed (timestamp already shown in header) */}
               </button>
             ))}
           </div>

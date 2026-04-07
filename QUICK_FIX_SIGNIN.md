@@ -24,14 +24,14 @@ Microsoft won't allow sign-in if your Vercel URL isn't registered in Azure.
    - Click **"Authentication"** (left menu)
    - Scroll to **"Single-page application"** section
    - Under **"Redirect URIs"**, click **"Add URI"**
-   - Add: `https://fis-he6w.vercel.app/signin`
+   - Add: `https://pod.floorinteriorservices.com/signin`
    - Click **"Add URI"** again
-   - Add: `https://fis-he6w.vercel.app`
+   - Add: `https://pod.floorinteriorservices.com`
    - Click **"Save"** at the top
 
 4. **Wait & Test:**
    - **Wait 5-10 minutes** (Azure needs time to update)
-   - Go to: https://fis-he6w.vercel.app/signin
+   - Go to: https://pod.floorinteriorservices.com/signin
    - Click "Sign in with Microsoft"
    - ✅ Microsoft popup should open!
 
@@ -39,7 +39,7 @@ Microsoft won't allow sign-in if your Vercel URL isn't registered in Azure.
 
 Before doing the above, check for errors:
 
-1. Open: https://fis-he6w.vercel.app/signin
+1. Open: https://pod.floorinteriorservices.com/signin
 2. Press **F12** (Developer Tools)
 3. Click **Console** tab
 4. Click the sign-in button

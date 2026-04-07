@@ -13,8 +13,13 @@ export default function NotificationDropdown() {
   
   // Force re-render when unreadCount changes
   useEffect(() => {
-    console.log(`[NotificationDropdown] unreadCount changed to: ${unreadCount}`)
-  }, [unreadCount])
+    console.log(`[NotificationDropdown] Rendering - unreadCount: ${unreadCount}, notifications count: ${notifications.length}`)
+  }, [unreadCount, notifications.length])
+  
+  // Log when component mounts
+  useEffect(() => {
+    console.log('[NotificationDropdown] Component mounted')
+  }, [])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -55,7 +60,11 @@ export default function NotificationDropdown() {
 
   const isLTRNotification = (message: string): boolean => {
     const messageLower = message.toLowerCase()
-    return messageLower.includes('ltr') && messageLower.includes('⚠️')
+    return (
+      messageLower.includes('⚠') &&
+      messageLower.includes('ltr') &&
+      messageLower.includes('performance is below standard')
+    )
   }
 
   const handleFixNowLTR = (e?: React.MouseEvent, notification?: any) => {
@@ -64,7 +73,6 @@ export default function NotificationDropdown() {
     }
     const workroom = notification?.workroom || (e?.currentTarget as any)?.closest('[data-workroom]')?.dataset?.workroom
     if (workroom) {
-      // Navigate to LTR form with workroom as query parameter
       router.push(`/ltr-form?workroom=${encodeURIComponent(workroom)}`)
       setIsOpen(false)
     }
@@ -77,7 +85,11 @@ export default function NotificationDropdown() {
   }
 
   const isWorkOrderCycleTimeNotification = (message: string): boolean => {
-    return message.toLowerCase().includes('work order cycle time')
+    const messageLower = message.toLowerCase()
+    // Only match correct heatmap format: warning icon at the start
+    return message.trim().startsWith('⚠') && 
+           messageLower.includes('work order cycle time') &&
+           (messageLower.includes('exceeds target') || messageLower.includes('n/a'))
   }
 
   const handleFixNowCycleTime = (e?: React.MouseEvent, notification?: any) => {
@@ -139,12 +151,10 @@ export default function NotificationDropdown() {
            messageLower.includes('has low') || 
            messageLower.includes('score:') ||
            messageLower.includes('(score:') ||
-           messageLower.includes('rate:') ||
-           messageLower.includes('(rate:') ||
            messageLower.includes('review ') ||
            messageLower.includes('review scheduling') ||
            messageLower.includes('customer communication') ||
-           (!messageLower.includes('⚠️'))
+           (!messageLower.includes('⚠')) // accept both ⚠ and ⚠️ as hazard-format
   }
 
   const handleDeleteOldFormatNotifications = async () => {
@@ -157,17 +167,8 @@ export default function NotificationDropdown() {
     }
   }
 
-  // Auto-delete old format notifications when dropdown opens
-  useEffect(() => {
-    if (isOpen) {
-      const oldFormatNotifications = notifications.filter((n) => isOldFormatNotification(n.message))
-      if (oldFormatNotifications.length > 0) {
-        console.log(`[NotificationDropdown] Auto-deleting ${oldFormatNotifications.length} old format notifications`)
-        const oldFormatIds = oldFormatNotifications.map((n) => n.id)
-        deleteNotification(oldFormatIds)
-      }
-    }
-  }, [isOpen, notifications])
+  // NOTE: Do NOT auto-delete notifications when the dropdown opens.
+  // Auto-deletes cause notifications (like Reschedule Rate) to vanish before the user can see/click them.
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -184,14 +185,22 @@ export default function NotificationDropdown() {
     return date.toLocaleDateString()
   }
 
+  const getNotificationDisplayDate = (notification: any) => {
+    if (!notification?.is_read && notification?.updated_at) {
+      return notification.updated_at
+    }
+    return notification?.created_at
+  }
+
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative" ref={dropdownRef} data-testid="notification-dropdown">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors"
-        aria-label="Notifications"
+        className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors flex items-center justify-center"
+        aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
       >
-        <Bell size={24} />
+        <Bell size={24} className="text-gray-600" style={{ display: 'block' }} />
         {unreadCount > 0 && (
           <span 
             key={`badge-${unreadCount}`}
@@ -200,6 +209,7 @@ export default function NotificationDropdown() {
               unreadCount > 9 ? 'px-1.5 py-0.5 min-w-[1.5rem]' : 
               'w-5 h-5'
             }`}
+            style={{ zIndex: 10 }}
           >
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
@@ -232,13 +242,74 @@ export default function NotificationDropdown() {
           </div>
 
           <div className="overflow-y-auto flex-1 bg-white">
-            {notifications.length === 0 ? (
+            {(() => {
+              // Filter notifications
+              const filteredNotifications = notifications.filter((notification) => {
+              const messageLower = (notification.message || '').toLowerCase()
+              if (messageLower.includes('work order cycle time')) {
+                return notification.message.trim().startsWith('⚠')
+              }
+              return true
+              })
+
+              if (filteredNotifications.length === 0) {
+                return (
               <div className="p-4 text-center text-gray-500 text-sm bg-white">
                 No notifications
               </div>
-            ) : (
+                )
+              }
+
+              // Group notifications by workroom (normalize workroom names)
+              const groupedByWorkroom = filteredNotifications.reduce((acc, notification) => {
+                const workroom = (notification.workroom || '').trim() || 'Unknown'
+                if (!acc[workroom]) {
+                  acc[workroom] = []
+                }
+                acc[workroom].push(notification)
+                return acc
+              }, {} as Record<string, typeof filteredNotifications>)
+
+              // Sort workrooms: System first, then alphabetically
+              const sortedWorkrooms = Object.keys(groupedByWorkroom).sort((a, b) => {
+                if (a === 'System') return -1
+                if (b === 'System') return 1
+                return a.localeCompare(b)
+              })
+
+              console.log('[NotificationDropdown] Grouped notifications:', {
+                total: filteredNotifications.length,
+                workrooms: sortedWorkrooms,
+                counts: sortedWorkrooms.map(w => ({ workroom: w, count: groupedByWorkroom[w].length }))
+              })
+
+              return (
+                <div className="divide-y divide-gray-200">
+                  {sortedWorkrooms.map((workroom) => {
+                    const workroomNotifications = groupedByWorkroom[workroom]
+                    const unreadCount = workroomNotifications.filter(n => !n.is_read).length
+
+                    return (
+                      <div key={workroom} className="bg-white">
+                        {/* Workroom Header */}
+                        <div className="sticky top-0 z-10 bg-gray-50 px-4 py-2 border-b border-gray-200">
+                          <div className="flex items-center justify-between">
+                            <h4 className={`font-semibold text-sm ${
+                              workroom === 'System' ? 'text-green-600' : 'text-gray-900'
+                            }`}>
+                              {workroom}
+                            </h4>
+                            {unreadCount > 0 && (
+                              <span className="text-xs text-gray-500">
+                                {unreadCount} unread
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Notifications for this workroom */}
               <div className="divide-y divide-gray-100">
-                {notifications.map((notification) => (
+                          {workroomNotifications.map((notification) => (
                   <div
                     key={notification.id}
                     className={`p-4 hover:bg-gray-50 transition-colors bg-white cursor-pointer ${
@@ -274,79 +345,74 @@ export default function NotificationDropdown() {
                     }}
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
+                      <div className="flex-1 min-w-0">
+                                  <div className="flex items-start gap-2 min-w-0">
                           {!notification.is_read && (
-                            <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                                      <span className="w-2 h-2 bg-green-500 rounded-full mt-1.5 flex-shrink-0"></span>
                           )}
-                          <span className={`font-medium text-sm ${
-                            notification.workroom === 'System' ? 'text-green-600' : 'text-gray-900'
-                          }`}>
-                            {notification.workroom}
-                          </span>
-                          {notification.type === 'info' && (
-                            <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded">Info</span>
-                          )}
-                          {notification.type === 'error' && (
-                            <span className="text-xs px-2 py-0.5 bg-red-100 text-red-700 rounded">Error</span>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-700">
-                          {notification.message}
-                          {isRescheduleRateNotification(notification.message) && (
-                            <span className="ml-2">
+                                    <div className="flex-1 min-w-0">
+                        <p className="text-sm text-gray-700 break-words whitespace-normal">
+                                        <span>{notification.message}</span>
+                        </p>
+                        {(isRescheduleRateNotification(notification.message) ||
+                          isLTRNotification(notification.message) ||
+                          isWorkOrderCycleTimeNotification(notification.message) ||
+                          isCycleTimeNotification(notification.message) ||
+                          isVendorDebitNotification(notification.message)) && (
+                          <div className="mt-1">
+                            {isRescheduleRateNotification(notification.message) && (
                               <button
                                 onClick={(e) => handleFixNow(e, notification)}
                                 className="text-green-600 hover:text-green-700 underline text-sm font-medium"
                               >
                                 Fix Now
                               </button>
-                            </span>
-                          )}
-                          {isLTRNotification(notification.message) && (
-                            <span className="ml-2">
+                            )}
+                            {isLTRNotification(notification.message) && (
                               <button
                                 onClick={(e) => handleFixNowLTR(e, notification)}
                                 className="text-green-600 hover:text-green-700 underline text-sm font-medium"
                               >
                                 Fix Now
                               </button>
-                            </span>
-                          )}
-                          {isWorkOrderCycleTimeNotification(notification.message) && (
-                            <span className="ml-2">
+                            )}
+                            {isWorkOrderCycleTimeNotification(notification.message) && (
                               <button
                                 onClick={(e) => handleFixNowWorkOrderCycleTime(e, notification)}
                                 className="text-green-600 hover:text-green-700 underline text-sm font-medium"
                               >
                                 Fix Now
                               </button>
-                            </span>
-                          )}
-                          {isCycleTimeNotification(notification.message) && (
-                            <span className="ml-2">
+                            )}
+                            {isCycleTimeNotification(notification.message) && (
                               <button
                                 onClick={(e) => handleFixNowCycleTime(e, notification)}
                                 className="text-green-600 hover:text-green-700 underline text-sm font-medium"
                               >
                                 Fix Now
                               </button>
-                            </span>
-                          )}
-                          {isVendorDebitNotification(notification.message) && (
-                            <span className="ml-2">
+                            )}
+                            {isVendorDebitNotification(notification.message) && (
                               <button
                                 onClick={(e) => handleFixNowVendorDebit(e, notification)}
                                 className="text-green-600 hover:text-green-700 underline text-sm font-medium"
                               >
                                 Fix Now
                               </button>
-                            </span>
-                          )}
-                        </p>
+                            )}
+                          </div>
+                        )}
                         <p className="text-xs text-gray-500 mt-1">
-                          {formatDate(notification.created_at)}
+                          {formatDate(getNotificationDisplayDate(notification))}
                         </p>
+                                    </div>
+                                    {notification.type === 'info' && (
+                                      <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded flex-shrink-0">Info</span>
+                                    )}
+                                    {notification.type === 'error' && (
+                                      <span className="text-xs px-2 py-0.5 bg-red-100 text-red-700 rounded flex-shrink-0">Error</span>
+                                    )}
+                                  </div>
                       </div>
                       <button
                         onClick={async (e) => {
@@ -363,7 +429,12 @@ export default function NotificationDropdown() {
                   </div>
                 ))}
               </div>
-            )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )
+            })()}
           </div>
         </div>
       )}

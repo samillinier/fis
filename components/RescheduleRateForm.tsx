@@ -254,7 +254,6 @@ export default function RescheduleRateForm({ workroom }: RescheduleRateFormProps
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                   <span className="text-gray-600">%</span>
-                  <span className="text-sm text-gray-500">(Target: 20% or Lower)</span>
                 </div>
               </div>
               <div>
@@ -907,7 +906,7 @@ export default function RescheduleRateForm({ workroom }: RescheduleRateFormProps
             <button
               type="submit"
               disabled={submitting}
-              className="px-6 py-2 bg-[#80875d] text-white rounded-md hover:bg-[#6d7350] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2 bg-[#89ac44] text-white rounded-md hover:bg-[#6d8a35] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submitting ? 'Submitting...' : 'Submit Report'}
             </button>

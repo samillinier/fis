@@ -2,7 +2,7 @@
 
 ## Error Message
 ```
-AADSTS50011: The redirect URI 'https://fis-phi.vercel.app/signin' does not match 
+AADSTS50011: The redirect URI 'https://pod.floorinteriorservices.com/signin' does not match 
 the redirect URIs configured for the application
 ```
 
@@ -34,12 +34,12 @@ the redirect URIs configured for the application
 
    **URI 1:**
    ```
-   https://fis-phi.vercel.app/signin
+   https://pod.floorinteriorservices.com/signin
    ```
 
    **URI 2:**
    ```
-   https://fis-phi.vercel.app
+   https://pod.floorinteriorservices.com
    ```
 
    **URI 3 (for local development):**
@@ -60,10 +60,10 @@ the redirect URIs configured for the application
 
 1. **Check the list:**
    - You should see all 4 URIs listed under "Single-page application"
-   - Make sure `https://fis-phi.vercel.app/signin` is there
+   - Make sure `https://pod.floorinteriorservices.com/signin` is there
 
 2. **Test your app:**
-   - Go to: https://fis-phi.vercel.app/signin
+   - Go to: https://pod.floorinteriorservices.com/signin
    - Try signing in
    - Should work now! ✅
 

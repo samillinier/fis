@@ -1,6 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase, ensureUserExists } from '@/lib/supabase'
 
+const VALID_METRICS = [
+  'vendor_debit',
+  'ltr',
+  'cycle_time',
+  'reschedule_rate',
+  'job_cycle_time',
+  'details_cycle_time',
+  'work_order_cycle_time',
+] as const
+
+const METRIC_STORAGE_FALLBACKS: Record<string, string | undefined> = {
+  work_order_cycle_time: 'details_cycle_time',
+}
+
+function resolveSubmittedMetricType(record: { metric_type?: string; form_data?: any } | null | undefined) {
+  return record?.form_data?.reported_metric_type || record?.metric_type || null
+}
+
+function buildStoredFormData(metricType: string, formData: any, useFallbackStorage = false) {
+  if (!useFallbackStorage) {
+    return formData
+  }
+
+  return {
+    ...formData,
+    reported_metric_type: metricType,
+    stored_metric_type: METRIC_STORAGE_FALLBACKS[metricType] || metricType,
+  }
+}
+
+function isMetricConstraintError(error: any) {
+  const message = String(error?.message || '').toLowerCase()
+  return error?.code === '23514' || message.includes('performance_forms_metric_type_check')
+}
+
 // GET - Check if form is required for current week
 export async function GET(request: NextRequest) {
   try {
@@ -36,15 +71,35 @@ export async function GET(request: NextRequest) {
     weekStart.setHours(0, 0, 0, 0)
     const weekStartDate = weekStart.toISOString().split('T')[0]
 
-    // Check if form has been submitted for this week
-    const { data, error } = await supabase
-      .from('performance_forms')
-      .select('id, submitted_at, form_data')
-      .eq('user_id', userId)
-      .eq('workroom', workroom)
-      .eq('metric_type', metricType)
-      .eq('week_start_date', weekStartDate)
-      .single()
+    let data: any = null
+    let error: any = null
+
+    if (metricType === 'work_order_cycle_time') {
+      const { data: fallbackCandidates, error: fallbackError } = await supabase
+        .from('performance_forms')
+        .select('id, submitted_at, form_data, metric_type')
+        .eq('user_id', userId)
+        .eq('workroom', workroom)
+        .in('metric_type', ['work_order_cycle_time', 'details_cycle_time'])
+        .eq('week_start_date', weekStartDate)
+        .order('submitted_at', { ascending: false })
+
+      error = fallbackError
+      data =
+        fallbackCandidates?.find((submission) => resolveSubmittedMetricType(submission) === metricType) || null
+    } else {
+      const { data: exactMatch, error: exactMatchError } = await supabase
+        .from('performance_forms')
+        .select('id, submitted_at, form_data, metric_type')
+        .eq('user_id', userId)
+        .eq('workroom', workroom)
+        .eq('metric_type', metricType)
+        .eq('week_start_date', weekStartDate)
+        .maybeSingle()
+
+      data = exactMatch
+      error = exactMatchError
+    }
 
     if (error && error.code !== 'PGRST116') {
       console.error('Error checking form submission:', error)
@@ -53,7 +108,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       submitted: !!data,
-      submission: data || null,
+      submission: data ? { ...data, metric_type: resolveSubmittedMetricType(data) || data.metric_type } : null,
     })
   } catch (error) {
     console.error('Error in GET /api/performance-forms:', error)
@@ -81,9 +136,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
-    // Validate metric_type
-    const validMetrics = ['vendor_debit', 'ltr', 'cycle_time', 'reschedule_rate', 'job_cycle_time', 'details_cycle_time']
-    if (!validMetrics.includes(metric_type)) {
+    if (!VALID_METRICS.includes(metric_type)) {
       return NextResponse.json({ error: 'Invalid metric_type' }, { status: 400 })
     }
 
@@ -102,14 +155,34 @@ export async function POST(request: NextRequest) {
     const weekStartDate = weekStart.toISOString().split('T')[0]
 
     // First, try to find existing form submission
-    const { data: existingForm, error: checkError } = await supabase
-      .from('performance_forms')
-      .select('id')
-      .eq('user_id', userId)
-      .eq('workroom', workroom)
-      .eq('metric_type', metric_type)
-      .eq('week_start_date', weekStartDate)
-      .maybeSingle()
+    let existingForm: any = null
+    let checkError: any = null
+
+    if (metric_type === 'work_order_cycle_time') {
+      const { data: existingCandidates, error: existingCandidatesError } = await supabase
+        .from('performance_forms')
+        .select('id, metric_type, form_data')
+        .eq('user_id', userId)
+        .eq('workroom', workroom)
+        .in('metric_type', ['work_order_cycle_time', 'details_cycle_time'])
+        .eq('week_start_date', weekStartDate)
+
+      existingForm =
+        existingCandidates?.find((submission) => resolveSubmittedMetricType(submission) === metric_type) || null
+      checkError = existingCandidatesError
+    } else {
+      const { data: exactExistingForm, error: exactCheckError } = await supabase
+        .from('performance_forms')
+        .select('id, metric_type, form_data')
+        .eq('user_id', userId)
+        .eq('workroom', workroom)
+        .eq('metric_type', metric_type)
+        .eq('week_start_date', weekStartDate)
+        .maybeSingle()
+
+      existingForm = exactExistingForm
+      checkError = exactCheckError
+    }
 
     let data, error
 
@@ -122,37 +195,51 @@ export async function POST(request: NextRequest) {
       }, { status: 500 })
     }
 
-    if (existingForm && existingForm.id) {
-      // Update existing form
-      const { data: updateData, error: updateError } = await supabase
-        .from('performance_forms')
-        .update({
-          form_data,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', existingForm.id)
-        .select()
-        .single()
-      
-      data = updateData
-      error = updateError
-    } else {
-      // Insert new form
-      const { data: insertData, error: insertError } = await supabase
+    const saveSubmission = async (storageMetricType: string, storedFormData: any) => {
+      if (existingForm && existingForm.id) {
+        return await supabase
+          .from('performance_forms')
+          .update({
+            metric_type: storageMetricType,
+            form_data: storedFormData,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', existingForm.id)
+          .select()
+          .single()
+      }
+
+      return await supabase
         .from('performance_forms')
         .insert({
           user_id: userId,
           workroom,
-          metric_type,
+          metric_type: storageMetricType,
           week_start_date: weekStartDate,
-          form_data,
+          form_data: storedFormData,
           updated_at: new Date().toISOString(),
         })
         .select()
         .single()
-      
-      data = insertData
-      error = insertError
+    }
+
+    const existingStorageMetricType = existingForm?.metric_type || metric_type
+    const usesFallbackStorage =
+      resolveSubmittedMetricType(existingForm) === 'work_order_cycle_time' &&
+      existingStorageMetricType !== 'work_order_cycle_time'
+
+    ;({ data, error } = await saveSubmission(
+      existingStorageMetricType,
+      buildStoredFormData(metric_type, form_data, usesFallbackStorage)
+    ))
+
+    if (error && metric_type === 'work_order_cycle_time' && isMetricConstraintError(error)) {
+      const fallbackMetricType = METRIC_STORAGE_FALLBACKS[metric_type] || metric_type
+      console.warn(`Falling back to ${fallbackMetricType} storage for ${metric_type} due to DB constraint`)
+      ;({ data, error } = await saveSubmission(
+        fallbackMetricType,
+        buildStoredFormData(metric_type, form_data, true)
+      ))
     }
 
     if (error) {
@@ -184,11 +271,24 @@ export async function POST(request: NextRequest) {
       }, { status: 500 })
     }
 
-    console.log('Form submission saved:', { userId, workroom, metric_type, weekStartDate })
+    const responseSubmission = data
+      ? {
+          ...data,
+          metric_type: resolveSubmittedMetricType(data) || data.metric_type,
+        }
+      : data
+
+    console.log('Form submission saved:', {
+      userId,
+      workroom,
+      requested_metric_type: metric_type,
+      stored_metric_type: data?.metric_type,
+      weekStartDate,
+    })
 
     return NextResponse.json({ 
       success: true,
-      submission: data
+      submission: responseSubmission
     })
   } catch (error) {
     console.error('Error in POST /api/performance-forms:', error)

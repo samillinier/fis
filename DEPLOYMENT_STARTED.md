@@ -21,7 +21,7 @@
    - Wait 2-3 minutes for completion
 
 3. **Your App URL:**
-   - https://fis-he6w.vercel.app (will update after deploy)
+   - https://pod.floorinteriorservices.com (will update after deploy)
 
 ## ⚙️ Important: Verify Environment Variables
 
@@ -48,8 +48,8 @@ If sign-in doesn't work after deployment, add redirect URIs to Azure:
 
 2. **Add Redirect URIs:**
    - Authentication → Single-page application
-   - Add: `https://fis-he6w.vercel.app/signin`
-   - Add: `https://fis-he6w.vercel.app`
+   - Add: `https://pod.floorinteriorservices.com/signin`
+   - Add: `https://pod.floorinteriorservices.com`
    - Save
 
 3. **Wait 5-10 minutes** for Azure to update
@@ -58,7 +58,7 @@ If sign-in doesn't work after deployment, add redirect URIs to Azure:
 
 After deployment completes:
 
-1. Visit: https://fis-he6w.vercel.app
+1. Visit: https://pod.floorinteriorservices.com
 2. Test sign-in with Microsoft
 3. Upload data - should work with localStorage!
 4. Check all pages load correctly

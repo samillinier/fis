@@ -17,43 +17,44 @@ export default function LowesLoginPage() {
     setError(null)
 
     try {
-      // Get stored Lowe's team members
-      const storedMembers = localStorage.getItem('lowes-team-members')
-      const members = storedMembers ? JSON.parse(storedMembers) : []
+      // Authenticate with Supabase via API
+      const response = await fetch('/api/lowes-auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          password: password
+        })
+      })
 
-      // Find matching member
-      const member = members.find((m: any) => m.email === email && m.password === password)
+      const data = await response.json()
 
-      if (!member) {
-        setError('Invalid email or password')
+      if (!response.ok) {
+        setError(data.error || 'Invalid email or password')
         setIsLoading(false)
         return
       }
 
-      // Ensure member has profile data (for backward compatibility)
-      if (!member.profile) {
-        member.profile = {
-          photoUrl: null,
-          updatedAt: new Date().toISOString()
-        }
-        // Update the member in storage
-        const memberIndex = members.findIndex((m: any) => m.email === email)
-        if (memberIndex !== -1) {
-          members[memberIndex] = member
-          localStorage.setItem('lowes-team-members', JSON.stringify(members))
-        }
+      if (!data.success || !data.user) {
+        setError('Login failed. Please try again.')
+        setIsLoading(false)
+        return
       }
 
-      // Store logged-in member info with their own profile data
+      // Store logged-in member info in localStorage for session management
+      // Password is NOT stored - only user data
       const lowesTeamMember = {
-        email: member.email,
-        name: member.name,
-        role: member.role || '',
-        district: member.district || '',
-        storeNumber: member.storeNumber || '',
+        email: data.user.email,
+        name: data.user.name,
+        role: data.user.role || '',
+        district: data.user.district || '',
+        storeNumber: data.user.storeNumber || '',
+        groupId: data.user.groupId || '',
         loggedIn: true,
         loggedInAt: new Date().toISOString(),
-        photoUrl: member.profile?.photoUrl || null // Load user's own profile photo
+        photoUrl: data.user.photoUrl || null
       }
 
       localStorage.setItem('lowes-team-member', JSON.stringify(lowesTeamMember))
@@ -75,10 +76,9 @@ export default function LowesLoginPage() {
         <div>
           <div className="flex flex-col items-center">
             <img 
-              src="/lowes-logo-png-transparent.png" 
-              alt="Lowe's Logo" 
-              className="h-72 w-auto object-contain"
-              style={{ maxHeight: '400px', display: 'block', marginBottom: '-8px', paddingBottom: '0' }}
+              src="/logo3.png" 
+              alt="FIS Logo" 
+              className="h-24 w-auto object-contain mb-3"
             />
             <h2 className="text-center text-3xl font-bold text-white" style={{ marginTop: '0', marginBottom: '0', lineHeight: '1', paddingTop: '0' }}>
               Lowe's Pro Connect

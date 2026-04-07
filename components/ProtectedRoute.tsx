@@ -25,26 +25,15 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
       router.push('/signin')
       return
     }
+  }, [isAuthenticated, isLoading, router, pathname])
 
-    // Restrict certain routes for non-admin users
-    // Note: isAdmin might be undefined during initial load, so we check it exists and is false
-    if (isAdmin !== undefined && isAdmin === false) {
-      const adminOnlyPaths = [
-        '/analytics',
-        '/performance',
-        '/store',
-        '/workroom-report',
-        '/profile',
-      ]
-      if (adminOnlyPaths.includes(pathname)) {
-        router.push('/')
-      }
-    }
-    // Settings page is accessible to all authenticated users
-  }, [isAuthenticated, isAdmin, isLoading, router, pathname])
+  // Show loading while checking auth
+  if (isLoading) {
+    return null
+  }
 
   // Don't render children if not authenticated (except on auth pages)
-  if (!isLoading && !isAuthenticated && pathname !== '/signin' && pathname !== '/signup') {
+  if (!isAuthenticated && pathname !== '/signin' && pathname !== '/signup') {
     return null
   }
 

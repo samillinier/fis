@@ -4,7 +4,7 @@
   "description": "Workroom Performance Analytics Dashboard",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "WATCHPACK_POLLING=true next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -15,6 +15,7 @@
     "@types/leaflet": "^1.9.21",
     "@types/three": "^0.181.0",
     "@vercel/postgres": "^0.5.0",
+    "bcryptjs": "^3.0.3",
     "date-fns": "^2.30.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.4",
@@ -30,6 +31,7 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
     "@types/jspdf": "^1.3.3",
     "@types/node": "^20.0.0",
     "@types/react": "^18.2.0",

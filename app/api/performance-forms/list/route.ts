@@ -13,6 +13,10 @@ function normalizeEmail(email?: string): string | null {
   return email.trim().toLowerCase()
 }
 
+function resolveSubmittedMetricType(submission: any): string {
+  return submission?.form_data?.reported_metric_type || submission?.metric_type || ''
+}
+
 // GET - List all form submissions (all for admins, own for regular users)
 export async function GET(request: NextRequest) {
   try {
@@ -122,10 +126,14 @@ export async function GET(request: NextRequest) {
     const uniqueSubmissions = (data || []).filter((submission, index, self) => 
       index === self.findIndex(s => s.id === submission.id)
     )
+    const normalizedSubmissions = uniqueSubmissions.map((submission) => ({
+      ...submission,
+      metric_type: resolveSubmittedMetricType(submission),
+    }))
 
-    console.log(`[performance-forms/list] Found ${data?.length || 0} raw submissions, ${uniqueSubmissions.length} unique (admin: ${isAdmin})`)
-    if (data && data.length !== uniqueSubmissions.length) {
-      console.warn(`[performance-forms/list] ⚠️ Duplicate submissions detected! Raw: ${data.length}, Unique: ${uniqueSubmissions.length}`)
+    console.log(`[performance-forms/list] Found ${data?.length || 0} raw submissions, ${normalizedSubmissions.length} unique (admin: ${isAdmin})`)
+    if (data && data.length !== normalizedSubmissions.length) {
+      console.warn(`[performance-forms/list] ⚠️ Duplicate submissions detected! Raw: ${data.length}, Unique: ${normalizedSubmissions.length}`)
       console.log(`[performance-forms/list] Duplicate IDs:`, data.map(s => s.id))
     }
     
@@ -156,10 +164,10 @@ export async function GET(request: NextRequest) {
     }
 
     const response = NextResponse.json({ 
-      submissions: uniqueSubmissions,
-      count: uniqueSubmissions.length,
+      submissions: normalizedSubmissions,
+      count: normalizedSubmissions.length,
       timestamp: new Date().toISOString(), // Add timestamp to help debug caching
-      workrooms: Array.from(new Set(uniqueSubmissions.map(s => s.workroom))) // Include workrooms in response for debugging
+      workrooms: Array.from(new Set(normalizedSubmissions.map(s => s.workroom))) // Include workrooms in response for debugging
     })
     
     // Aggressive cache prevention for production/CDN

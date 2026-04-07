@@ -1,16 +1,17 @@
 // API Route - Supabase (Separate Visual and Survey Data)
-// IMPORTANT: SHARED DATA MODEL - All users see the same data uploaded by admin
-// Only SUPER_ADMIN can upload data, everyone else just views
+// IMPORTANT: SHARED DATA MODEL - All users see the same data uploaded by any admin
+// Any admin user can upload data, everyone else just views
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase, ensureUserExists } from '@/lib/supabase'
 import type { DashboardData, WorkroomData } from '@/context/DataContext'
 
-// SUPER ADMIN - Only this user can upload data
-const SUPER_ADMIN_EMAIL = 'sbiru@fiscorponline.com'
-
-// Helper to get admin user_id (the one who uploads data for everyone)
-async function getAdminUserId(): Promise<string> {
-  return await ensureUserExists(SUPER_ADMIN_EMAIL)
+// Helper to get shared admin user_id (all admins upload to this shared location)
+// This ensures all data is shared for everyone, regardless of which admin uploaded it
+async function getSharedAdminUserId(): Promise<string> {
+  // Use a consistent admin email for the shared data location
+  // This ensures all admins upload to the same shared location
+  const sharedAdminEmail = 'sbiru@fiscorponline.com'
+  return await ensureUserExists(sharedAdminEmail)
 }
 
 // GET - Fetch SHARED data (everyone sees admin's data)
@@ -26,27 +27,27 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid user' }, { status: 401 })
     }
 
-    // Get admin's user_id - ALL users load data from admin's account
-    const adminUserId = await getAdminUserId()
+    // Get shared admin's user_id - ALL users load data from shared location
+    const sharedAdminUserId = await getSharedAdminUserId()
     console.log(`🔍 [GET /api/data] Loading SHARED data for user: ${userEmail}`)
-    console.log(`🔍 [GET /api/data] Using admin's data (user_id: ${adminUserId}) - SHARED DATA MODEL`)
+    console.log(`🔍 [GET /api/data] Using shared data (user_id: ${sharedAdminUserId}) - SHARED DATA MODEL`)
 
     // Load visual data and survey data from ADMIN's account (shared for all users)
     let [visualResult, surveyResult, metadataResult] = await Promise.all([
       supabase
         .from('visual_data')
         .select('*, data_jsonb')
-        .eq('user_id', adminUserId)
+        .eq('user_id', sharedAdminUserId)
         .order('created_at', { ascending: false }),
       supabase
         .from('survey_data')
         .select('*, data_jsonb')
-        .eq('user_id', adminUserId)
+        .eq('user_id', sharedAdminUserId)
         .order('created_at', { ascending: false }),
       supabase
         .from('dashboard_metadata')
         .select('*')
-        .eq('user_id', adminUserId)
+        .eq('user_id', sharedAdminUserId)
         .maybeSingle()
     ])
 
@@ -154,8 +155,8 @@ export async function GET(request: NextRequest) {
 }
 
 // POST - Save data (separates visual and survey data)
-// IMPORTANT: ONLY SUPER_ADMIN CAN UPLOAD DATA
-// All data is stored under admin's user_id and shared with everyone
+// IMPORTANT: ANY ADMIN USER CAN UPLOAD DATA
+// All data is stored under shared admin's user_id and shared with everyone
 export async function POST(request: NextRequest) {
   try {
     const authHeader = request.headers.get('authorization')
@@ -168,13 +169,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid user' }, { status: 401 })
     }
 
-    // CRITICAL: Only super admin can upload data
-    const isAdmin = userEmail.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase()
+    // Check if user is admin (any admin can upload)
+    const { data: actorData } = await supabase
+      .from('authorized_users')
+      .select('role, is_active')
+      .eq('email', userEmail.toLowerCase())
+      .maybeSingle()
+
+    const isAdmin = actorData?.role === 'admin' && actorData?.is_active !== false
+    
     if (!isAdmin) {
-      console.error(`❌ [POST /api/data] UNAUTHORIZED: ${userEmail} tried to upload data. Only ${SUPER_ADMIN_EMAIL} can upload.`)
+      console.error(`❌ [POST /api/data] UNAUTHORIZED: ${userEmail} tried to upload data. Only admin users can upload.`)
       return NextResponse.json({ 
-        error: 'Unauthorized: Only admin can upload data',
-        message: `Only ${SUPER_ADMIN_EMAIL} is authorized to upload data. All other users can only view the shared data.`
+        error: 'Unauthorized: Only admin users can upload data',
+        message: 'Only users with admin role can upload data. All other users can only view the shared data.'
       }, { status: 403 })
     }
 
@@ -191,9 +199,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No workrooms to save' }, { status: 400 })
     }
 
-    // Use admin's user_id for all data (SHARED DATA MODEL)
-    const userId = await getAdminUserId()
-    console.log(`💾 [POST /api/data] ADMIN uploading SHARED data (user_id: ${userId})`)
+    // Use shared admin's user_id for all data (SHARED DATA MODEL)
+    // All admins upload to the same shared location so everyone sees the same data
+    const userId = await getSharedAdminUserId()
+    console.log(`💾 [POST /api/data] Admin ${userEmail} uploading SHARED data (user_id: ${userId})`)
     console.log(`📊 [POST /api/data] First workroom sample:`, {
       name: body.workrooms[0]?.name,
       hasSales: body.workrooms[0]?.sales != null,

@@ -1,14 +1,14 @@
--- Update user_role constraint to include 'Corporate'
+-- Update user_role constraint to include 'Finance' and 'IT'
 -- Run this SQL in your Supabase SQL Editor
 
 -- Step 1: Drop the existing check constraint
 ALTER TABLE user_metadata
   DROP CONSTRAINT IF EXISTS user_metadata_user_role_check;
 
--- Step 2: Recreate the constraint with 'Corporate' and 'President' included
+-- Step 2: Recreate the constraint with 'Finance' and 'IT' included
 ALTER TABLE user_metadata
   ADD CONSTRAINT user_metadata_user_role_check
-  CHECK (user_role IN ('GM', 'PC', 'Corporate', 'President', 'Other'));
+  CHECK (user_role IN ('GM', 'PC', 'Corporate', 'President', 'Finance', 'IT', 'Other'));
 
 -- Step 3: Verify the constraint was updated
 SELECT 

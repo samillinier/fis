@@ -18,6 +18,7 @@ interface Conversation {
   status: string
   created_at: string
   last_message_at: string
+  group_name?: string
 }
 
 export default function LowesDashboardPage() {
@@ -33,6 +34,7 @@ export default function LowesDashboardPage() {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false)
   const [showProfileModal, setShowProfileModal] = useState(false)
   const [currentUser, setCurrentUser] = useState<any>(null)
+  const [userGroupName, setUserGroupName] = useState<string>('')
   const profileDropdownRef = useRef<HTMLDivElement>(null)
 
   // Format last activity time
@@ -105,6 +107,17 @@ export default function LowesDashboardPage() {
     try {
       const memberData = JSON.parse(teamMember)
       setCurrentUser(memberData)
+      
+      // Fetch group name from database using user's email
+      // This ensures we get the latest group assignment even if admin assigned them
+      fetch(`/api/lowes-groups/user-group?email=${encodeURIComponent(memberData.email)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.groupName) {
+            setUserGroupName(data.groupName)
+          }
+        })
+        .catch(err => console.error('Error fetching group name:', err))
     } catch (error) {
       console.error('Error parsing team member data:', error)
     }
@@ -453,7 +466,8 @@ export default function LowesDashboardPage() {
                   name: currentUser?.name || '',
                   role: currentUser?.role || '',
                   district: currentUser?.district || '',
-                  storeNumber: currentUser?.storeNumber || ''
+                  storeNumber: currentUser?.storeNumber || '',
+                  groupName: userGroupName || ''
                 }}
               />
             </div>
@@ -541,7 +555,7 @@ export default function LowesDashboardPage() {
                     {/* Header Row */}
                     <div className="flex items-center gap-3 mb-3">
                       <h3 className="font-bold text-lg text-gray-900 truncate">{conversation.user_name}</h3>
-                      <span className="px-3 py-1 text-xs font-semibold rounded-lg bg-[#f0f2e8] text-[#80875d] flex-shrink-0">
+                      <span className="px-3 py-1 text-xs font-semibold rounded-lg bg-[#f0f2e8] text-[#89ac44] flex-shrink-0">
                         {conversation.user_role}
                       </span>
                       <span className={`px-3 py-1 text-xs font-bold rounded-lg flex-shrink-0 ${
@@ -557,13 +571,15 @@ export default function LowesDashboardPage() {
                     {/* Details */}
                     <div className="space-y-2 mb-3">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-gray-600">Quote/IMS:</span>
-                        <span className="text-sm font-bold text-gray-900">{conversation.quote_ims_number}</span>
+                        <span className="text-sm font-medium text-gray-600">Email:</span>
+                        <span className="text-sm font-bold text-gray-900">{conversation.lowes_email}</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-gray-600">Category:</span>
-                        <span className="text-sm font-bold text-gray-900">{conversation.flooring_category}</span>
-                      </div>
+                      {conversation.group_name && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-gray-600">Group:</span>
+                          <span className="text-sm font-bold text-gray-900">{conversation.group_name}</span>
+                        </div>
+                      )}
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium text-gray-600">District/Store:</span>
                         <span className="text-sm font-bold text-gray-900">{conversation.district_store}</span>
@@ -618,6 +634,7 @@ function ProfileSettingsModal({
   const [role, setRole] = useState(currentUser?.role || '')
   const [district, setDistrict] = useState(currentUser?.district || '')
   const [storeNumber, setStoreNumber] = useState(currentUser?.storeNumber || '')
+  const [groupName, setGroupName] = useState('')
   const [showPasswordChange, setShowPasswordChange] = useState(false)
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -625,29 +642,30 @@ function ProfileSettingsModal({
   const [error, setError] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
 
+  // Fetch user's group from database
+  useEffect(() => {
+    if (currentUser?.email) {
+      fetch(`/api/lowes-groups/user-group?email=${encodeURIComponent(currentUser.email)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.groupName) {
+            setGroupName(data.groupName)
+          }
+        })
+        .catch(err => console.error('Error fetching group name:', err))
+    }
+  }, [currentUser?.email])
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
 
-    // Validate password if user is trying to change it
+    // Validate password if user is trying to change it (server will verify current password too)
     if (showPasswordChange) {
-      // All password fields must be filled
       if (!currentPassword || !newPassword || !confirmPassword) {
         setError('Please fill all password fields to change password')
         return
       }
-
-      // Verify current password
-      const storedMembers = localStorage.getItem('lowes-team-members')
-      const members = storedMembers ? JSON.parse(storedMembers) : []
-      const member = members.find((m: any) => m.email === currentUser.email)
-      
-      if (!member || member.password !== currentPassword) {
-        setError('Current password is incorrect')
-        return
-      }
-
-      // Validate new password
       if (newPassword.length < 6) {
         setError('New password must be at least 6 characters')
         return
@@ -661,39 +679,38 @@ function ProfileSettingsModal({
     setIsSaving(true)
 
     try {
-      // Get all members
-      const storedMembers = localStorage.getItem('lowes-team-members')
-      const members = storedMembers ? JSON.parse(storedMembers) : []
-      
-      // Find current user
-      const memberIndex = members.findIndex((m: any) => m.email === currentUser.email)
-      
-      if (memberIndex === -1) {
-        setError('User not found')
-        setIsSaving(false)
-        return
+      // Persist to DB (self-service update)
+      const response = await fetch('/api/lowes-team-members', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${currentUser.email}`,
+        },
+        body: JSON.stringify({
+          memberEmail: currentUser.email,
+          name: name.trim(),
+          role: role.trim(),
+          district: district.trim(),
+          storeNumber: storeNumber.trim(),
+          ...(showPasswordChange
+            ? { currentPassword: currentPassword, newPassword: newPassword }
+            : {}),
+        }),
+      })
+
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        throw new Error(result.error || result.details || 'Failed to update profile')
       }
 
-      // Update member data
-      members[memberIndex].name = name.trim()
-      members[memberIndex].role = role.trim()
-      members[memberIndex].district = district.trim()
-      members[memberIndex].storeNumber = storeNumber.trim()
-      if (showPasswordChange && newPassword) {
-        members[memberIndex].password = newPassword
-      }
-
-      // Save updated members
-      localStorage.setItem('lowes-team-members', JSON.stringify(members))
-
-      // Update current session
       const updatedSession = {
         ...currentUser,
-        name: name.trim(),
-        role: role.trim(),
-        district: district.trim(),
-        storeNumber: storeNumber.trim()
+        name: result.member?.name ?? name.trim(),
+        role: result.member?.role ?? role.trim(),
+        district: result.member?.district ?? district.trim(),
+        storeNumber: result.member?.storeNumber ?? storeNumber.trim(),
       }
+
       localStorage.setItem('lowes-team-member', JSON.stringify(updatedSession))
 
       // Reset password fields if password was changed
@@ -705,6 +722,8 @@ function ProfileSettingsModal({
       }
 
       onUpdate(updatedSession)
+      setIsSaving(false)
+      onClose()
     } catch (err: any) {
       console.error('Error updating profile:', err)
       setError(err.message || 'Failed to update profile')
@@ -790,6 +809,22 @@ function ProfileSettingsModal({
               placeholder="Store 456"
             />
           </div>
+
+          {groupName && (
+            <div>
+              <label htmlFor="profile-group" className="block text-sm font-semibold text-gray-700 mb-2">
+                Group
+              </label>
+              <input
+                id="profile-group"
+                type="text"
+                value={groupName}
+                disabled
+                className="w-full px-4 py-3 border-0 rounded-xl bg-gray-100 text-gray-600 cursor-not-allowed shadow-sm font-medium"
+              />
+              <p className="mt-1 text-xs text-gray-500">Contact admin to change your group</p>
+            </div>
+          )}
 
           <div className="pt-2 border-t border-gray-200">
             {!showPasswordChange ? (

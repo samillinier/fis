@@ -5,12 +5,128 @@ import { useAuth } from './AuthContext'
 import { useData } from '@/context/DataContext'
 import { calculateWeightedPerformanceScore, calculateComponentScores } from '@/lib/scoreCalculator'
 
+const DISMISSED_NOTIFICATIONS_STORAGE_KEY = 'fis-dismissed-notifications'
+
+type DismissedNotificationEntry = {
+  message: string
+  dismissedAt: string
+}
+
+function extractMetricFromMessage(msg: string): string | null {
+  const messageLower = msg.toLowerCase()
+  if (messageLower.includes('ltr') && messageLower.includes('performance is below standard')) return 'ltr'
+  if (messageLower.includes('reschedule rate') && messageLower.includes('above target')) return 'reschedule_rate'
+  if (messageLower.includes('job cycle time') && messageLower.includes('exceeds target')) return 'job_cycle_time'
+  if (messageLower.includes('work order cycle time') && (messageLower.includes('exceeds target') || messageLower.includes('n/a'))) return 'work_order_cycle_time'
+  if (messageLower.includes('details cycle time') && messageLower.includes('exceeds target')) return 'details_cycle_time'
+  if (messageLower.includes('vendor debits') && (messageLower.includes('above target') || messageLower.includes('ratio is above'))) return 'vendor_debits'
+  return null
+}
+
+function getDismissedNotificationStorage(): Record<string, Record<string, DismissedNotificationEntry>> {
+  if (typeof window === 'undefined') return {}
+  try {
+    const raw = localStorage.getItem(DISMISSED_NOTIFICATIONS_STORAGE_KEY)
+    if (!raw) return {}
+    const parsed = JSON.parse(raw)
+    return parsed && typeof parsed === 'object' ? parsed : {}
+  } catch {
+    return {}
+  }
+}
+
+function setDismissedNotificationStorage(value: Record<string, Record<string, DismissedNotificationEntry>>) {
+  if (typeof window === 'undefined') return
+  try {
+    localStorage.setItem(DISMISSED_NOTIFICATIONS_STORAGE_KEY, JSON.stringify(value))
+  } catch {
+    // Ignore localStorage failures.
+  }
+}
+
+function buildDismissedNotificationKey(workroom: string, message: string): string | null {
+  const normalizedWorkroom = (workroom || '').trim().toLowerCase()
+  const metric = extractMetricFromMessage(message || '')
+  if (!normalizedWorkroom || !metric) return null
+  return `${normalizedWorkroom}:${metric}`
+}
+
+function isNotificationDismissedForUser(userEmail: string | null | undefined, workroom: string, message: string): boolean {
+  if (!userEmail) return false
+  const key = buildDismissedNotificationKey(workroom, message)
+  if (!key) return false
+
+  const allDismissed = getDismissedNotificationStorage()
+  const userDismissed = allDismissed[userEmail.toLowerCase()] || {}
+  const entry = userDismissed[key]
+  return entry?.message === (message || '').trim()
+}
+
+function dismissNotificationsForUser(
+  userEmail: string | null | undefined,
+  notifications: Array<Pick<WorkroomNotification, 'workroom' | 'message'>>
+) {
+  if (!userEmail || typeof window === 'undefined' || notifications.length === 0) return
+
+  const emailKey = userEmail.toLowerCase()
+  const allDismissed = getDismissedNotificationStorage()
+  const nextUserDismissed = { ...(allDismissed[emailKey] || {}) }
+
+  notifications.forEach((notification) => {
+    const key = buildDismissedNotificationKey(notification.workroom, notification.message)
+    if (!key) return
+    nextUserDismissed[key] = {
+      message: (notification.message || '').trim(),
+      dismissedAt: new Date().toISOString(),
+    }
+  })
+
+  allDismissed[emailKey] = nextUserDismissed
+  setDismissedNotificationStorage(allDismissed)
+}
+
+function clearDismissedNotificationsForUser(
+  userEmail: string | null | undefined,
+  notifications: Array<Pick<WorkroomNotification, 'workroom' | 'message'>>
+) {
+  if (!userEmail || typeof window === 'undefined' || notifications.length === 0) return
+
+  const emailKey = userEmail.toLowerCase()
+  const allDismissed = getDismissedNotificationStorage()
+  const currentUserDismissed = allDismissed[emailKey]
+  if (!currentUserDismissed) return
+
+  const nextUserDismissed = { ...currentUserDismissed }
+  let changed = false
+
+  notifications.forEach((notification) => {
+    const key = buildDismissedNotificationKey(notification.workroom, notification.message)
+    if (!key) return
+
+    if (nextUserDismissed[key]?.message === (notification.message || '').trim()) {
+      delete nextUserDismissed[key]
+      changed = true
+    }
+  })
+
+  if (!changed) return
+
+  if (Object.keys(nextUserDismissed).length === 0) {
+    delete allDismissed[emailKey]
+  } else {
+    allDismissed[emailKey] = nextUserDismissed
+  }
+
+  setDismissedNotificationStorage(allDismissed)
+}
+
 export interface WorkroomNotification {
   id: string
   workroom: string
   message: string
   type: 'warning' | 'info' | 'error'
   created_at: string
+  updated_at?: string
   is_read: boolean
 }
 
@@ -30,18 +146,6 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
   const { data } = useData()
   const [notifications, setNotifications] = useState<WorkroomNotification[]>([])
   const [loading, setLoading] = useState(false)
-
-  // Helper function to extract metric from notification message
-  const extractMetricFromMessage = (msg: string): string | null => {
-    const messageLower = msg.toLowerCase()
-    if (messageLower.includes('ltr') && messageLower.includes('performance is below standard')) return 'ltr'
-    if (messageLower.includes('reschedule rate') && messageLower.includes('above target')) return 'reschedule_rate'
-    if (messageLower.includes('job cycle time') && messageLower.includes('exceeds target')) return 'job_cycle_time'
-    if (messageLower.includes('work order cycle time') && (messageLower.includes('exceeds target') || messageLower.includes('n/a'))) return 'work_order_cycle_time'
-    if (messageLower.includes('details cycle time') && messageLower.includes('exceeds target')) return 'details_cycle_time'
-    if (messageLower.includes('vendor debits') && (messageLower.includes('above target') || messageLower.includes('ratio is above'))) return 'vendor_debits'
-    return null
-  }
 
   // Helper function to remove duplicate notifications (keep the most recent one)
   const removeDuplicates = (notifications: any[]): any[] => {
@@ -90,9 +194,11 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
       })
       
       let userRole: string | null = null
+      let userWorkroom: string | null = null
       if (profileResponse.ok) {
         const profile = await profileResponse.json()
         userRole = profile.role || profile.user_role || null
+        userWorkroom = profile.workroom || null
       }
       
       // If user is President, clear workroom score notifications but keep access request notifications
@@ -130,6 +236,7 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
                 method: 'DELETE',
                 headers: {
                   'Content-Type': 'application/json',
+          'X-Notification-Delete-Intent': 'user',
                   Authorization: `Bearer ${authHeader}`,
                 },
                 body: JSON.stringify({ notificationIds }),
@@ -160,12 +267,11 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
         const allNotifications = result.notifications || []
         
         // FILTER OUT old format notifications - don't even show them
-        // Keep: notifications with ⚠️ (new format) OR System workroom notifications (access requests)
+        // Keep: notifications with hazard icon (either ⚠ or ⚠️) OR System workroom notifications.
         const newFormatOnly = allNotifications.filter((n: any) => {
           const messageLower = (n.message || '').toLowerCase()
           const workroom = (n.workroom || '').trim()
-          // Keep notifications with ⚠️ (new format) OR System workroom (access requests)
-          return messageLower.includes('⚠️') || workroom === 'System'
+          return messageLower.includes('⚠') || workroom === 'System'
         })
         
         // If there were old format notifications, delete them from database
@@ -173,8 +279,8 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
         const oldFormatNotifications = allNotifications.filter((n: any) => {
           const messageLower = (n.message || '').toLowerCase()
           const workroom = (n.workroom || '').trim()
-          // Delete old format (no ⚠️) but keep System workroom notifications
-          return !messageLower.includes('⚠️') && workroom !== 'System'
+          // Delete old format (no hazard icon) but keep System workroom notifications
+          return !messageLower.includes('⚠') && workroom !== 'System'
         })
         
         if (oldFormatNotifications.length > 0) {
@@ -186,6 +292,7 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
               method: 'DELETE',
               headers: {
                 'Content-Type': 'application/json',
+          'X-Notification-Delete-Intent': 'user',
                 Authorization: `Bearer ${authHeader}`,
               },
               body: JSON.stringify({ notificationIds: oldFormatIds }),
@@ -215,6 +322,7 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
                 method: 'DELETE',
                 headers: {
                   'Content-Type': 'application/json',
+          'X-Notification-Delete-Intent': 'user',
                   Authorization: `Bearer ${authHeader}`,
                 },
                 body: JSON.stringify({ notificationIds: duplicateIds }),
@@ -228,7 +336,20 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
           }
         }
         
-        console.log(`[refreshNotifications] Showing ${deduplicatedNotifications.length} unique notifications (filtered out ${oldFormatNotifications.length} old format, ${newFormatOnly.length - deduplicatedNotifications.length} duplicates)`)
+        const scopedNotifications = deduplicatedNotifications.filter((n: any) => {
+          const workroom = (n.workroom || '').trim()
+          if (workroom === 'System') return true
+          if (!userWorkroom) return false
+          return workroom.toLowerCase() === userWorkroom.trim().toLowerCase()
+        })
+
+        const visibleNotifications = scopedNotifications.filter(
+          (n: any) => !isNotificationDismissedForUser(user.email, n.workroom || '', n.message || '')
+        )
+
+        console.log(
+          `[refreshNotifications] Showing ${visibleNotifications.length} visible notifications (${scopedNotifications.length - visibleNotifications.length} dismissed by user, hidden ${deduplicatedNotifications.length - scopedNotifications.length} out-of-scope, filtered out ${oldFormatNotifications.length} old format, ${newFormatOnly.length - deduplicatedNotifications.length} duplicates)`
+        )
         
         // Log System notifications for debugging
         const systemNotifications = deduplicatedNotifications.filter((n: any) => (n.workroom || '').trim() === 'System')
@@ -236,7 +357,7 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
           console.log(`[refreshNotifications] 📬 Found ${systemNotifications.length} System notification(s):`, systemNotifications.map((n: any) => n.message))
         }
         
-        setNotifications(deduplicatedNotifications)
+        setNotifications(visibleNotifications)
       }
     } catch (error) {
       console.error('Error fetching notifications:', error)
@@ -263,6 +384,7 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Notification-Delete-Intent': 'user',
           Authorization: `Bearer ${authHeader}`,
         },
         body: JSON.stringify({ notificationIds }),
@@ -296,6 +418,9 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
 
     console.log(`[deleteNotification] Attempting to delete ${notificationIds.length} notification(s):`, notificationIds)
 
+    const notificationsToDismiss = notifications.filter((n) => notificationIds.includes(n.id))
+    dismissNotificationsForUser(user.email, notificationsToDismiss)
+
     // Update local state IMMEDIATELY (optimistic update) to remove notifications right away
     setNotifications((prev) => {
       const updated = prev.filter((n) => !notificationIds.includes(n.id))
@@ -309,6 +434,8 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
+          'X-Notification-Delete-Intent': 'user',
+          'X-Allow-Delete-Reschedule': 'true',
           Authorization: `Bearer ${authHeader}`,
         },
         body: JSON.stringify({ notificationIds }),
@@ -336,7 +463,7 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
         await refreshNotifications()
       }, 100)
     }
-  }, [user?.email, refreshNotifications])
+  }, [notifications, user?.email, refreshNotifications])
 
   // Refresh notifications on mount and when user changes
   useEffect(() => {
@@ -486,7 +613,14 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
           const ltrPercent = w.sales > 0 ? (w.laborPO / w.sales) * 100 : 0
           const vendorDebitRatio = totalCost > 0 ? Math.abs(w.vendorDebit) / totalCost : 0
           const avgJobsWorkCycleTime = w.jobsWorkCycleTimeCount > 0 ? (w.jobsWorkCycleTime || 0) / w.jobsWorkCycleTimeCount : null
-          const avgRescheduleRate = w.rescheduleRateCount > 0 ? (w.rescheduleRate || 0) / w.rescheduleRateCount : null
+          const avgRescheduleRateRaw = w.rescheduleRateCount > 0 ? (w.rescheduleRate || 0) / w.rescheduleRateCount : null
+          const avgRescheduleRate =
+            avgRescheduleRateRaw != null &&
+            !isNaN(Number(avgRescheduleRateRaw)) &&
+            Number(avgRescheduleRateRaw) > 0 &&
+            Number(avgRescheduleRateRaw) <= 1
+              ? Number(avgRescheduleRateRaw) * 100
+              : avgRescheduleRateRaw
           const avgDetailsCycleTime = w.detailsCycleTimeCount > 0 ? (w.detailsCycleTime || 0) / w.detailsCycleTimeCount : null
           // Use cycleTime directly (not averaged) to match VisualBreakdown logic
           // VisualBreakdown uses w.cycleTime directly (first non-null value from aggregation)
@@ -568,7 +702,7 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
           // This matches heatmap behavior where N/A is shown as a warning
 
           let rescheduleRateScore = 50
-          if (avgRescheduleRate != null && avgRescheduleRate > 0) {
+          if (avgRescheduleRate != null && !isNaN(Number(avgRescheduleRate))) {
             if (avgRescheduleRate <= 10) {
               rescheduleRateScore = 100
             } else if (avgRescheduleRate <= 20) {
@@ -661,11 +795,11 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
             hazards.push({
               workroom: w.name,
               metric: 'Work Order Cycle Time',
-              message: `Work Order Cycle Time exceeds target ⚠️ ${workOrderCycleTimeValue}`
+              message: `⚠️ Work Order Cycle Time: ${workOrderCycleTimeValue} exceeds target`
             })
           }
 
-          if (rescheduleRateScore < threshold && rescheduleRateScore > 0 && avgRescheduleRate != null && avgRescheduleRate > 0) {
+          if (rescheduleRateScore < threshold && avgRescheduleRate != null && !isNaN(Number(avgRescheduleRate))) {
             hazards.push({
               workroom: w.name,
               metric: 'Reschedule Rate',
@@ -682,15 +816,15 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
           }
         })
 
-        // Get existing notifications to check for duplicates (only new format with ⚠️)
+        // Get existing notifications to check for duplicates (only new format with hazard icon)
         const freshNotifications = await fetch('/api/notifications', {
           headers: {
             Authorization: `Bearer ${authHeader}`,
           },
         }).then(res => res.ok ? res.json() : { notifications: [] }).then(data => (data.notifications || []).filter((n: any) => {
-          // Only consider new format notifications (with ⚠️) for duplicate checking
+          // Only consider new format notifications (with hazard icon) for duplicate checking
           const messageLower = (n.message || '').toLowerCase()
-          return messageLower.includes('⚠️')
+          return messageLower.includes('⚠')
         })).catch(() => [])
 
         console.log(`[Notifications] 📊 Total hazards detected: ${hazards.length}`, hazards.map(h => `${h.workroom}: ${h.metric}`))
@@ -700,7 +834,7 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
           const hazard = hazards[i]
           console.log(`[Notifications] 🔍 Processing hazard ${i + 1}/${hazards.length}: ${hazard.workroom} - ${hazard.metric} - "${hazard.message}"`)
           
-          // Check if notification already exists (only check new format with ⚠️)
+          // Check if notification already exists (only check new format with hazard icon)
           const existingNotification = freshNotifications.find((n) => {
             const nWorkroom = (n.workroom || '').trim().toLowerCase()
             const hazardWorkroom = hazard.workroom.trim().toLowerCase()
@@ -709,8 +843,8 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
             const messageLower = (n.message || '').toLowerCase()
             const hazardMessageLower = hazard.message.toLowerCase()
 
-            // Only check new format notifications (must contain ⚠️)
-            if (!messageLower.includes('⚠️') || !hazardMessageLower.includes('⚠️')) {
+            // Only check new format notifications (must contain hazard icon)
+            if (!messageLower.includes('⚠') || !hazardMessageLower.includes('⚠')) {
               return false
             }
 
@@ -746,50 +880,70 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
             // Fallback: use pattern matching for each metric type
             if (hazard.metric === 'LTR') {
               return messageLower.includes('ltr') && 
-                     messageLower.includes('⚠️') &&
+                     messageLower.includes('⚠') &&
                      messageLower.includes('performance is below standard')
             }
             
             if (hazard.metric === 'Reschedule Rate') {
               return messageLower.includes('reschedule rate') && 
-                     messageLower.includes('⚠️') &&
+                     messageLower.includes('⚠') &&
                      messageLower.includes('above target')
             }
             
             if (hazard.metric === 'Job Cycle Time') {
               return messageLower.includes('job cycle time') && 
-                     messageLower.includes('⚠️') &&
+                     messageLower.includes('⚠') &&
                      messageLower.includes('exceeds target')
             }
             
             if (hazard.metric === 'Work Order Cycle Time') {
               // Work Order Cycle Time can have N/A value, so check for both patterns
               return messageLower.includes('work order cycle time') && 
-                     messageLower.includes('⚠️') &&
+                     messageLower.includes('⚠') &&
                      (messageLower.includes('exceeds target') || messageLower.includes('n/a'))
             }
             
             if (hazard.metric === 'Details Cycle Time') {
               return messageLower.includes('details cycle time') && 
-                     messageLower.includes('⚠️') &&
+                     messageLower.includes('⚠') &&
                      messageLower.includes('exceeds target')
             }
             
             if (hazard.metric === 'Vendor Debits') {
               return messageLower.includes('vendor debits') && 
-                     messageLower.includes('⚠️') &&
+                     messageLower.includes('⚠') &&
                      (messageLower.includes('above target') || messageLower.includes('ratio is above'))
             }
             
             // Fallback: check metric name (workroom already matched above)
             return messageLower.includes(hazard.metric.toLowerCase()) && 
-                   messageLower.includes('⚠️')
+                   messageLower.includes('⚠')
           })
 
-          if (existingNotification) {
+          const existingMessage = (existingNotification?.message || '').toString().trim()
+          const normalizedExistingMessage = existingMessage
+            .replace(/\s+/g, ' ')
+            .trim()
+            .toLowerCase()
+          const normalizedHazardMessage = (hazard.message || '')
+            .toString()
+            .replace(/\s+/g, ' ')
+            .trim()
+            .toLowerCase()
+          const isSameMessage = normalizedExistingMessage === normalizedHazardMessage
+
+          if (isNotificationDismissedForUser(user.email, hazard.workroom, hazard.message)) {
+            console.log(
+              `[Notifications] 🙈 Skipping ${hazard.metric} notification for ${hazard.workroom}: dismissed by user`
+            )
+          } else if (existingNotification && isSameMessage) {
             console.log(`[Notifications] ⛔ Skipping ${hazard.metric} notification for ${hazard.workroom}: duplicate found (existing: "${existingNotification.message}")`)
           } else {
-            console.log(`[Notifications] ✅ Creating hazard notification: ${hazard.workroom} - ${hazard.metric} - ${hazard.message}`)
+            console.log(
+              existingNotification
+                ? `[Notifications] 🔁 Updating hazard notification: ${hazard.workroom} - ${hazard.metric} - ${hazard.message}`
+                : `[Notifications] ✅ Creating hazard notification: ${hazard.workroom} - ${hazard.metric} - ${hazard.message}`
+            )
             
             // Add delay between notifications to avoid sending all at once
             if (i > 0) {
@@ -800,6 +954,7 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
               method: 'PUT',
               headers: {
                 'Content-Type': 'application/json',
+          'X-Notification-Delete-Intent': 'user',
                 Authorization: `Bearer ${authHeader}`,
               },
               body: JSON.stringify({

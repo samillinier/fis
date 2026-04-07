@@ -24,7 +24,7 @@ You just need to:
 
 ### Step 1: Deploy App to Vercel ✅
 
-Your app is already deployed at: **https://fis-he6w.vercel.app**
+Your app is already deployed at: **https://pod.floorinteriorservices.com**
 
 ### Step 2: Verify Environment Variables in Vercel
 
@@ -36,8 +36,8 @@ Make sure these 5 variables are set:
 NEXT_PUBLIC_MSAL_CLIENT_ID=90da75a4-0ce9-49a2-9ab9-79adaaf65b3a
 NEXT_PUBLIC_MSAL_TENANT_ID=common
 NEXT_PUBLIC_SUPABASE_URL=https://idkuchtgrgooqixdjjcc.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_Vqo7Xww4Go4iQJ7U44t9vQ_ZbZokbID
-SUPABASE_SERVICE_ROLE_KEY=sb_secret_1u_e0Fo-lp_LCy8Zjsw2nQ_7OWZqMBH
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<from Supabase Project Settings → API>
+SUPABASE_SERVICE_ROLE_KEY=<service_role key — Vercel env only, never commit>
 ```
 
 ### Step 3: Verify Database is Ready ✅
@@ -53,8 +53,8 @@ After Vercel deployment:
 1. Go to: https://portal.azure.com
 2. Azure Active Directory → App registrations → "FIS POD"
 3. Authentication → Single-page application
-4. Add: `https://fis-he6w.vercel.app/signin`
-5. Add: `https://fis-he6w.vercel.app`
+4. Add: `https://pod.floorinteriorservices.com/signin`
+5. Add: `https://pod.floorinteriorservices.com`
 6. Save
 
 ## ✅ Everything is Already Set Up!
@@ -65,7 +65,7 @@ After Vercel deployment:
 
 ## 🔗 Your Deployed URLs:
 
-- **App**: https://fis-he6w.vercel.app
+- **App**: https://pod.floorinteriorservices.com
 - **Database**: https://idkuchtgrgooqixdjjcc.supabase.co (Supabase)
 
 ## 📝 Summary:

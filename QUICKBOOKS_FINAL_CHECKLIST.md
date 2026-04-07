@@ -1,7 +1,7 @@
 # 🔍 Final Checklist: "undefined didn't connect"
 
 ## Your Redirect URI is CORRECT ✅
-The URL shows: `https://fis-bcbs9n06m-samilliniers-projects.vercel.app/api/quickbooks/callback`
+The URL shows: `https://pod.floorinteriorservices.com/api/quickbooks/callback`
 
 This is correct! The problem is Intuit can't find it in their system.
 

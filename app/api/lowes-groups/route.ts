@@ -11,15 +11,15 @@ export async function GET(request: NextRequest) {
 
     const userEmail = authHeader.replace('Bearer ', '')
 
-    // Check if user is admin
+    // Check if user is allowed to review groups
     const { data: actorData } = await supabase
       .from('authorized_users')
       .select('role')
       .eq('email', userEmail.toLowerCase())
       .maybeSingle()
 
-    if (!actorData || actorData.role !== 'admin') {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
+    if (!actorData || (actorData.role !== 'admin' && actorData.role !== 'owner')) {
+      return NextResponse.json({ error: 'Admin or owner access required' }, { status: 403 })
     }
 
     // Fetch all groups

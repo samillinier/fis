@@ -1,6 +1,6 @@
 # 🚨 Immediate Fix: Blank Sign-In Page
 
-## Your Issue: https://fis-he6w.vercel.app/signin shows nothing
+## Your Issue: https://pod.floorinteriorservices.com/signin shows nothing
 
 ## ✅ Most Likely Cause: Missing Environment Variables
 
@@ -53,14 +53,14 @@
    **Variable 4:**
    ```
    Name: NEXT_PUBLIC_SUPABASE_ANON_KEY
-   Value: sb_publishable_Vqo7Xww4Go4iQJ7U44t9vQ_ZbZokbID
+   Value: <from Supabase Project Settings → API (anon/public key)>
    Environments: ✅ Production ✅ Preview ✅ Development
    ```
 
    **Variable 5:**
    ```
    Name: SUPABASE_SERVICE_ROLE_KEY
-   Value: sb_secret_1u_e0Fo-lp_LCy8Zjsw2nQ_7OWZqMBH
+   Value: <from Supabase (service_role) — Vercel only, never in git>
    Environments: ✅ Production ✅ Preview ✅ Development
    ```
 
@@ -76,12 +76,12 @@
 
 ### Step 3: Test Again
 
-1. Go to: https://fis-he6w.vercel.app/signin
+1. Go to: https://pod.floorinteriorservices.com/signin
 2. You should now see the sign-in page!
 
 ## 🔍 If Still Blank - Check Browser Console:
 
-1. Open: https://fis-he6w.vercel.app/signin
+1. Open: https://pod.floorinteriorservices.com/signin
 2. Press **F12** (opens Developer Tools)
 3. Click **Console** tab
 4. Look for red error messages
@@ -89,7 +89,7 @@
 
 ## 🆘 Quick Links:
 
-- **Your App**: https://fis-he6w.vercel.app
+- **Your App**: https://pod.floorinteriorservices.com
 - **Vercel Dashboard**: https://vercel.com/dashboard
 - **Environment Variables**: Vercel → Your Project → Settings → Environment Variables
 

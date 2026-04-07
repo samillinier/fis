@@ -22,7 +22,7 @@ This tells the app to use Development/Sandbox mode.
 4. **IMPORTANT:** Make sure you're on the **"</> Development"** tab (not Production)
 5. Add this redirect URI:
    ```
-   https://fis-bcbs9n06m-samilliniers-projects.vercel.app/api/quickbooks/callback
+   https://pod.floorinteriorservices.com/api/quickbooks/callback
    ```
 6. Click **Save**
 
@@ -37,7 +37,7 @@ This tells the app to use Development/Sandbox mode.
 ## Step 4: Test in Development
 
 1. Wait 5-10 minutes after saving in Intuit Dashboard
-2. Go to: `https://fis-bcbs9n06m-samilliniers-projects.vercel.app/finance-hub`
+2. Go to: `https://pod.floorinteriorservices.com/finance-hub`
 3. Click "Connect to QuickBooks"
 4. You should be redirected to Intuit's **Sandbox/Development** login
 

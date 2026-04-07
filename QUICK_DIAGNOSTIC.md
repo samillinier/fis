@@ -4,7 +4,7 @@
 
 Visit this URL in your browser:
 ```
-https://your-app.vercel.app/api/db-check
+https://pod.floorinteriorservices.com/api/db-check
 ```
 
 **What does it show?**
@@ -85,7 +85,7 @@ https://your-app.vercel.app/api/db-check
 ---
 
 **Quick Test:**
-1. Visit: `https://your-app.vercel.app/api/db-check`
+1. Visit: `https://pod.floorinteriorservices.com/api/db-check`
 2. Share what it shows
 3. I'll tell you exactly what to fix!
 

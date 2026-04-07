@@ -14,7 +14,7 @@ This error occurs when QuickBooks can't identify your app. Here's how to fix it:
 
 First, check what domain you're using:
 - **Local**: `http://localhost:3000`
-- **Vercel Production**: `https://your-app.vercel.app`
+- **Vercel Production**: `https://pod.floorinteriorservices.com`
 - **Vercel Preview**: `https://your-app-git-branch.vercel.app`
 
 ### Step 2: Configure Intuit Developer Dashboard
@@ -37,7 +37,7 @@ First, check what domain you're using:
 
    **For Production (replace with your actual Vercel domain):**
    ```
-   https://your-actual-vercel-domain.vercel.app/api/quickbooks/callback
+   https://pod.floorinteriorservices.com/api/quickbooks/callback
    ```
 
    **Important:**
@@ -51,7 +51,7 @@ First, check what domain you're using:
 1. Go to Vercel Dashboard → Your Project → Settings → Environment Variables
 2. Add or update:
    - **Key**: `QUICKBOOKS_REDIRECT_URI`
-   - **Value**: `https://your-actual-vercel-domain.vercel.app/api/quickbooks/callback`
+   - **Value**: `https://pod.floorinteriorservices.com/api/quickbooks/callback`
    - **Environments**: Select all (Production, Preview, Development)
 3. Click **Save**
 
@@ -79,11 +79,11 @@ Before trying to connect again, verify:
 
 ## Common Mistakes
 
-❌ **Wrong**: `https://your-app.vercel.app/api/quickbooks/callback/` (trailing slash)
-✅ **Correct**: `https://your-app.vercel.app/api/quickbooks/callback`
+❌ **Wrong**: `https://pod.floorinteriorservices.com/api/quickbooks/callback/` (trailing slash)
+✅ **Correct**: `https://pod.floorinteriorservices.com/api/quickbooks/callback`
 
-❌ **Wrong**: `your-app.vercel.app/api/quickbooks/callback` (missing protocol)
-✅ **Correct**: `https://your-app.vercel.app/api/quickbooks/callback`
+❌ **Wrong**: `pod.floorinteriorservices.com/api/quickbooks/callback` (missing protocol)
+✅ **Correct**: `https://pod.floorinteriorservices.com/api/quickbooks/callback`
 
 ❌ **Wrong**: Using localhost URL in production
 ✅ **Correct**: Use production URL in production environment

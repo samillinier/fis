@@ -36,7 +36,7 @@ After adding the variables:
 4. Or wait for the next automatic deployment
 
 ### Step 5: Test
-1. Visit your app: https://fis-he6w.vercel.app
+1. Visit your app: https://pod.floorinteriorservices.com
 2. Click **"Sign in with Microsoft"**
 3. Should work now! ✅
 

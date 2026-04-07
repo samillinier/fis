@@ -37,7 +37,7 @@ export default function UserProfile({ onComplete }: UserProfileProps) {
   ).sort()
 
   // Common roles
-  const roles = ['GM', 'PC', 'Corporate', 'President', 'Manager', 'Supervisor', 'Analyst', 'Other']
+  const roles = ['GM', 'PC', 'Corporate', 'President', 'Finance', 'IT', 'Manager', 'Supervisor', 'Analyst', 'Other']
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -102,7 +102,7 @@ export default function UserProfile({ onComplete }: UserProfileProps) {
               id="workroom"
               value={workroom}
               onChange={(e) => setWorkroom(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#80875d] focus:border-transparent"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#89ac44] focus:border-transparent"
               required
             >
               <option value="">Select your workroom</option>
@@ -126,7 +126,7 @@ export default function UserProfile({ onComplete }: UserProfileProps) {
               id="role"
               value={role}
               onChange={(e) => setRole(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#80875d] focus:border-transparent"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#89ac44] focus:border-transparent"
               required
             >
               <option value="">Select your role</option>
@@ -148,7 +148,7 @@ export default function UserProfile({ onComplete }: UserProfileProps) {
             <button
               type="submit"
               disabled={isLoading || !workroom || !role}
-              className="px-4 py-2 bg-[#80875d] text-white rounded-md hover:bg-[#6d7350] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 bg-[#89ac44] text-white rounded-md hover:bg-[#6d8a35] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isLoading ? 'Saving...' : 'Save Profile'}
             </button>

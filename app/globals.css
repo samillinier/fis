@@ -15,10 +15,10 @@
   --muted: #6b7280;
   --card-bg: #ffffff;
   --card-border: #e5e7eb;
-  --sidebar-green: #80875d; /* Sidebar green color */
-  --sidebar-green-light: #9ca57a; /* Lighter shade for hover */
-  --sidebar-green-dark: #6b7349; /* Darker shade */
-  --sidebar-green-bg: #f0f2e8; /* Light background tint */
+  --sidebar-green: #89ac44; /* Sidebar green color */
+  --sidebar-green-light: #a5c266; /* Lighter shade for hover */
+  --sidebar-green-dark: #6d8a35; /* Darker shade */
+  --sidebar-green-bg: #f0f5e8; /* Light background tint */
 }
 
 body {
@@ -84,7 +84,7 @@ body {
   width: 260px;
   height: calc(100vh - 114px);
   border-right: 1px solid #e5e7eb;
-  background: #80875d;
+  background: #89ac44;
   padding: 1.5rem;
   flex-shrink: 0;
   display: flex;
@@ -319,7 +319,8 @@ body {
 }
 
 .sidebar-nav-button {
-  display: block;
+  display: flex;
+  align-items: center;
   width: 100%;
   text-align: left;
   padding: 0.5rem 1rem;

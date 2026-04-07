@@ -10,7 +10,7 @@ Your fixes have been committed and pushed to GitHub.
 - ✅ Vercel will automatically detect the push
 - ✅ It will start building your app
 - ✅ Deployment will complete in 2-3 minutes
-- ✅ Your app will be live at: https://fis-he6w.vercel.app
+- ✅ Your app will be live at: https://pod.floorinteriorservices.com
 
 ### If Vercel is NOT Connected:
 1. Go to: https://vercel.com/dashboard
@@ -37,13 +37,13 @@ After deployment completes:
 1. Go to: https://portal.azure.com
 2. Azure Active Directory → App registrations → "FIS POD"
 3. Authentication → Single-page application
-4. Add: `https://fis-he6w.vercel.app/signin`
-5. Add: `https://fis-he6w.vercel.app`
+4. Add: `https://pod.floorinteriorservices.com/signin`
+5. Add: `https://pod.floorinteriorservices.com`
 6. Save
 
 ### 3. Test Your Deployment
 
-- Visit: https://fis-he6w.vercel.app
+- Visit: https://pod.floorinteriorservices.com
 - Test Microsoft sign-in
 - Verify all features work
 

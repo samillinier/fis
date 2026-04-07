@@ -13,8 +13,8 @@
 2. Azure Active Directory → **App registrations** → **"FIS POD"**
 3. Click **"Authentication"** (left menu)
 4. Under **"Single-page application"** section, add these redirect URIs:
-   - `https://fis-he6w.vercel.app/signin`
-   - `https://fis-he6w.vercel.app`
+   - `https://pod.floorinteriorservices.com/signin`
+   - `https://pod.floorinteriorservices.com`
 5. Click **"Save"**
 6. Wait 5-10 minutes for changes to propagate
 
@@ -35,14 +35,14 @@ Microsoft sign-in uses a popup window. Your browser might be blocking it.
 
 **Fix:**
 - Check browser address bar for popup blocked notification
-- Allow popups for `fis-he6w.vercel.app`
+- Allow popups for `pod.floorinteriorservices.com`
 - Try in Incognito/Private window
 - Disable popup blocker temporarily
 
 ### 4. JavaScript Errors
 
 **Check browser console:**
-1. Open: https://fis-he6w.vercel.app/signin
+1. Open: https://pod.floorinteriorservices.com/signin
 2. Press **F12** (Developer Tools)
 3. Click **Console** tab
 4. Look for red error messages
@@ -59,7 +59,7 @@ Microsoft sign-in uses a popup window. Your browser might be blocking it.
 
 ### Step 1: Check Browser Console First
 
-1. Open: https://fis-he6w.vercel.app/signin
+1. Open: https://pod.floorinteriorservices.com/signin
 2. Press **F12**
 3. Open **Console** tab
 4. Click the "Sign in with Microsoft" button
@@ -80,9 +80,9 @@ Microsoft sign-in uses a popup window. Your browser might be blocking it.
    - Click **"Authentication"** (left menu)
    - Scroll to **"Single-page application"** section
    - Under **"Redirect URIs"**, click **"Add URI"**
-   - Add: `https://fis-he6w.vercel.app/signin`
+   - Add: `https://pod.floorinteriorservices.com/signin`
    - Click **"Add URI"** again
-   - Add: `https://fis-he6w.vercel.app`
+   - Add: `https://pod.floorinteriorservices.com`
    - Click **"Save"** at the top
 
 4. **Wait 5-10 minutes** for Azure changes to propagate
@@ -99,7 +99,7 @@ Microsoft sign-in uses a popup window. Your browser might be blocking it.
 
 1. Wait 5-10 minutes after adding redirect URIs
 2. Clear browser cache (or use Incognito)
-3. Go to: https://fis-he6w.vercel.app/signin
+3. Go to: https://pod.floorinteriorservices.com/signin
 4. Click "Sign in with Microsoft"
 5. Microsoft popup should open
 

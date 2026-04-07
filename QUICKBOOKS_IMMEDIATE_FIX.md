@@ -4,7 +4,7 @@
 
 ### 1. Check Your Vercel Domain
 Find your actual Vercel domain. It should look like:
-- `https://fis-xxxxx.vercel.app` or
+- `https://pod.floorinteriorservices.com` or
 - `https://your-custom-domain.com`
 
 ### 2. Add Redirect URI to Intuit Dashboard
@@ -15,7 +15,7 @@ Find your actual Vercel domain. It should look like:
 4. Under **Redirect URIs**, add this EXACTLY (replace with your actual domain):
 
    ```
-   https://your-actual-vercel-domain.vercel.app/api/quickbooks/callback
+   https://pod.floorinteriorservices.com/api/quickbooks/callback
    ```
 
    **For local testing, also add:**
@@ -41,7 +41,7 @@ Find your actual Vercel domain. It should look like:
 1. Go to Vercel Dashboard → Your Project → Settings → Environment Variables
 2. Add:
    - **Key**: `QUICKBOOKS_REDIRECT_URI`
-   - **Value**: `https://your-actual-vercel-domain.vercel.app/api/quickbooks/callback`
+   - **Value**: `https://pod.floorinteriorservices.com/api/quickbooks/callback`
    - **Environments**: All (Production, Preview, Development)
 3. Save
 

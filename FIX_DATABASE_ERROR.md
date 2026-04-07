@@ -78,7 +78,7 @@ CREATE POLICY "Users can delete own QuickBooks connections"
 
 ### Step 3: Test Connection Again
 
-1. Go to: `https://fis-phi.vercel.app/finance-hub`
+1. Go to: `https://pod.floorinteriorservices.com/finance-hub`
 2. Click "Connect to QuickBooks"
 3. Authorize the connection
 4. It should work now!

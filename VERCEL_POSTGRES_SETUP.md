@@ -79,7 +79,7 @@ This installs `@vercel/postgres` package.
 
 ### Step 6: Test
 
-1. **Visit:** https://fis-he6w.vercel.app
+1. **Visit:** https://pod.floorinteriorservices.com
 2. **Sign in** with Microsoft
 3. **Upload data** - should save to Vercel Postgres!
 4. **Check database:**

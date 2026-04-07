@@ -243,7 +243,7 @@ export default function LowesChatPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-500 mb-4">Conversation not found</p>
-          <Link href="/lowes/dashboard" className="text-[#80875d] hover:underline">
+          <Link href="/lowes/dashboard" className="text-[#89ac44] hover:underline">
             Back to Dashboard
           </Link>
         </div>

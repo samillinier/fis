@@ -1,6 +1,6 @@
 # ✅ Vercel Environment Variables Checklist
 
-## Your Vercel URL: https://fis-he6w.vercel.app
+## Your Vercel URL: https://pod.floorinteriorservices.com
 
 ## 🔍 Check These 5 Environment Variables:
 
@@ -30,13 +30,13 @@ Environments: ✅ Production ✅ Preview ✅ Development
 
 ```
 Name: NEXT_PUBLIC_SUPABASE_ANON_KEY
-Value: sb_publishable_Vqo7Xww4Go4iQJ7U44t9vQ_ZbZokbID
+Value: <REDACTED_ANON_KEY>
 Environments: ✅ Production ✅ Preview ✅ Development
 ```
 
 ```
 Name: SUPABASE_SERVICE_ROLE_KEY
-Value: sb_secret_1u_e0Fo-lp_LCy8Zjsw2nQ_7OWZqMBH
+Value: <REDACTED_SERVICE_ROLE_KEY>
 Environments: ✅ Production ✅ Preview ✅ Development
 ```
 
@@ -49,8 +49,8 @@ Environments: ✅ Production ✅ Preview ✅ Development
 ## 🔗 Quick Links:
 
 - **Vercel Dashboard**: https://vercel.com/dashboard
-- **Your App**: https://fis-he6w.vercel.app
-- **Sign-In Page**: https://fis-he6w.vercel.app/signin
+- **Your App**: https://pod.floorinteriorservices.com
+- **Sign-In Page**: https://pod.floorinteriorservices.com/signin
 
 ## ✅ Checklist:
 

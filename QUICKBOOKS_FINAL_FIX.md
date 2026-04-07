@@ -17,21 +17,21 @@ Your redirect URI is only in **Development**. You also need it in **Production**
 2. Click **"Production"** tab (next to "</> Development")
 3. Add the same redirect URI:
    ```
-   https://fis-bcbs9n06m-samilliniers-projects.vercel.app/api/quickbooks/callback
+   https://pod.floorinteriorservices.com/api/quickbooks/callback
    ```
 4. Click **Save**
 
 ### 2. Verify Environment Variable Value
 
 In Vercel, check that `NEXT_PUBLIC_QUICKBOOKS_PRODUCTION_DOMAIN` has the correct value:
-- Should be: `https://fis-bcbs9n06m-samilliniers-projects.vercel.app`
-- NOT: `https://fis-bcbs9n06m-samilliniers-projects.vercel.app/api/quickbooks/callback`
+- Should be: `https://pod.floorinteriorservices.com`
+- NOT: `https://pod.floorinteriorservices.com/api/quickbooks/callback`
 
 The code adds `/api/quickbooks/callback` automatically.
 
 ### 3. Check Browser Console
 
-1. Go to: `https://fis-bcbs9n06m-samilliniers-projects.vercel.app/finance-hub`
+1. Go to: `https://pod.floorinteriorservices.com/finance-hub`
 2. Press **F12** → **Console** tab
 3. Click "Connect to QuickBooks"
 4. Look for the logged "Redirect URI" value

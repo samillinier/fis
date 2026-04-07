@@ -7,6 +7,11 @@ function normalizeEmail(email?: string) {
   return (email || '').trim().toLowerCase()
 }
 
+function normalizeRole(role?: string): 'admin' | 'owner' | 'user' | 'accounting' {
+  if (role === 'admin' || role === 'owner' || role === 'accounting') return role
+  return 'user'
+}
+
 async function ensureSuperAdmin() {
   const normalized = normalizeEmail(SUPER_ADMIN_EMAIL)
   const { data } = await supabase
@@ -42,11 +47,13 @@ async function listAuthorizedUsers() {
     data?.map((row) => ({
       email: row.email,
       name: row.name || undefined,
-      role: row.role === 'admin' ? 'admin' : 'user',
+      role: normalizeRole(row.role),
       isActive: row.is_active !== false,
       createdAt: row.created_at || undefined,
       createdBy: row.created_by || undefined,
       lastLoginAt: row.last_login_at || undefined,
+      // Optional: stored Microsoft profile photo (base64 data URL)
+      photoUrl: (row as any).photo_url || undefined,
     })) || []
   )
 }
@@ -83,7 +90,7 @@ export async function POST(request: NextRequest) {
     }
 
     const name = body.name?.trim() || null
-    const role = body.role === 'admin' ? 'admin' : 'user'
+    const role = normalizeRole(body.role)
     const createdBy = authHeader.replace('Bearer ', '') || null
 
     if (normalizedEmail === normalizeEmail(SUPER_ADMIN_EMAIL)) {
@@ -148,7 +155,7 @@ export async function PATCH(request: NextRequest) {
 
     const updates: Record<string, any> = {}
     if (body.role) {
-      updates.role = body.role === 'admin' ? 'admin' : 'user'
+      updates.role = normalizeRole(body.role)
     }
     if (typeof body.isActive === 'boolean') {
       updates.is_active = body.isActive

@@ -5,6 +5,10 @@ import { Providers } from '@/components/Providers'
 export const metadata: Metadata = {
   title: 'FIS Dashboard - Workroom Analytics',
   description: 'Workroom Performance Analytics Dashboard',
+  icons: {
+    icon: '/logo.png',
+    apple: '/logo.png',
+  },
 }
 
 export const viewport: Viewport = {

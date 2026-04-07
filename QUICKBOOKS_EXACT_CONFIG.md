@@ -4,7 +4,7 @@
 
 **Production:**
 ```
-https://fis-bcbs9n06m-samilliniers-projects.vercel.app/api/quickbooks/callback
+https://pod.floorinteriorservices.com/api/quickbooks/callback
 ```
 
 **Local Development:**
@@ -23,7 +23,7 @@ http://localhost:3000/api/quickbooks/callback
 
    **Production:**
    ```
-   https://fis-bcbs9n06m-samilliniers-projects.vercel.app/api/quickbooks/callback
+   https://pod.floorinteriorservices.com/api/quickbooks/callback
    ```
 
    **Development (for local testing):**
@@ -46,7 +46,7 @@ http://localhost:3000/api/quickbooks/callback
 
    **Key:** `QUICKBOOKS_REDIRECT_URI`
    
-   **Value:** `https://fis-bcbs9n06m-samilliniers-projects.vercel.app/api/quickbooks/callback`
+   **Value:** `https://pod.floorinteriorservices.com/api/quickbooks/callback`
    
    **Environments:** ✅ Production ✅ Preview ✅ Development
 
@@ -67,7 +67,7 @@ After making changes:
 
 ### 5. Test
 
-1. Go to: `https://fis-bcbs9n06m-samilliniers-projects.vercel.app/finance-hub`
+1. Go to: `https://pod.floorinteriorservices.com/finance-hub`
 2. Click **Connect to QuickBooks**
 3. It should work!
 
@@ -83,7 +83,7 @@ Before testing, make sure:
 
 ## Current Configuration Summary
 
-- **Vercel Domain:** `fis-bcbs9n06m-samilliniers-projects.vercel.app`
-- **Redirect URI:** `https://fis-bcbs9n06m-samilliniers-projects.vercel.app/api/quickbooks/callback`
+- **Vercel Domain:** `pod.floorinteriorservices.com`
+- **Redirect URI:** `https://pod.floorinteriorservices.com/api/quickbooks/callback`
 - **Client ID:** `694ad793-ff6f-442d-8fce-1ece6e00117b`
 - **Webhook Verifier Token:** `c54a23bf-9349-488d-b158-412e054d707a` (already configured)

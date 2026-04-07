@@ -13,9 +13,9 @@ Add these to **Vercel Dashboard** → Your Project → Settings → Environment 
 ```env
 QUICKBOOKS_CLIENT_ID=ABrb8WSjbtNgNncrOBdtTktvg3o4ODoKA5cyEwdadWO0O6rPGS
 QUICKBOOKS_CLIENT_SECRET=RV6biSiVZ4mO0cFyGlDIV7fDSyH299YSV7b7FgAU
-QUICKBOOKS_REDIRECT_URI=https://fis-phi.vercel.app/api/quickbooks/callback
+QUICKBOOKS_REDIRECT_URI=https://pod.floorinteriorservices.com/api/quickbooks/callback
 QUICKBOOKS_ENVIRONMENT=production
-NEXT_PUBLIC_QUICKBOOKS_PRODUCTION_DOMAIN=https://fis-phi.vercel.app
+NEXT_PUBLIC_QUICKBOOKS_PRODUCTION_DOMAIN=https://pod.floorinteriorservices.com
 QUICKBOOKS_WEBHOOK_VERIFIER_TOKEN=c54a23bf-9349-488d-b158-412e054d707a
 ```
 
@@ -33,7 +33,7 @@ QUICKBOOKS_CLIENT_ID=ABrb8WSjbtNgNncrOBdtTktvg3o4ODoKA5cyEwdadWO0O6rPGS
 QUICKBOOKS_CLIENT_SECRET=RV6biSiVZ4mO0cFyGlDIV7fDSyH299YSV7b7FgAU
 QUICKBOOKS_REDIRECT_URI=http://localhost:3000/api/quickbooks/callback
 QUICKBOOKS_ENVIRONMENT=production
-NEXT_PUBLIC_QUICKBOOKS_PRODUCTION_DOMAIN=https://fis-phi.vercel.app
+NEXT_PUBLIC_QUICKBOOKS_PRODUCTION_DOMAIN=https://pod.floorinteriorservices.com
 QUICKBOOKS_WEBHOOK_VERIFIER_TOKEN=c54a23bf-9349-488d-b158-412e054d707a
 ```
 
@@ -47,7 +47,7 @@ QUICKBOOKS_WEBHOOK_VERIFIER_TOKEN=c54a23bf-9349-488d-b158-412e054d707a
 4. Click **"Production"** tab (not Development)
 5. Add this redirect URI:
    ```
-   https://fis-phi.vercel.app/api/quickbooks/callback
+   https://pod.floorinteriorservices.com/api/quickbooks/callback
    ```
 6. For local testing, also add:
    ```
@@ -120,6 +120,6 @@ QUICKBOOKS_WEBHOOK_VERIFIER_TOKEN=c54a23bf-9349-488d-b158-412e054d707a
 - **Client ID:** `ABrb8WSjbtNgNncrOBdtTktvg3o4ODoKA5cyEwdadWO0O6rPGS`
 - **Client Secret:** `RV6biSiVZ4mO0cFyGlDIV7fDSyH299YSV7b7FgAU`
 - **API Endpoint:** `https://quickbooks.api.intuit.com`
-- **Redirect URI:** `https://fis-phi.vercel.app/api/quickbooks/callback`
+- **Redirect URI:** `https://pod.floorinteriorservices.com/api/quickbooks/callback`
 
 Ready for production! 🚀

@@ -11,6 +11,8 @@ interface LowesChatIntakeProps {
     role?: string
     district?: string
     storeNumber?: string
+    groupId?: string
+    groupName?: string
   }
 }
 
@@ -20,6 +22,8 @@ export interface IntakeData {
   role: string
   district: string
   storeNumber: string
+  groupId: string
+  groupName: string
   quoteImsNumber: string
   flooringCategory: string
   questionTypes: string[]
@@ -58,6 +62,8 @@ export default function LowesChatIntake({ onSubmit, initialValues }: LowesChatIn
     role: initialValues?.role || '',
     district: initialValues?.district || '',
     storeNumber: initialValues?.storeNumber || '',
+    groupId: initialValues?.groupId || '',
+    groupName: initialValues?.groupName || '',
     quoteImsNumber: '',
     flooringCategory: '',
     questionTypes: []
@@ -74,7 +80,9 @@ export default function LowesChatIntake({ onSubmit, initialValues }: LowesChatIn
         name: initialValues.name || prev.name,
         role: initialValues.role || prev.role,
         district: initialValues.district || prev.district,
-        storeNumber: initialValues.storeNumber || prev.storeNumber
+        storeNumber: initialValues.storeNumber || prev.storeNumber,
+        groupId: initialValues.groupId || prev.groupId,
+        groupName: initialValues.groupName || prev.groupName
       }))
     }
   }, [initialValues])
@@ -229,6 +237,21 @@ export default function LowesChatIntake({ onSubmit, initialValues }: LowesChatIn
               required
             />
           </div>
+
+          {/* Group */}
+          {formData.groupName && (
+            <div>
+              <label className="block text-sm font-semibold text-gray-900 mb-2">
+                Group
+              </label>
+              <input
+                type="text"
+                value={formData.groupName}
+                disabled
+                className="w-full px-4 py-3 text-base border-0 rounded-xl bg-[#e6f0f8] text-gray-700 cursor-not-allowed shadow-sm"
+              />
+            </div>
+          )}
 
           {/* Quote or IMS Reference Number */}
           <div>

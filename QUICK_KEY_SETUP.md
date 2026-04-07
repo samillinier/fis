@@ -23,8 +23,8 @@ You need **3 things**:
 ## The Keys You Provided:
 
 The keys you shared:
-- `sb_publishable_Vqo7Xww4Go4iQJ7U44t9vQ_ZbZokbID`
-- `sb_secret_1u_e0Fo-lp_LCy8Zjsw2nQ_7OWZqMBH`
+- `<REDACTED_ANON_KEY>`
+- `<REDACTED_SERVICE_ROLE_KEY>`
 
 These **don't match** the standard Supabase format. They might be:
 - From a different database service

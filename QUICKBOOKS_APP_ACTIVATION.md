@@ -2,7 +2,7 @@
 
 ## The Problem
 
-Your redirect URI is **correct** (`https://fis-bcbs9n06m-samilliniers-projects.vercel.app/api/quickbooks/callback`), but Intuit is still rejecting it with "undefined didn't connect".
+Your redirect URI is **correct** (`https://pod.floorinteriorservices.com/api/quickbooks/callback`), but Intuit is still rejecting it with "undefined didn't connect".
 
 This usually means the **app itself isn't properly activated** or there's a configuration issue.
 
@@ -31,7 +31,7 @@ Even if you added it, it might not be saved:
 3. If it's not there:
    - Delete any existing entries
    - Click "+ Add URI"
-   - Type: `https://fis-bcbs9n06m-samilliniers-projects.vercel.app/api/quickbooks/callback`
+   - Type: `https://pod.floorinteriorservices.com/api/quickbooks/callback`
    - Click **Save**
    - Wait 10-15 minutes
 
@@ -72,7 +72,7 @@ Even if you added it, it might not be saved:
 5. Click **"+ Add URI"**
 6. **Type manually** (don't copy-paste):
    ```
-   https://fis-bcbs9n06m-samilliniers-projects.vercel.app/api/quickbooks/callback
+   https://pod.floorinteriorservices.com/api/quickbooks/callback
    ```
 7. **Double-check:**
    - No trailing slash
@@ -92,7 +92,7 @@ Even if you added it, it might not be saved:
 
 1. Wait 15 minutes after saving
 2. Clear browser cache
-3. Go to: `https://fis-bcbs9n06m-samilliniers-projects.vercel.app/finance-hub`
+3. Go to: `https://pod.floorinteriorservices.com/finance-hub`
 4. Click "Connect to QuickBooks"
 
 ## What to Check

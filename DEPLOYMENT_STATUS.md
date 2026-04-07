@@ -43,7 +43,7 @@ If auto-deploy isn't working:
    - Latest deployment should show status
 
 2. **Test the Fix:**
-   - After deployment completes, visit: https://fis-phi.vercel.app
+   - After deployment completes, visit: https://pod.floorinteriorservices.com
    - Log out → Log back in
    - Your data should load! ✅
 

@@ -64,51 +64,51 @@ export default function LowesSignupPage() {
     }
 
     try {
-      // Get stored Lowe's team members
-      const storedMembers = localStorage.getItem('lowes-team-members')
-      const members = storedMembers ? JSON.parse(storedMembers) : []
+      // Create account via API - password will be hashed server-side
+      const response = await fetch('/api/lowes-team-members', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          name: name.trim(),
+          role: role.trim(),
+          district: district.trim(),
+          storeNumber: storeNumber.trim(),
+          password: password,
+          groupId: selectedGroup
+        })
+      })
 
-      // Check if email already exists
-      if (members.some((m: any) => m.email === email)) {
-        setError('An account with this email already exists')
+      const data = await response.json()
+
+      if (!response.ok) {
+        setError(data.details || data.error || 'Failed to create account. Please try again.')
         setIsLoading(false)
         return
       }
 
-      // Add new member with unique profile
-      const newMember = {
-        name: name.trim(),
-        email: email.trim(),
-        password: password,
-        role: role.trim(),
-        district: district.trim(),
-        storeNumber: storeNumber.trim(),
-        createdAt: new Date().toISOString(),
-        // Each user has their own profile data
-        profile: {
-          photoUrl: null, // Can be updated later
-          updatedAt: new Date().toISOString()
-        }
+      if (!data.success || !data.member) {
+        setError('Account creation failed. Please try again.')
+        setIsLoading(false)
+        return
       }
 
-      members.push(newMember)
-      localStorage.setItem('lowes-team-members', JSON.stringify(members))
+      // If group was selected, add member to group (if API supports it)
+      // Otherwise, the group_id is stored with the member and can be added manually by admin
 
-      // Note: We save the groupId in localStorage but don't auto-add to group via API
-      // This requires admin auth. The admin can manually approve and add them to the group
-      // Or we could create a separate endpoint for this in the future
-
-      // Auto-login after signup - load user's profile
+      // Auto-login after signup - store session data (password NOT stored)
       const lowesTeamMember = {
-        email: newMember.email,
-        name: newMember.name,
-        role: newMember.role,
-        district: newMember.district,
-        storeNumber: newMember.storeNumber,
-        groupId: selectedGroup,
+        email: data.member.email,
+        name: data.member.name,
+        role: data.member.role,
+        district: data.member.district,
+        storeNumber: data.member.storeNumber,
+        groupId: data.member.groupId || selectedGroup,
         loggedIn: true,
         loggedInAt: new Date().toISOString(),
-        photoUrl: newMember.profile.photoUrl // Load user's own profile photo
+        photoUrl: null // Can be updated later via profile
       }
 
       localStorage.setItem('lowes-team-member', JSON.stringify(lowesTeamMember))
@@ -130,10 +130,9 @@ export default function LowesSignupPage() {
         <div>
           <div className="flex flex-col items-center">
             <img 
-              src="/lowes-logo-png-transparent.png" 
-              alt="Lowe's Logo" 
-              className="h-72 w-auto object-contain"
-              style={{ maxHeight: '400px', display: 'block', marginBottom: '-8px', paddingBottom: '0' }}
+              src="/logo3.png" 
+              alt="FIS Logo" 
+              className="h-24 w-auto object-contain mb-3"
             />
             <h2 className="text-center text-3xl font-bold text-white" style={{ marginTop: '0', marginBottom: '0', lineHeight: '1', paddingTop: '0' }}>
               Lowe's Pro Connect

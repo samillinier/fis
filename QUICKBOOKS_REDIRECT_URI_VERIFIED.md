@@ -3,7 +3,7 @@
 ## Good News
 The redirect URI in your code is **CORRECT**:
 ```
-https://fis-bcbs9n06m-samilliniers-projects.vercel.app/api/quickbooks/callback
+https://pod.floorinteriorservices.com/api/quickbooks/callback
 ```
 
 The error is happening because **Intuit can't find this redirect URI** in their system.
@@ -25,7 +25,7 @@ The error URL shows Intuit is receiving the correct redirect URI, but it's not r
 
 5. In **BOTH** tabs, make sure this EXACT URI is listed:
    ```
-   https://fis-bcbs9n06m-samilliniers-projects.vercel.app/api/quickbooks/callback
+   https://pod.floorinteriorservices.com/api/quickbooks/callback
    ```
 
 6. **Check for:**
@@ -37,7 +37,7 @@ The error URL shows Intuit is receiving the correct redirect URI, but it's not r
 ### Step 2: If Not There, Add It
 
 1. Click **"+ Add URI"** button
-2. Paste: `https://fis-bcbs9n06m-samilliniers-projects.vercel.app/api/quickbooks/callback`
+2. Paste: `https://pod.floorinteriorservices.com/api/quickbooks/callback`
 3. Click **Save**
 4. **Repeat for BOTH Development and Production tabs**
 
@@ -52,7 +52,7 @@ The error URL shows Intuit is receiving the correct redirect URI, but it's not r
 
 1. **Wait 10-15 minutes** after saving (Intuit needs time to propagate changes)
 2. Clear browser cache (Ctrl+Shift+Delete or Cmd+Shift+Delete)
-3. Go to: `https://fis-bcbs9n06m-samilliniers-projects.vercel.app/finance-hub`
+3. Go to: `https://pod.floorinteriorservices.com/finance-hub`
 4. Click "Connect to QuickBooks" again
 
 ## Common Issues
@@ -101,7 +101,7 @@ If you've verified all of the above and it's still not working:
 
 3. **Verify environment variable:**
    - In Vercel, check `NEXT_PUBLIC_QUICKBOOKS_PRODUCTION_DOMAIN`
-   - Should be: `https://fis-bcbs9n06m-samilliniers-projects.vercel.app`
-   - NOT: `https://fis-bcbs9n06m-samilliniers-projects.vercel.app/api/quickbooks/callback`
+   - Should be: `https://pod.floorinteriorservices.com`
+   - NOT: `https://pod.floorinteriorservices.com/api/quickbooks/callback`
 
 The code adds `/api/quickbooks/callback` automatically, so the environment variable should only have the domain.

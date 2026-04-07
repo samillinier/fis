@@ -4,7 +4,7 @@
 
 From the error URL, I can verify:
 - ✅ **Client ID:** `ABMV1B9HBoITUbAgKwba2l6UmW5h7bCYRE83jo8jalFVgbc414` (correct)
-- ✅ **Redirect URI:** `https://fis-phi.vercel.app/api/quickbooks/callback` (correct, URL decoded)
+- ✅ **Redirect URI:** `https://pod.floorinteriorservices.com/api/quickbooks/callback` (correct, URL decoded)
 - ✅ **Scope:** `com.intuit.quickbooks.accounting` (correct)
 - ✅ **OAuth URL:** `https://appcenter.intuit.com/app/connect/oauth2` (correct)
 
@@ -42,11 +42,11 @@ The error "undefined didn't connect" specifically means:
 1. Go to **Settings** → **Redirect URIs** → **Development** tab
 2. **Verify this EXACT URI is listed:**
    ```
-   https://fis-phi.vercel.app/api/quickbooks/callback
+   https://pod.floorinteriorservices.com/api/quickbooks/callback
    ```
 3. **If not there:**
    - Click "+ Add URI"
-   - Type: `https://fis-phi.vercel.app/api/quickbooks/callback`
+   - Type: `https://pod.floorinteriorservices.com/api/quickbooks/callback`
    - Click **Save**
    - Wait 10-15 minutes
 
@@ -82,7 +82,7 @@ Before trying again:
 
 - [ ] **App Name is set to `FISPOD`** (not empty/undefined) ← MOST IMPORTANT
 - [ ] Redirect URI is in Intuit Dashboard → Settings → Redirect URIs → Development
-- [ ] Redirect URI matches exactly: `https://fis-phi.vercel.app/api/quickbooks/callback`
+- [ ] Redirect URI matches exactly: `https://pod.floorinteriorservices.com/api/quickbooks/callback`
 - [ ] App Status is "IN DEVELOPMENT" or "Active"
 - [ ] Client ID matches: `ABMV1B9HBoITUbAgKwba2l6UmW5h7bCYRE83jo8jalFVgbc414`
 - [ ] Waited 10-15 minutes after making changes
@@ -99,7 +99,7 @@ If you've verified all of the above and it still doesn't work:
 2. **Share with Support:**
    - App Name: FISPOD
    - Client ID: `ABMV1B9HBoITUbAgKwba2l6UmW5h7bCYRE83jo8jalFVgbc414`
-   - Redirect URI: `https://fis-phi.vercel.app/api/quickbooks/callback`
+   - Redirect URI: `https://pod.floorinteriorservices.com/api/quickbooks/callback`
    - Environment: Development
    - Error: "undefined didn't connect"
 

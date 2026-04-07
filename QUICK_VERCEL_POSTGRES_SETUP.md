@@ -55,7 +55,7 @@ I've updated your code to use Vercel Postgres. Now you just need to create the d
 
 ### Step 4: Test
 
-1. **Visit:** https://fis-he6w.vercel.app
+1. **Visit:** https://pod.floorinteriorservices.com
 2. **Sign in** with Microsoft
 3. **Upload data** - should save to Vercel Postgres!
 4. **Check database:**

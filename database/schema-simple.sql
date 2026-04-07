@@ -102,8 +102,6 @@ CREATE POLICY "Service role full access historical_data" ON historical_data
 
 DROP POLICY IF EXISTS "Service role full access authorized_users" ON authorized_users;
 CREATE POLICY "Service role full access authorized_users" ON authorized_users
-  FOR ALL USING (true) WITH CHECK (true);
-
-DROP POLICY IF EXISTS "Service role full access access_requests" ON access_requests;
+  FOR ALL USING (true) WITH CHECK (true);DROP POLICY IF EXISTS "Service role full access access_requests" ON access_requests;
 CREATE POLICY "Service role full access access_requests" ON access_requests
   FOR ALL USING (true) WITH CHECK (true);

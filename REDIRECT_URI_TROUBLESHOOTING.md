@@ -3,8 +3,8 @@
 ## Good News:
 
 Your redirect URIs are properly configured in Azure Portal:
-- ✅ `https://fis-he6w.vercel.app`
-- ✅ `https://fis-he6w.vercel.app/signin`
+- ✅ `https://pod.floorinteriorservices.com`
+- ✅ `https://pod.floorinteriorservices.com/signin`
 - ✅ `http://localhost:3000/signin`
 
 All are under "Single-page application" platform type - which is correct!
@@ -39,20 +39,20 @@ The MSAL library might have cached an old redirect URI.
   1. Open browser Developer Tools (F12)
   2. Go to **Application** tab (Chrome) or **Storage** tab (Firefox)
   3. Find **Local Storage**
-  4. Clear all entries for `fis-he6w.vercel.app`
+  4. Clear all entries for `pod.floorinteriorservices.com`
   5. Refresh page and try again
 
 ### 4. Verify What's Being Sent
 
 Let's double-check what redirect URI is actually being sent:
 
-1. Open: https://fis-he6w.vercel.app/signin
+1. Open: https://pod.floorinteriorservices.com/signin
 2. Press **F12** (Developer Tools)
 3. Go to **Network** tab
 4. Click "Sign in with Microsoft"
 5. Find the request to `login.microsoftonline.com`
 6. Check the `redirect_uri` parameter in the URL
-7. Verify it's exactly: `https://fis-he6w.vercel.app/signin`
+7. Verify it's exactly: `https://pod.floorinteriorservices.com/signin`
 
 ## ✅ Step-by-Step Troubleshooting:
 
@@ -65,10 +65,10 @@ Let's double-check what redirect URI is actually being sent:
 
 ### Step 2: Clear LocalStorage
 
-1. Open: https://fis-he6w.vercel.app/signin
+1. Open: https://pod.floorinteriorservices.com/signin
 2. Press **F12**
 3. Go to **Application** tab
-4. Left sidebar: **Local Storage** → `https://fis-he6w.vercel.app`
+4. Left sidebar: **Local Storage** → `https://pod.floorinteriorservices.com`
 5. Right-click and **Clear**
 6. Refresh page
 7. Try sign-in again
@@ -76,20 +76,20 @@ Let's double-check what redirect URI is actually being sent:
 ### Step 3: Try Incognito/Private Window
 
 1. Open incognito/private window
-2. Go to: https://fis-he6w.vercel.app/signin
+2. Go to: https://pod.floorinteriorservices.com/signin
 3. Try sign-in
 4. This bypasses all cache
 
 ### Step 4: Check Network Request
 
-1. Open: https://fis-he6w.vercel.app/signin
+1. Open: https://pod.floorinteriorservices.com/signin
 2. Press **F12** → **Network** tab
 3. Click "Sign in with Microsoft"
 4. Find request to `login.microsoftonline.com` or `login.live.com`
 5. Click on it
 6. Check **Request URL** or **Query String Parameters**
-7. Look for `redirect_uri` - should be: `https%3A%2F%2Ffis-he6w.vercel.app%2Fsignin` (URL encoded)
-   - Decoded: `https://fis-he6w.vercel.app/signin`
+7. Look for `redirect_uri` - should be: `https%3A%2F%2Fpod.floorinteriorservices.com%2Fsignin` (URL encoded)
+   - Decoded: `https://pod.floorinteriorservices.com/signin`
 
 ## 🎯 Most Likely Solution:
 
@@ -107,7 +107,7 @@ Since your Azure config is correct, it's probably:
 
 ### Fix 2: Complete Cache Clear
 1. Clear browser cache
-2. Clear cookies for `fis-he6w.vercel.app`
+2. Clear cookies for `pod.floorinteriorservices.com`
 3. Clear LocalStorage (F12 → Application → Local Storage)
 4. Restart browser
 5. Try incognito mode

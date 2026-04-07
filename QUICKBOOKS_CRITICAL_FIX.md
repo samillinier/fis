@@ -28,7 +28,7 @@ The error "undefined didn't connect" means **Intuit can't identify your app** be
 1. In Intuit Dashboard, go to **Keys & OAuth**
 2. Under **Redirect URIs**, you should see:
    ```
-   https://fis-bcbs9n06m-samilliniers-projects.vercel.app/api/quickbooks/callback
+   https://pod.floorinteriorservices.com/api/quickbooks/callback
    ```
 3. **Check:**
    - ✅ No trailing slash
@@ -43,7 +43,7 @@ The error "undefined didn't connect" means **Intuit can't identify your app** be
 
 ### Step 3: Check Browser Console
 
-1. Open your app: `https://fis-bcbs9n06m-samilliniers-projects.vercel.app/finance-hub`
+1. Open your app: `https://pod.floorinteriorservices.com/finance-hub`
 2. Press **F12** → **Console** tab
 3. Click "Connect to QuickBooks"
 4. Look for logs that show:
@@ -53,17 +53,17 @@ The error "undefined didn't connect" means **Intuit can't identify your app** be
 
 5. **Copy the Redirect URI value** and verify it matches:
    ```
-   https://fis-bcbs9n06m-samilliniers-projects.vercel.app/api/quickbooks/callback
+   https://pod.floorinteriorservices.com/api/quickbooks/callback
    ```
 
 ### Step 4: Verify Environment Variable
 
 1. Go to Vercel Dashboard → Your Project → Settings → Environment Variables
 2. Check if `NEXT_PUBLIC_QUICKBOOKS_PRODUCTION_DOMAIN` is set
-3. Value should be: `https://fis-bcbs9n06m-samilliniers-projects.vercel.app`
+3. Value should be: `https://pod.floorinteriorservices.com`
 4. If not set, add it:
    - Key: `NEXT_PUBLIC_QUICKBOOKS_PRODUCTION_DOMAIN`
-   - Value: `https://fis-bcbs9n06m-samilliniers-projects.vercel.app`
+   - Value: `https://pod.floorinteriorservices.com`
    - Environments: ✅ Production
    - Save
    - Redeploy
@@ -106,7 +106,7 @@ If you've set the App Name and it's still not working:
    - Or a different error message?
 
 3. **Verify you're testing on the correct domain:**
-   - Use: `https://fis-bcbs9n06m-samilliniers-projects.vercel.app/finance-hub`
+   - Use: `https://pod.floorinteriorservices.com/finance-hub`
    - NOT preview URLs
 
 ## Quick Test
@@ -114,6 +114,6 @@ If you've set the App Name and it's still not working:
 After setting App Name:
 1. Wait 5-10 minutes
 2. Clear browser cache (Ctrl+Shift+Delete)
-3. Go to: `https://fis-bcbs9n06m-samilliniers-projects.vercel.app/finance-hub`
+3. Go to: `https://pod.floorinteriorservices.com/finance-hub`
 4. Click "Connect to QuickBooks"
 5. Check if error changed or if it works

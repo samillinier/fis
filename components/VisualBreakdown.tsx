@@ -5,6 +5,7 @@ import { useData } from '@/context/DataContext'
 import CountUpNumber from '@/components/CountUpNumber'
 import { getStoreName } from '@/data/storeNames'
 import WorkroomMap from '@/components/WorkroomMap'
+import { Info, X, TrendingUp, Clock, Calendar, AlertCircle, DollarSign, BarChart3 } from 'lucide-react'
 
 // Helper function to extract city name from full store name
 const extractCityName = (fullStoreName: string): string => {
@@ -51,6 +52,7 @@ import {
 
 interface VisualBreakdownProps {
   selectedWorkroom: string
+  hiddenWorkrooms?: Array<string | number>
 }
 
 const COLORS = ['#000000', '#333333', '#666666', '#999999', '#CCCCCC', '#E0E0E0'] // For other charts
@@ -72,10 +74,11 @@ const normalizeWorkroomName = (name: string): string => {
   if (name === 'Panama Cit') {
     return 'Panama City'
   }
-  return name
+  // Canonicalize to avoid split buckets like "Tampa" vs "Tampa "
+  return name.replace(/\s+/g, ' ').trim()
 }
 
-export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownProps) {
+export default function VisualBreakdown({ selectedWorkroom, hiddenWorkrooms }: VisualBreakdownProps) {
   const { data } = useData()
   const [selectedRiskWorkroom, setSelectedRiskWorkroom] = useState<any | null>(null)
   const [isRiskDialogOpen, setIsRiskDialogOpen] = useState(false)
@@ -86,6 +89,12 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
   const [isGetItRightDialogOpen, setIsGetItRightDialogOpen] = useState(false)
   const [selectedStore, setSelectedStore] = useState<any | null>(null)
   const [isStoreDetailsDialogOpen, setIsStoreDetailsDialogOpen] = useState(false)
+  const [isWPIInfoDialogOpen, setIsWPIInfoDialogOpen] = useState(false)
+
+  const hiddenWorkroomSet = useMemo(() => {
+    const list = hiddenWorkrooms ?? []
+    return new Set(list.map((v) => String(v).trim()))
+  }, [hiddenWorkrooms])
 
   const jobCycleSections = [
     {
@@ -632,6 +641,8 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
     }
   })
 
+  // (Debug logs removed) Tampa LTR debug output was only used during troubleshooting.
+
   // Top Performing Stores - Aggregate by store (combining visual and survey data)
   const storesMap = new Map<string, {
     store: string | number
@@ -770,7 +781,12 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
       const avgCostPerRecord = w.records > 0 ? totalCost / w.records : 0
       const avgLaborPOPerStore = w.stores.size > 0 ? w.laborPO / w.stores.size : 0
       const avgJobsWorkCycleTime = w.jobsWorkCycleTimeCount > 0 ? (w.jobsWorkCycleTime || 0) / w.jobsWorkCycleTimeCount : null
-      const avgRescheduleRate = w.rescheduleRateCount > 0 ? (w.rescheduleRate || 0) / w.rescheduleRateCount : null
+      const avgRescheduleRateRaw = w.rescheduleRateCount > 0 ? (w.rescheduleRate || 0) / w.rescheduleRateCount : null
+      // Normalize fractions to percentage points (e.g., 27% => 0.27 in Excel)
+      const avgRescheduleRate =
+        avgRescheduleRateRaw != null && !isNaN(Number(avgRescheduleRateRaw)) && Number(avgRescheduleRateRaw) > 0 && Number(avgRescheduleRateRaw) <= 1
+          ? Number(avgRescheduleRateRaw) * 100
+          : avgRescheduleRateRaw
       const avgDetailsCycleTime = w.detailsCycleTimeCount > 0 ? (w.detailsCycleTime || 0) / w.detailsCycleTimeCount : null
       const avgTicketSale = w.records > 0 ? w.laborPO / w.records : 0
       
@@ -900,7 +916,8 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
       // Reschedule Rate Score (8% weight)
       // Lower reschedule rate is better
       let rescheduleRateScore = 50 // Default neutral
-      if (avgRescheduleRate != null && avgRescheduleRate > 0) {
+      // NOTE: 0.0% is a valid (excellent) value and should not be treated as missing.
+      if (avgRescheduleRate != null && !isNaN(avgRescheduleRate)) {
         if (avgRescheduleRate <= 10) {
           rescheduleRateScore = 100 // Excellent
         } else if (avgRescheduleRate <= 20) {
@@ -1074,18 +1091,18 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
       }
     })
     .sort((a, b) => b.weightedPerformanceScore - a.weightedPerformanceScore)
-    .filter((w) => {
+
+  const visibleComprehensiveAnalysis = useMemo(() => {
+    return comprehensiveAnalysis.filter((w) => {
+      if (hiddenWorkroomSet.has(String(w.name).trim())) return false
       // Filter out invalid workroom names like "Location #"
-      const name = w.name.toLowerCase().trim()
-      return name !== 'location #' && 
-             name !== 'location' && 
-             name !== '' && 
-             !name.includes('location #') &&
-             w.name.trim() !== ''
+      const name = String(w.name || '').toLowerCase().trim()
+      return name !== 'location #' && name !== 'location' && name !== '' && !name.includes('location #')
     })
+  }, [comprehensiveAnalysis, hiddenWorkroomSet])
 
   // Workrooms Most Responsible for Moving Your Business - Based on Heatmap WPI Score
-  const topLoadWorkrooms = comprehensiveAnalysis
+  const topLoadWorkrooms = visibleComprehensiveAnalysis
     .map((w) => ({
       name: w.name,
       wpiScore: w.weightedPerformanceScore,
@@ -1121,7 +1138,9 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
             gridAutoRows: 'minmax(auto, auto)',
             alignItems: 'stretch'
           }}>
-            {comprehensiveAnalysis.map((workroom) => {
+            {comprehensiveAnalysis
+              .filter((workroom) => !hiddenWorkroomSet.has(String(workroom.name).trim()))
+              .map((workroom) => {
               // Heatmap colors (flat, no glass)
               let backgroundColor = '#ef4444' // Red - Critical
               let heatmapLabel = 'Critical'
@@ -1301,7 +1320,29 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                     backdropFilter: 'blur(4px)'
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                       <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>WPI Score:</span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setIsWPIInfoDialogOpen(true)
+                          }}
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: '0.1rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            color: textColor,
+                            opacity: 0.8,
+                          }}
+                          aria-label="Learn more about WPI Score"
+                          title="Learn how WPI Score is calculated"
+                        >
+                          <Info size={14} />
+                        </button>
+                      </div>
                       <span style={{ fontWeight: 700, fontSize: '1.5rem' }}>
                         <CountUpNumber 
                           value={workroom.weightedPerformanceScore} 
@@ -1460,8 +1501,13 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
               return value != null && value !== undefined && !isNaN(Number(value))
             })
             const avgRescheduleRate = rescheduleRateData.length > 0
-              ? rescheduleRateData.reduce((sum, w) => sum + Number(w.rescheduleRate || 0), 0) / rescheduleRateData.length
-              : 0
+              ? rescheduleRateData.reduce((sum, w) => {
+                  let v = Number(w.rescheduleRate ?? 0)
+                  // Normalize fractions to percentage points (e.g., 27% => 0.27 in Excel)
+                  if (!isNaN(v) && v > 0 && v <= 1) v = v * 100
+                  return sum + v
+                }, 0) / rescheduleRateData.length
+              : null
             
             // Average Get it Right: Average of values from column AQ (ONLY from visual data, NOT survey)
             const getItRightData = visualDataRecords.filter((w) => {
@@ -1817,7 +1863,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                 </tr>
               </thead>
               <tbody>
-                {comprehensiveAnalysis.slice(0, 15).map((workroom, index) => {
+                {visibleComprehensiveAnalysis.slice(0, 15).map((workroom, index) => {
                   // Use the same weightedPerformanceScore from heatmap
                   const wpiScore = workroom.weightedPerformanceScore
                   let wpiBadgeClass = 'badge-neutral'
@@ -1865,7 +1911,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                     </tr>
                   )
                 })}
-                {comprehensiveAnalysis.length === 0 && (
+                {visibleComprehensiveAnalysis.length === 0 && (
                   <tr>
                     <td colSpan={7} style={{ textAlign: 'center', padding: '2rem 0.75rem', color: '#6b7280', fontSize: '0.75rem' }}>
                       Upload a T1/T2 scorecard to see top performing workrooms.
@@ -1906,7 +1952,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                 </tr>
               </thead>
               <tbody>
-                {comprehensiveAnalysis.map((workroom) => {
+                {visibleComprehensiveAnalysis.map((workroom) => {
                   // Badge classes for ratings
                   const getStoreMixBadge = (rating: string) => {
                     if (rating === 'Excellent') return 'badge-positive'
@@ -2056,7 +2102,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                     </tr>
                   )
                 })}
-                {comprehensiveAnalysis.length === 0 && (
+                {visibleComprehensiveAnalysis.length === 0 && (
                   <tr>
                     <td colSpan={11} style={{ textAlign: 'center', padding: '2rem 0.75rem', color: '#6b7280', fontSize: '0.75rem' }}>
                       Upload a T1/T2 scorecard to see comprehensive workroom analysis.
@@ -2081,10 +2127,10 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
         <div className="analytics-grid-container">
           {/* BAR CHART */}
           <div className="compact-chart-container" style={{ minHeight: '500px', padding: '1rem' }}>
-            {comprehensiveAnalysis.length > 0 ? (
+            {visibleComprehensiveAnalysis.length > 0 ? (
               <ResponsiveContainer width="100%" height={500}>
                 <BarChart
-                  data={comprehensiveAnalysis.map((w, index) => ({
+                  data={visibleComprehensiveAnalysis.map((w, index) => ({
                     name: w.name.length > 15 ? w.name.substring(0, 15) + '...' : w.name,
                     fullName: w.name,
                     wpi: Number(w.weightedPerformanceScore.toFixed(1)),
@@ -2136,7 +2182,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                     fill="#3b82f6"
                     radius={[4, 4, 0, 0]}
                   >
-                    {comprehensiveAnalysis.map((w, index) => {
+                    {visibleComprehensiveAnalysis.map((w, index) => {
                       // Use same color scheme as heatmap
                       let fillColor = '#ef4444' // red - Critical
                       if (w.weightedPerformanceScore >= 85) fillColor = '#10b981' // green - Top Performing
@@ -2174,7 +2220,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   </tr>
                 </thead>
                 <tbody>
-                  {comprehensiveAnalysis.map((workroom) => {
+                  {visibleComprehensiveAnalysis.map((workroom) => {
                     // Use same weightedPerformanceScore from heatmap
                     const wpiScore = workroom.weightedPerformanceScore
                     let wpiBadgeClass = 'badge-neutral'
@@ -2205,7 +2251,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                       </tr>
                     )
                   })}
-                  {comprehensiveAnalysis.length === 0 && (
+                  {visibleComprehensiveAnalysis.length === 0 && (
                     <tr>
                       <td colSpan={4} style={{ textAlign: 'center', padding: '2rem 0.75rem', color: '#6b7280', fontSize: '0.75rem' }}>
                         Upload a T1/T2 scorecard to see WPI by workroom.
@@ -2229,11 +2275,12 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
         </div>
 
         <div className="compact-chart-container" style={{ minHeight: '500px', padding: '1rem' }}>
-          {comprehensiveAnalysis.length > 0 ? (
+          {comprehensiveAnalysis.filter((w) => !hiddenWorkroomSet.has(String(w.name).trim())).length > 0 ? (
             <ResponsiveContainer width="100%" height={500}>
               <BarChart
                 // Using comprehensiveAnalysis - the exact same data source as the heatmap
                 data={comprehensiveAnalysis
+                  .filter((w) => !hiddenWorkroomSet.has(String(w.name).trim()))
                   .map((w) => {
                     // Use laborPOVolume.value from comprehensiveAnalysis (same as heatmap)
                     const records = w.records || 1
@@ -2297,6 +2344,7 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
                   radius={[4, 4, 0, 0]}
                 >
                   {comprehensiveAnalysis
+                    .filter((w) => !hiddenWorkroomSet.has(String(w.name).trim()))
                     .map((w) => {
                       const records = w.records || 1
                       const avgLaborPO = records > 0 ? (w.laborPOVolume?.value || 0) / records : 0
@@ -4420,6 +4468,335 @@ export default function VisualBreakdown({ selectedWorkroom }: VisualBreakdownPro
           )
         }, [filteredData, comprehensiveAnalysis])}
       </section>
+      {/* WPI Score Info Modal */}
+      {isWPIInfoDialogOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10000,
+            padding: '1rem',
+          }}
+          onClick={() => setIsWPIInfoDialogOpen(false)}
+        >
+          <div
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '20px',
+              maxWidth: '900px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              boxShadow: '0 25px 80px rgba(0, 0, 0, 0.4)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header with gradient */}
+            <div
+              style={{
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                padding: '2rem 2rem 1.5rem',
+                borderTopLeftRadius: '20px',
+                borderTopRightRadius: '20px',
+                position: 'relative',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                    <div style={{ 
+                      backgroundColor: 'rgba(255, 255, 255, 0.2)', 
+                      borderRadius: '12px', 
+                      padding: '0.5rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <BarChart3 size={24} color="white" />
+                    </div>
+                    <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'white', margin: 0 }}>
+                      How WPI Score is Calculated
+                    </h2>
+                  </div>
+                  <p style={{ fontSize: '0.9rem', color: 'rgba(255, 255, 255, 0.9)', margin: 0, lineHeight: '1.5' }}>
+                    Understanding the Workroom Performance Index
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsWPIInfoDialogOpen(false)}
+                  aria-label="Close WPI Score info"
+                  style={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                    border: 'none',
+                    borderRadius: '50%',
+                    width: '36px',
+                    height: '36px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    color: 'white',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'
+                    e.currentTarget.style.transform = 'rotate(90deg)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'
+                    e.currentTarget.style.transform = 'rotate(0deg)'
+                  }}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+
+            <div style={{ padding: '2rem' }}>
+              {/* Introduction */}
+              <div style={{ marginBottom: '2rem' }}>
+                <p style={{ fontSize: '1rem', color: '#475569', lineHeight: '1.7', marginBottom: '1rem' }}>
+                  The <strong style={{ color: '#1e293b' }}>Workroom Performance Index (WPI) Score</strong> is a comprehensive weighted score from 0 to 100 that combines multiple performance metrics to give you an overall performance rating for each workroom.
+                </p>
+                <div style={{
+                  backgroundColor: '#f0f9ff',
+                  borderLeft: '4px solid #3b82f6',
+                  padding: '1rem 1.25rem',
+                  borderRadius: '8px',
+                  marginTop: '1rem',
+                }}>
+                  <p style={{ fontSize: '0.9rem', color: '#1e40af', margin: 0, lineHeight: '1.6' }}>
+                    <strong>💡 Tip:</strong> Higher WPI scores indicate better overall workroom performance. The score is calculated by weighting different performance factors based on their importance to business success.
+                  </p>
+                </div>
+              </div>
+
+              {/* Formula Section */}
+              <div
+                style={{
+                  background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+                  border: '2px solid #e2e8f0',
+                  borderRadius: '16px',
+                  padding: '1.75rem',
+                  marginBottom: '2rem',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
+                  <TrendingUp size={20} color="#3b82f6" />
+                  <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0f172a' }}>
+                    WPI Score Formula
+                  </div>
+                </div>
+                <div style={{ 
+                  fontSize: '0.95rem', 
+                  color: '#1e293b', 
+                  lineHeight: '2', 
+                  fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace',
+                  backgroundColor: 'white', 
+                  padding: '1.5rem', 
+                  borderRadius: '12px', 
+                  border: '1px solid #e2e8f0',
+                  boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.06)',
+                }}>
+                  <div style={{ color: '#3b82f6', fontWeight: 600, marginBottom: '0.5rem' }}>WPI =</div>
+                  <div style={{ paddingLeft: '1.5rem' }}>
+                    <div>(LTR Score × <span style={{ color: '#10b981', fontWeight: 600 }}>50%</span>) +</div>
+                    <div>(Work Order Cycle Time × <span style={{ color: '#f59e0b', fontWeight: 600 }}>14%</span>) +</div>
+                    <div>(Job Cycle Time × <span style={{ color: '#f59e0b', fontWeight: 600 }}>13%</span>) +</div>
+                    <div>(Vendor Debits × <span style={{ color: '#8b5cf6', fontWeight: 600 }}>10%</span>) +</div>
+                    <div>(Reschedule Rate × <span style={{ color: '#ef4444', fontWeight: 600 }}>8%</span>) +</div>
+                    <div>(Details Cycle Time × <span style={{ color: '#06b6d4', fontWeight: 600 }}>5%</span>)</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Component Weights with Visual Bars */}
+              <div style={{ marginBottom: '2rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
+                  <BarChart3 size={20} color="#6366f1" />
+                  <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0f172a' }}>
+                    Component Weights
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gap: '0.75rem' }}>
+                  {[
+                    { name: 'LTR Performance', weight: 50, icon: TrendingUp, color: '#10b981' },
+                    { name: 'Work Order Cycle Time', weight: 14, icon: Clock, color: '#f59e0b' },
+                    { name: 'Job Cycle Time', weight: 13, icon: Calendar, color: '#f59e0b' },
+                    { name: 'Vendor Debits', weight: 10, icon: DollarSign, color: '#8b5cf6' },
+                    { name: 'Reschedule Rate', weight: 8, icon: AlertCircle, color: '#ef4444' },
+                    { name: 'Details Cycle Time', weight: 5, icon: Clock, color: '#06b6d4' },
+                  ].map((component, index) => {
+                    const IconComponent = component.icon
+                    return (
+                      <div
+                        key={index}
+                        style={{
+                          backgroundColor: 'white',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: '12px',
+                          padding: '1rem 1.25rem',
+                          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+                          transition: 'all 0.2s',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)'
+                          e.currentTarget.style.transform = 'translateY(-2px)'
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.04)'
+                          e.currentTarget.style.transform = 'translateY(0)'
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <div style={{
+                              backgroundColor: `${component.color}15`,
+                              borderRadius: '8px',
+                              padding: '0.5rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}>
+                              <IconComponent size={18} color={component.color} />
+                            </div>
+                            <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#1e293b' }}>
+                              {component.name}
+                            </span>
+                          </div>
+                          <span style={{ 
+                            fontSize: '1rem', 
+                            fontWeight: 700, 
+                            color: component.color,
+                            minWidth: '50px',
+                            textAlign: 'right',
+                          }}>
+                            {component.weight}%
+                          </span>
+                        </div>
+                        <div style={{
+                          height: '8px',
+                          backgroundColor: '#f1f5f9',
+                          borderRadius: '4px',
+                          overflow: 'hidden',
+                        }}>
+                          <div
+                            style={{
+                              height: '100%',
+                              width: `${component.weight}%`,
+                              backgroundColor: component.color,
+                              borderRadius: '4px',
+                              transition: 'width 0.5s ease-out',
+                              boxShadow: `0 0 8px ${component.color}40`,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Ratings Section */}
+              <div
+                style={{
+                  background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                  border: '2px solid #fbbf24',
+                  borderRadius: '16px',
+                  padding: '1.5rem',
+                  marginBottom: '2rem',
+                  boxShadow: '0 4px 12px rgba(251, 191, 36, 0.2)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                  <AlertCircle size={20} color="#92400e" />
+                  <div style={{ fontSize: '1rem', fontWeight: 700, color: '#92400e' }}>
+                    WPI Score Ratings
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gap: '0.75rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <div style={{
+                      width: '12px',
+                      height: '12px',
+                      borderRadius: '50%',
+                      backgroundColor: '#10b981',
+                      boxShadow: '0 0 8px #10b98160',
+                    }} />
+                    <div style={{ fontSize: '0.9rem', color: '#78350f', lineHeight: '1.6' }}>
+                      <strong>85-100:</strong> Top Performing (Green) - Excellent performance across all metrics
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <div style={{
+                      width: '12px',
+                      height: '12px',
+                      borderRadius: '50%',
+                      backgroundColor: '#f59e0b',
+                      boxShadow: '0 0 8px #f59e0b60',
+                    }} />
+                    <div style={{ fontSize: '0.9rem', color: '#78350f', lineHeight: '1.6' }}>
+                      <strong>70-84:</strong> Moderate (Yellow) - Good performance with room for improvement
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <div style={{
+                      width: '12px',
+                      height: '12px',
+                      borderRadius: '50%',
+                      backgroundColor: '#ef4444',
+                      boxShadow: '0 0 8px #ef444460',
+                    }} />
+                    <div style={{ fontSize: '0.9rem', color: '#78350f', lineHeight: '1.6' }}>
+                      <strong>Below 70:</strong> Critical (Red) - Immediate attention required
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Close Button */}
+              <button
+                type="button"
+                onClick={() => setIsWPIInfoDialogOpen(false)}
+                style={{
+                  width: '100%',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  color: 'white',
+                  border: 'none',
+                  padding: '0.875rem 1.5rem',
+                  borderRadius: '12px',
+                  fontWeight: 600,
+                  fontSize: '1rem',
+                  cursor: 'pointer',
+                  boxShadow: '0 10px 25px rgba(102, 126, 234, 0.4)',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)'
+                  e.currentTarget.style.boxShadow = '0 15px 35px rgba(102, 126, 234, 0.5)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)'
+                  e.currentTarget.style.boxShadow = '0 10px 25px rgba(102, 126, 234, 0.4)'
+                }}
+              >
+                Got it
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }

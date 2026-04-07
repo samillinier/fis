@@ -4,7 +4,7 @@
 
 ### 1. OAuth URL Construction (FinanceHub.tsx)
 - ✅ Client ID: `694ad793-ff6f-442d-8fce-1ece6e00117b` (correct)
-- ✅ Redirect URI: Uses `fis-phi.vercel.app` (updated correctly)
+- ✅ Redirect URI: Uses `pod.floorinteriorservices.com` (updated correctly)
 - ✅ Scope: `com.intuit.quickbooks.accounting` (correct)
 - ✅ OAuth URL: `https://appcenter.intuit.com/connect/oauth2` (correct)
 - ✅ State parameter: Includes user email for security
@@ -12,10 +12,10 @@
 
 ### 2. Redirect URI Construction
 ```typescript
-const PRODUCTION_DOMAIN = process.env.NEXT_PUBLIC_QUICKBOOKS_PRODUCTION_DOMAIN || 'https://fis-phi.vercel.app'
+const PRODUCTION_DOMAIN = process.env.NEXT_PUBLIC_QUICKBOOKS_PRODUCTION_DOMAIN || 'https://pod.floorinteriorservices.com'
 const REDIRECT_URI = `${PRODUCTION_DOMAIN}/api/quickbooks/callback`
 ```
-- ✅ Correctly constructs: `https://fis-phi.vercel.app/api/quickbooks/callback`
+- ✅ Correctly constructs: `https://pod.floorinteriorservices.com/api/quickbooks/callback`
 - ✅ Uses environment variable if available
 - ✅ Falls back to correct default domain
 
@@ -54,7 +54,7 @@ redirect_uri: REDIRECT_URI || `${request.nextUrl.origin}/api/quickbooks/callback
 ```typescript
 const PRODUCTION_DOMAIN = process.env.QUICKBOOKS_REDIRECT_URI 
   ? new URL(process.env.QUICKBOOKS_REDIRECT_URI).origin
-  : 'https://fis-phi.vercel.app'
+  : 'https://pod.floorinteriorservices.com'
 const REDIRECT_URI = `${PRODUCTION_DOMAIN}/api/quickbooks/callback`
 ```
 
@@ -79,24 +79,24 @@ const REDIRECT_URI = `${PRODUCTION_DOMAIN}/api/quickbooks/callback`
 ### 1. Ensure Environment Variables Are Set
 
 In Vercel, make sure you have:
-- `NEXT_PUBLIC_QUICKBOOKS_PRODUCTION_DOMAIN` = `https://fis-phi.vercel.app`
+- `NEXT_PUBLIC_QUICKBOOKS_PRODUCTION_DOMAIN` = `https://pod.floorinteriorservices.com`
 - `QUICKBOOKS_CLIENT_SECRET` = (your secret)
 - `QUICKBOOKS_ENVIRONMENT` = `sandbox` (for development)
-- `QUICKBOOKS_REDIRECT_URI` = `https://fis-phi.vercel.app/api/quickbooks/callback` (optional, but recommended)
+- `QUICKBOOKS_REDIRECT_URI` = `https://pod.floorinteriorservices.com/api/quickbooks/callback` (optional, but recommended)
 
 ### 2. Verify Intuit Dashboard Configuration
 
 Make sure in Intuit Dashboard:
-- ✅ Redirect URI: `https://fis-phi.vercel.app/api/quickbooks/callback` (in Development tab)
+- ✅ Redirect URI: `https://pod.floorinteriorservices.com/api/quickbooks/callback` (in Development tab)
 - ✅ App Name: `FISPOD` (not empty)
 - ✅ Client ID matches: `694ad793-ff6f-442d-8fce-1ece6e00117b`
 
 ### 3. Test Flow
 
 1. User clicks "Connect to QuickBooks"
-2. Redirects to: `https://appcenter.intuit.com/connect/oauth2?...&redirect_uri=https://fis-phi.vercel.app/api/quickbooks/callback&...`
+2. Redirects to: `https://appcenter.intuit.com/connect/oauth2?...&redirect_uri=https://pod.floorinteriorservices.com/api/quickbooks/callback&...`
 3. User authorizes
-4. Intuit redirects to: `https://fis-phi.vercel.app/api/quickbooks/callback?code=...&realmId=...`
+4. Intuit redirects to: `https://pod.floorinteriorservices.com/api/quickbooks/callback?code=...&realmId=...`
 5. Callback handler exchanges code for tokens
 6. Redirects to: `/finance-hub?connected=true`
 
@@ -107,10 +107,10 @@ Before testing, verify:
 - [ ] `NEXT_PUBLIC_QUICKBOOKS_PRODUCTION_DOMAIN` set in Vercel
 - [ ] `QUICKBOOKS_CLIENT_SECRET` set in Vercel
 - [ ] `QUICKBOOKS_ENVIRONMENT` set to `sandbox` in Vercel
-- [ ] Redirect URI in Intuit Dashboard: `https://fis-phi.vercel.app/api/quickbooks/callback`
+- [ ] Redirect URI in Intuit Dashboard: `https://pod.floorinteriorservices.com/api/quickbooks/callback`
 - [ ] App Name in Intuit Dashboard: `FISPOD`
 - [ ] Code deployed to Vercel
-- [ ] Testing on: `https://fis-phi.vercel.app/finance-hub`
+- [ ] Testing on: `https://pod.floorinteriorservices.com/finance-hub`
 
 ## 🎯 Summary
 

@@ -1,6 +1,6 @@
 # 🔐 Azure Redirect URI Setup - Step by Step
 
-## Your Vercel URL: https://fis-he6w.vercel.app
+## Your Vercel URL: https://pod.floorinteriorservices.com
 
 ## ⚠️ CRITICAL: Without this, Microsoft sign-in won't work!
 
@@ -34,9 +34,9 @@
 
 3. **Add Production URIs:**
    - Click **"Add URI"** button
-   - Type: `https://fis-he6w.vercel.app/signin`
+   - Type: `https://pod.floorinteriorservices.com/signin`
    - Click **"Add URI"** button again
-   - Type: `https://fis-he6w.vercel.app`
+   - Type: `https://pod.floorinteriorservices.com`
 
 4. **Click "Save"** at the top of the page
 
@@ -47,8 +47,8 @@ Make sure these are correct:
 - ✅ Redirect URIs include:
   - `http://localhost:3000/signin`
   - `http://localhost:3000`
-  - `https://fis-he6w.vercel.app/signin` ← NEW
-  - `https://fis-he6w.vercel.app` ← NEW
+  - `https://pod.floorinteriorservices.com/signin` ← NEW
+  - `https://pod.floorinteriorservices.com` ← NEW
 
 ### Step 6: Wait for Propagation
 
@@ -58,14 +58,14 @@ Make sure these are correct:
 
 1. Wait 5-10 minutes
 2. Clear browser cache (or use Incognito)
-3. Go to: https://fis-he6w.vercel.app/signin
+3. Go to: https://pod.floorinteriorservices.com/signin
 4. Click "Sign in with Microsoft"
 5. Microsoft popup should open!
 
 ## 🔗 Quick Links:
 
 - **Azure Portal**: https://portal.azure.com
-- **Your App**: https://fis-he6w.vercel.app
+- **Your App**: https://pod.floorinteriorservices.com
 - **App Registration**: Azure AD → App registrations → "FIS POD"
 
 ## 📝 What Redirect URIs Do:

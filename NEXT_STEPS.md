@@ -70,7 +70,7 @@ Your local code has the Supabase setup, but Vercel needs the latest version.
 After deploying and running schema:
 
 1. **Test database connection:**
-   - Visit: `https://fis-phi.vercel.app/api/db-check`
+   - Visit: `https://pod.floorinteriorservices.com/api/db-check`
    - Should show: `"connected": true` and all tables exist
 
 2. **Test file upload:**

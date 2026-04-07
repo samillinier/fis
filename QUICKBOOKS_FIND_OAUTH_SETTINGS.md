@@ -84,7 +84,7 @@ Even if you can't find "OAuth 2.0" specifically, the important thing is:
 2. Make sure you're on **"</> Development"** tab
 3. Verify the redirect URI is listed:
    ```
-   https://fis-bcbs9n06m-samilliniers-projects.vercel.app/api/quickbooks/callback
+   https://pod.floorinteriorservices.com/api/quickbooks/callback
    ```
 
 ## The Important Part

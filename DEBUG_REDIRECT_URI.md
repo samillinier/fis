@@ -12,15 +12,15 @@ The app is configured to use:
 - `window.location.origin + '/signin'`
 
 So if you're on:
-- **Production:** `https://fis-he6w.vercel.app/signin`
+- **Production:** `https://pod.floorinteriorservices.com/signin`
 - **Local:** `http://localhost:3000/signin`
 
 ## ✅ What Should Be in Azure Portal:
 
 Make sure these EXACT URIs are added (case-sensitive, no trailing slashes):
 
-1. `https://fis-he6w.vercel.app/signin`
-2. `https://fis-he6w.vercel.app`
+1. `https://pod.floorinteriorservices.com/signin`
+2. `https://pod.floorinteriorservices.com`
 3. `http://localhost:3000/signin`
 4. `http://localhost:3000`
 
@@ -45,8 +45,8 @@ Make sure these EXACT URIs are added (case-sensitive, no trailing slashes):
 ### Step 3: Common Issues
 
 #### Issue 1: Trailing Slash
-- ❌ Wrong: `https://fis-he6w.vercel.app/signin/`
-- ✅ Correct: `https://fis-he6w.vercel.app/signin`
+- ❌ Wrong: `https://pod.floorinteriorservices.com/signin/`
+- ✅ Correct: `https://pod.floorinteriorservices.com/signin`
 
 #### Issue 2: Wrong Platform Type
 - Must be **"Single-page application"** not "Web"
@@ -62,8 +62,8 @@ Make sure these EXACT URIs are added (case-sensitive, no trailing slashes):
 In Azure Portal, make sure:
 
 - [ ] Platform type is **"Single-page application"**
-- [ ] URI is **exactly** `https://fis-he6w.vercel.app/signin` (no trailing slash)
-- [ ] URI is **exactly** `https://fis-he6w.vercel.app` (no trailing slash)
+- [ ] URI is **exactly** `https://pod.floorinteriorservices.com/signin` (no trailing slash)
+- [ ] URI is **exactly** `https://pod.floorinteriorservices.com` (no trailing slash)
 - [ ] You clicked **"Save"** (or it auto-saved)
 - [ ] You've waited at least **5-10 minutes** since saving
 
@@ -71,7 +71,7 @@ In Azure Portal, make sure:
 
 ### Option 1: Check Browser Console
 
-1. Open: https://fis-he6w.vercel.app/signin
+1. Open: https://pod.floorinteriorservices.com/signin
 2. Press **F12** (Developer Tools)
 3. Go to **Console** tab
 4. Click "Sign in with Microsoft"
@@ -82,10 +82,10 @@ In Azure Portal, make sure:
 
 Sometimes adding variations helps:
 
-- `https://fis-he6w.vercel.app/signin` ✅
-- `https://fis-he6w.vercel.app` ✅
-- `https://fis-he6w.vercel.app/` (with trailing slash)
-- `https://fis-he6w.vercel.app/#` (with hash)
+- `https://pod.floorinteriorservices.com/signin` ✅
+- `https://pod.floorinteriorservices.com` ✅
+- `https://pod.floorinteriorservices.com/` (with trailing slash)
+- `https://pod.floorinteriorservices.com/#` (with hash)
 
 ### Option 3: Clear Cache
 

@@ -6,7 +6,7 @@
 - **Frontend code** (React components, pages)
 - **API routes** (`/api/data`, `/api/historical`)
 - **Static files** (images, CSS)
-- **URL**: https://fis-he6w.vercel.app
+- **URL**: https://pod.floorinteriorservices.com
 
 ### ✅ Supabase (Hosts Your Database)
 - **Database tables** (users, workroom_data, historical_data)
@@ -32,7 +32,7 @@ Your Vercel app connects to Supabase using **environment variables**:
 
 ### Your App:
 - ✅ **Code**: Deployed to Vercel
-- ✅ **URL**: https://fis-he6w.vercel.app
+- ✅ **URL**: https://pod.floorinteriorservices.com
 - ✅ **Status**: Live!
 
 ### Your Database:

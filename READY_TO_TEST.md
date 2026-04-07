@@ -39,8 +39,8 @@ npm run dev
 
 ```
 Supabase URL: https://idkuchtgrgooqixdjjcc.supabase.co
-Anon Key: sb_publishable_Vqo7Xww4Go4iQJ7U44t9vQ_ZbZokbID
-Service Key: sb_secret_1u_e0Fo-lp_LCy8Zjsw2nQ_7OWZqMBH
+Anon Key: <REDACTED_ANON_KEY>
+Service Key: <REDACTED_SERVICE_ROLE_KEY>
 ```
 
 ## ⚠️ Note About Keys:

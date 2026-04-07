@@ -46,7 +46,7 @@ After adding the variables:
 
 ### Step 5: Test Again
 
-1. Visit: https://fis-he6w.vercel.app/signin
+1. Visit: https://pod.floorinteriorservices.com/signin
 2. Click "Sign in with Microsoft"
 3. Should work now! ✅
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import { getWorkroomCoordinates, getMapCenter } from '@/data/workroomCoordinates'
 
@@ -114,12 +114,17 @@ function createPerformanceIcon(weightedPerformanceScore: number, L: any): any {
 export default function WorkroomMap({ workrooms }: WorkroomMapProps) {
   const [isClient, setIsClient] = useState(false)
   const [L, setL] = useState<any>(null)
+  const [mapKey, setMapKey] = useState(0)
+  const mapInitialized = useRef(false)
   
   useEffect(() => {
     // Only initialize once on client side
     if (typeof window === 'undefined') return
+    if (mapInitialized.current) return
     
+    mapInitialized.current = true
     setIsClient(true)
+    
     import('leaflet').then(leaflet => {
       // Fix for default marker icons in Next.js
       delete (leaflet.default.Icon.Default.prototype as any)._getIconUrl
@@ -140,6 +145,11 @@ export default function WorkroomMap({ workrooms }: WorkroomMapProps) {
         document.head.appendChild(link)
       }
     })
+    
+    // Cleanup on unmount
+    return () => {
+      mapInitialized.current = false
+    }
   }, [])
   
   const mapCenter = useMemo(() => getMapCenter(), [])
@@ -207,11 +217,14 @@ export default function WorkroomMap({ workrooms }: WorkroomMapProps) {
         className="h-96 w-full rounded-lg overflow-hidden border border-gray-200"
       >
         <MapContainer
-          key="workroom-performance-map"
+          key={`workroom-performance-map-${mapKey}`}
           center={[mapCenter.lat, mapCenter.lng]}
           zoom={7}
           style={{ height: '100%', width: '100%' }}
           scrollWheelZoom={true}
+          whenReady={() => {
+            // Map is ready
+          }}
         >
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

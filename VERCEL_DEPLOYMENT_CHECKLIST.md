@@ -24,13 +24,13 @@ Your app needs these environment variables in Vercel to connect to Supabase:
 
    ```
    NEXT_PUBLIC_SUPABASE_ANON_KEY
-   Value: sb_publishable_Vqo7Xww4Go4iQJ7U44t9vQ_ZbZokbID
+   Value: <from Supabase API settings (anon/public key)>
    Environments: ✅ Production ✅ Preview ✅ Development
    ```
 
    ```
    SUPABASE_SERVICE_ROLE_KEY
-   Value: sb_secret_1u_e0Fo-lp_LCy8Zjsw2nQ_7OWZqMBH
+   Value: <from Supabase (service_role) — store in Vercel only>
    Environments: ✅ Production ✅ Preview ✅ Development
    ```
 
@@ -81,10 +81,10 @@ If you just added environment variables:
 ## Step 4: Test Your Deployed App
 
 1. **Visit your app:**
-   - Your Vercel URL (e.g., `https://fis-he6w.vercel.app`)
+   - Your Vercel URL (e.g., `https://pod.floorinteriorservices.com`)
 
 2. **Check database connection:**
-   - Visit: `https://your-app.vercel.app/api/db-check`
+   - Visit: `https://pod.floorinteriorservices.com/api/db-check`
    - Should show: `"connected": true` and all tables exist
 
 3. **Test file upload:**
@@ -121,7 +121,7 @@ After deployment, you can test:
 
 1. **Check database connection:**
    ```
-   https://your-app.vercel.app/api/db-check
+   https://pod.floorinteriorservices.com/api/db-check
    ```
 
 2. **Expected response:**

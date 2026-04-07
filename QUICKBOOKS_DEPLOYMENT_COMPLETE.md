@@ -3,7 +3,7 @@
 ## Deployment Status
 ✅ **Successfully deployed to Vercel**
 
-Production URL: `https://fis-h5u4cmmu3-samilliniers-projects.vercel.app`
+Production URL: `https://pod.floorinteriorservices.com`
 
 ## ⚠️ Important: Find Your Stable Production Domain
 
@@ -17,7 +17,7 @@ Vercel may assign different URLs. You need to find your **stable production doma
 
 2. **Check Settings → Domains:**
    - Look for your production domain
-   - It might be: `fis-bcbs9n06m-samilliniers-projects.vercel.app`
+   - It might be: `pod.floorinteriorservices.com`
    - OR check the main project URL at the top
 
 3. **Or check the latest deployment:**
@@ -31,7 +31,7 @@ Vercel may assign different URLs. You need to find your **stable production doma
 1. Go to Vercel Dashboard → Your Project → Settings → Environment Variables
 2. Add:
    - **Key**: `NEXT_PUBLIC_QUICKBOOKS_PRODUCTION_DOMAIN`
-   - **Value**: `https://your-stable-production-domain.vercel.app`
+   - **Value**: `https://pod.floorinteriorservices.com`
    - **Environments**: ✅ Production only
 3. Save
 
@@ -42,7 +42,7 @@ Vercel may assign different URLs. You need to find your **stable production doma
 3. Go to **Keys & OAuth**
 4. Add redirect URI:
    ```
-   https://your-stable-production-domain.vercel.app/api/quickbooks/callback
+   https://pod.floorinteriorservices.com/api/quickbooks/callback
    ```
 5. **Set App Name** (if not set):
    - Go to App Overview or Settings
@@ -58,7 +58,7 @@ After adding the environment variable:
 
 #### Step 4: Test
 
-1. Go to: `https://your-stable-production-domain.vercel.app/finance-hub`
+1. Go to: `https://pod.floorinteriorservices.com/finance-hub`
 2. Click "Connect to QuickBooks"
 3. It should work!
 

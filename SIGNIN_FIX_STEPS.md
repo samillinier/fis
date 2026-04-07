@@ -22,15 +22,15 @@ Microsoft requires your Vercel URL to be registered before sign-in works.
    - Click **"Authentication"** (left menu)
    - Scroll to **"Single-page application"** section
    - Click **"Add URI"** and add:
-     - `https://fis-he6w.vercel.app/signin`
+     - `https://pod.floorinteriorservices.com/signin`
    - Click **"Add URI"** again and add:
-     - `https://fis-he6w.vercel.app`
+     - `https://pod.floorinteriorservices.com`
    - Click **"Save"** at the top
 
 4. **Wait 5-10 minutes** for Azure to update
 
 5. **Test:**
-   - Go to: https://fis-he6w.vercel.app/signin
+   - Go to: https://pod.floorinteriorservices.com/signin
    - Click "Sign in with Microsoft"
    - ✅ Popup should open!
 
@@ -38,7 +38,7 @@ Microsoft requires your Vercel URL to be registered before sign-in works.
 
 Before doing anything, check for errors:
 
-1. Open: https://fis-he6w.vercel.app/signin
+1. Open: https://pod.floorinteriorservices.com/signin
 2. Press **F12** (Developer Tools)
 3. Click **Console** tab
 4. Click the sign-in button

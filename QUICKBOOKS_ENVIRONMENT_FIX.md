@@ -17,12 +17,12 @@ In Intuit Dashboard:
 2. Click **"</> Development"** tab
 3. Make sure this URI is there:
    ```
-   https://fis-bcbs9n06m-samilliniers-projects.vercel.app/api/quickbooks/callback
+   https://pod.floorinteriorservices.com/api/quickbooks/callback
    ```
 4. **IMPORTANT:** Click **"Production"** tab (next to Development)
 5. Add the **SAME** redirect URI to Production:
    ```
-   https://fis-bcbs9n06m-samilliniers-projects.vercel.app/api/quickbooks/callback
+   https://pod.floorinteriorservices.com/api/quickbooks/callback
    ```
 6. Click **Save** in BOTH tabs
 
@@ -46,7 +46,7 @@ In Intuit Dashboard, look at the top:
 
 1. After adding redirect URI to BOTH environments, wait 5-10 minutes
 2. Redeploy your app on Vercel
-3. Test on: `https://fis-bcbs9n06m-samilliniers-projects.vercel.app/finance-hub`
+3. Test on: `https://pod.floorinteriorservices.com/finance-hub`
 
 ## Quick Checklist
 

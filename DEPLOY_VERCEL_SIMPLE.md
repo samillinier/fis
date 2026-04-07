@@ -54,11 +54,11 @@ NEXT_PUBLIC_MSAL_TENANT_ID=common
 
 1. **Update Azure Redirect URIs:**
    - Azure Portal → App registrations → "FIS POD"
-   - Authentication → Add: `https://fis-he6w.vercel.app/signin`
-   - Add: `https://fis-he6w.vercel.app`
+   - Authentication → Add: `https://pod.floorinteriorservices.com/signin`
+   - Add: `https://pod.floorinteriorservices.com`
 
 2. **Test Your App:**
-   - Visit: https://fis-he6w.vercel.app
+   - Visit: https://pod.floorinteriorservices.com
    - Everything should work with localStorage!
 
 ## 📝 What Works Now:

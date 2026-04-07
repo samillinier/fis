@@ -31,12 +31,12 @@ This means the redirect URI your app is using isn't registered in Azure Portal.
 
 1. **Production URL:**
    ```
-   https://fis-he6w.vercel.app/signin
+   https://pod.floorinteriorservices.com/signin
    ```
 
 2. **Production Root:**
    ```
-   https://fis-he6w.vercel.app
+   https://pod.floorinteriorservices.com
    ```
 
 3. **Preview URLs** (if you see different preview URLs):
@@ -57,14 +57,14 @@ This means the redirect URI your app is using isn't registered in Azure Portal.
 2. **Wait 5-10 minutes** for changes to propagate
 
 ### Step 6: Test Again
-1. Visit: https://fis-he6w.vercel.app/signin
+1. Visit: https://pod.floorinteriorservices.com/signin
 2. Click "Sign in with Microsoft"
 3. Should work now! ✅
 
 ## 🎯 Quick Checklist:
 
-- [ ] Added `https://fis-he6w.vercel.app/signin`
-- [ ] Added `https://fis-he6w.vercel.app`
+- [ ] Added `https://pod.floorinteriorservices.com/signin`
+- [ ] Added `https://pod.floorinteriorservices.com`
 - [ ] Added `http://localhost:3000/signin`
 - [ ] Added `http://localhost:3000`
 - [ ] Saved changes

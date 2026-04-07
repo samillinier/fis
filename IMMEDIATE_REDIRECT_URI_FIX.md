@@ -6,7 +6,7 @@ The redirect URI being sent doesn't match what's registered in Azure Portal.
 
 ## 🔍 What the App is Sending:
 
-Your app sends: `https://fis-he6w.vercel.app/signin`
+Your app sends: `https://pod.floorinteriorservices.com/signin`
 
 ## ✅ Solution: Exact Match Required
 
@@ -19,7 +19,7 @@ Your app sends: `https://fis-he6w.vercel.app/signin`
 ### Step 2: Check if This EXACT URI Exists:
 
 ```
-https://fis-he6w.vercel.app/signin
+https://pod.floorinteriorservices.com/signin
 ```
 
 **Requirements:**
@@ -32,7 +32,7 @@ https://fis-he6w.vercel.app/signin
 
 1. Click **"+ Add Redirect URI"**
 2. **Platform:** Select "Single-page application"
-3. **URI:** Type exactly: `https://fis-he6w.vercel.app/signin`
+3. **URI:** Type exactly: `https://pod.floorinteriorservices.com/signin`
 4. Click **"Add"**
 5. Click **"Save"** at the top
 
@@ -42,7 +42,7 @@ Add this one too (some auth flows use it):
 
 1. Click **"+ Add Redirect URI"** again
 2. **Platform:** Select "Single-page application"
-3. **URI:** Type exactly: `https://fis-he6w.vercel.app`
+3. **URI:** Type exactly: `https://pod.floorinteriorservices.com`
 4. Click **"Add"**
 5. Click **"Save"** at the top
 
@@ -58,12 +58,12 @@ Add this one too (some auth flows use it):
 - Not "Single-page application" → Won't work!
 
 ### ❌ Trailing Slash
-- ❌ `https://fis-he6w.vercel.app/signin/` (wrong)
-- ✅ `https://fis-he6w.vercel.app/signin` (correct)
+- ❌ `https://pod.floorinteriorservices.com/signin/` (wrong)
+- ✅ `https://pod.floorinteriorservices.com/signin` (correct)
 
 ### ❌ Wrong Protocol
-- ❌ `http://fis-he6w.vercel.app/signin` (wrong - missing 's')
-- ✅ `https://fis-he6w.vercel.app/signin` (correct)
+- ❌ `http://pod.floorinteriorservices.com/signin` (wrong - missing 's')
+- ✅ `https://pod.floorinteriorservices.com/signin` (correct)
 
 ### ❌ Case Sensitivity
 - Must be lowercase `https://`
@@ -72,8 +72,8 @@ Add this one too (some auth flows use it):
 
 In Azure Portal, under "Single-page application", you MUST have:
 
-- [ ] `https://fis-he6w.vercel.app/signin` ← **This one is critical!**
-- [ ] `https://fis-he6w.vercel.app`
+- [ ] `https://pod.floorinteriorservices.com/signin` ← **This one is critical!**
+- [ ] `https://pod.floorinteriorservices.com`
 - [ ] `http://localhost:3000/signin` (for local dev)
 - [ ] `http://localhost:3000` (for local dev)
 
@@ -83,15 +83,15 @@ In Azure Portal, under "Single-page application", you MUST have:
 
 1. **Delete all redirect URIs**
 2. **Add them back one by one:**
-   - Start with: `https://fis-he6w.vercel.app/signin`
-   - Then add: `https://fis-he6w.vercel.app`
+   - Start with: `https://pod.floorinteriorservices.com/signin`
+   - Then add: `https://pod.floorinteriorservices.com`
 3. **Save**
 4. **Wait 15 minutes**
 5. **Test in incognito window**
 
 ### Check Browser Console:
 
-1. Open: https://fis-he6w.vercel.app/signin
+1. Open: https://pod.floorinteriorservices.com/signin
 2. Press **F12**
 3. **Console** tab
 4. Click sign-in
@@ -99,5 +99,5 @@ In Azure Portal, under "Single-page application", you MUST have:
 
 ---
 
-**The URI must be EXACTLY: `https://fis-he6w.vercel.app/signin` in Azure Portal!** 🎯
+**The URI must be EXACTLY: `https://pod.floorinteriorservices.com/signin` in Azure Portal!** 🎯
 

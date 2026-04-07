@@ -24,6 +24,12 @@ export function calculateWeightedPerformanceScore(workroom: WorkroomData, allWor
   let totalLTR = 0
   let ltrCount = 0
 
+  const normalizePercentPoints = (v: number): number => {
+    // Excel sometimes stores percent as fraction (0.27) while UI expects percentage points (27.0)
+    if (!isNaN(v) && v > 0 && v <= 1) return v * 100
+    return v
+  }
+
   workroomData.forEach((w) => {
     totalSales += w.sales || 0
     totalLaborPO += w.laborPO || 0
@@ -36,8 +42,8 @@ export function calculateWeightedPerformanceScore(workroom: WorkroomData, allWor
       totalJobsWorkCycleTime += w.jobsWorkCycleTime
       jobsWorkCycleTimeCount++
     }
-    if (w.rescheduleRate != null && w.rescheduleRate > 0) {
-      totalRescheduleRate += w.rescheduleRate
+    if (w.rescheduleRate != null && !isNaN(w.rescheduleRate)) {
+      totalRescheduleRate += normalizePercentPoints(w.rescheduleRate)
       rescheduleRateCount++
     }
     if (w.ltrScore != null && w.ltrScore > 0) {
@@ -122,7 +128,8 @@ export function calculateWeightedPerformanceScore(workroom: WorkroomData, allWor
 
   // Reschedule Rate Score (8% weight)
   let rescheduleRateScore = 50
-  if (avgRescheduleRate != null && avgRescheduleRate > 0) {
+  // 0.0% is valid and should be scored as excellent (<= 10%)
+  if (avgRescheduleRate != null && !isNaN(avgRescheduleRate)) {
     if (avgRescheduleRate <= 10) {
       rescheduleRateScore = 100
     } else if (avgRescheduleRate <= 20) {
@@ -204,6 +211,12 @@ export function calculateComponentScores(workroom: WorkroomData, allWorkrooms: W
   let totalLTR = 0
   let ltrCount = 0
 
+  const normalizePercentPoints = (v: number): number => {
+    // Excel sometimes stores percent as fraction (0.27) while UI expects percentage points (27.0)
+    if (!isNaN(v) && v > 0 && v <= 1) return v * 100
+    return v
+  }
+
   workroomData.forEach((w) => {
     totalSales += w.sales || 0
     totalLaborPO += w.laborPO || 0
@@ -216,8 +229,8 @@ export function calculateComponentScores(workroom: WorkroomData, allWorkrooms: W
       totalJobsWorkCycleTime += w.jobsWorkCycleTime
       jobsWorkCycleTimeCount++
     }
-    if (w.rescheduleRate != null && w.rescheduleRate > 0) {
-      totalRescheduleRate += w.rescheduleRate
+    if (w.rescheduleRate != null && !isNaN(w.rescheduleRate)) {
+      totalRescheduleRate += normalizePercentPoints(w.rescheduleRate)
       rescheduleRateCount++
     }
     if (w.ltrScore != null && w.ltrScore > 0) {
@@ -302,7 +315,8 @@ export function calculateComponentScores(workroom: WorkroomData, allWorkrooms: W
 
   // Reschedule Rate Score (8% weight)
   let rescheduleRateScore = 50
-  if (avgRescheduleRate != null && avgRescheduleRate > 0) {
+  // 0.0% is valid and should be scored as excellent (<= 10%)
+  if (avgRescheduleRate != null && !isNaN(avgRescheduleRate)) {
     if (avgRescheduleRate <= 10) {
       rescheduleRateScore = 100
     } else if (avgRescheduleRate <= 20) {

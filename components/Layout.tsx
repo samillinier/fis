@@ -7,6 +7,7 @@ import NotificationContainer from '@/components/NotificationContainer'
 import NotificationDropdown from '@/components/NotificationDropdown'
 import FirstTimeLoginModal from '@/components/FirstTimeLoginModal'
 import LowesChatWidget from '@/components/LowesChatWidget'
+import { ChatNotificationProvider } from '@/components/ChatNotificationContext'
 import { useFilters } from '@/components/FilterContext'
 import { useAuth } from '@/components/AuthContext'
 import { LogOut, User, UserCog, Menu, X } from 'lucide-react'
@@ -17,7 +18,8 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const { selectedWorkroom, setSelectedWorkroom, excludeCycleTime, setExcludeCycleTime } = useFilters()
-  const { user, logout, isAdmin, accessRequests } = useAuth()
+  const { user, logout, isAdmin, isOwner, accessRequests } = useAuth()
+  const canViewAdminAreas = isAdmin || isOwner
   const router = useRouter()
   const pathname = usePathname()
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
@@ -43,7 +45,7 @@ export default function Layout({ children }: LayoutProps) {
   }
 
   const handleProfile = () => {
-    if (isAdmin) {
+    if (canViewAdminAreas) {
       router.push('/profile')
     } else {
       router.push('/settings')
@@ -143,7 +145,7 @@ export default function Layout({ children }: LayoutProps) {
                       className="logout-button-hover profile-button"
                     >
                       <UserCog size={18} />
-                      <span>{isAdmin === true ? 'Profile' : 'Settings'}</span>
+                      <span>{canViewAdminAreas ? 'Profile' : 'Settings'}</span>
                     </button>
                     <button
                       type="button"
@@ -182,7 +184,7 @@ export default function Layout({ children }: LayoutProps) {
         />
 
         <main className="dashboard-main">
-          {isAdmin === true && accessRequests.length > 0 && (
+          {canViewAdminAreas && accessRequests.length > 0 && (
             <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-amber-900 shadow-sm">
               <div className="font-semibold">New access requests</div>
               <div className="text-sm">
@@ -202,7 +204,9 @@ export default function Layout({ children }: LayoutProps) {
       </footer>
       <NotificationContainer />
       <FirstTimeLoginModal />
-      <LowesChatWidget />
+      <ChatNotificationProvider>
+        <LowesChatWidget />
+      </ChatNotificationProvider>
     </div>
   )
 }

@@ -25,7 +25,7 @@ You also need to update the environment variable in Vercel:
 
 - ✅ **Client ID**: `ABMV1B9HBoITUbAgKwba2l6UmW5h7bCYRE83jo8jalFVgbc414` (from Intuit Dashboard)
 - ✅ **Client Secret**: `hpb2sXyBG1AZBb5typR2c4hnt3O0GTQG5LZZKV5L` (from Intuit Dashboard)
-- ✅ **Redirect URI**: `https://fis-phi.vercel.app/api/quickbooks/callback`
+- ✅ **Redirect URI**: `https://pod.floorinteriorservices.com/api/quickbooks/callback`
 - ✅ **App Status**: IN DEVELOPMENT
 - ✅ **App Name**: FISPOD
 

@@ -1,6 +1,6 @@
 # 🔧 Fix: Blank Sign-In Page on Vercel
 
-## Issue: https://fis-he6w.vercel.app/signin shows nothing
+## Issue: https://pod.floorinteriorservices.com/signin shows nothing
 
 The page is loading (HTTP 200) but displaying blank. Here are the most likely causes:
 
@@ -27,7 +27,7 @@ The page is loading (HTTP 200) but displaying blank. Here are the most likely ca
 
 ### 2. Check Browser Console for Errors
 
-1. Open: https://fis-he6w.vercel.app/signin
+1. Open: https://pod.floorinteriorservices.com/signin
 2. Press **F12** (or Cmd+Option+I on Mac)
 3. Open **Console** tab
 4. Look for red error messages
@@ -96,7 +96,7 @@ The page tries to load `/logo.png`. If it's missing, it might cause issues:
 
 ### Step 4: Test Home Page
 ```
-Try: https://fis-he6w.vercel.app
+Try: https://pod.floorinteriorservices.com
 - Does it redirect to /signin?
 - Does it show anything?
 ```

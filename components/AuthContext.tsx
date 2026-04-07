@@ -14,7 +14,7 @@ interface User {
   email: string
   name: string
   photoUrl?: string
-  role?: 'admin' | 'user'
+  role?: 'admin' | 'owner' | 'user' | 'accounting'
   lastLoginAt?: string
   jobTitle?: string
 }
@@ -22,7 +22,7 @@ interface User {
 interface AuthorizedUser {
   email: string
   name?: string
-  role?: 'admin' | 'user'
+  role?: 'admin' | 'owner' | 'user' | 'accounting'
   isActive?: boolean
   createdAt?: string
   createdBy?: string
@@ -41,13 +41,15 @@ interface AuthContextType {
   isAuthenticated: boolean
   isAuthorized: boolean
   isAdmin: boolean
+  isOwner: boolean
+  isAccounting: boolean
   authorizedUsers: AuthorizedUser[]
   accessRequests: AccessRequest[]
   addAuthorizedUser: (email: string, name?: string) => Promise<boolean>
   removeAuthorizedUser: (email: string) => Promise<boolean>
   approveAccessRequest: (email: string) => Promise<boolean>
   rejectAccessRequest: (email: string) => Promise<void>
-  setUserRole: (email: string, role: 'admin' | 'user') => Promise<boolean>
+  setUserRole: (email: string, role: 'admin' | 'owner' | 'user' | 'accounting') => Promise<boolean>
   requestAccess: (
     email: string,
     name?: string,
@@ -119,6 +121,11 @@ async function fetchAuthorizedUsersFromApi(actorEmail?: string): Promise<Authori
 
   const data = await response.json()
   return ensureSuperAdminLocal(data.authorizedUsers || [])
+}
+
+function normalizeAppRole(role?: string): 'admin' | 'owner' | 'user' | 'accounting' {
+  if (role === 'admin' || role === 'owner' || role === 'accounting') return role
+  return 'user'
 }
 
 async function fetchAccessRequestsFromApi(actorEmail?: string): Promise<AccessRequest[]> {
@@ -242,6 +249,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const isAdmin =
     user?.email?.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase() || user?.role === 'admin'
+  const isOwner = user?.role === 'owner'
+  const isAccounting = user?.role === 'accounting'
 
   const isAuthorized =
     !!user &&
@@ -394,7 +403,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const setUserRole = async (email: string, role: 'admin' | 'user'): Promise<boolean> => {
+  const setUserRole = async (email: string, role: 'admin' | 'owner' | 'user' | 'accounting'): Promise<boolean> => {
     if (!isAdmin) return false
     const normalizedEmail = normalizeEmail(email)
     if (!normalizedEmail) return false
@@ -425,7 +434,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const markUserLogin = async (email: string) => {
+  const markUserLogin = async (email: string, photoUrl?: string) => {
     const normalized = email.toLowerCase()
     const now = new Date().toISOString()
     const updated = authorizedUsers.map((u) =>
@@ -455,7 +464,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email: normalized }),
+        body: JSON.stringify({ email: normalized, photoUrl: photoUrl || null }),
       })
       const data = await response.json()
       console.log('Last login update response:', data)
@@ -506,7 +515,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const userData: User = {
           email: foundUser.email,
           name: foundUser.name,
-          role: isSuperAdmin ? 'admin' : authorizedEntry.role || 'user',
+          role: isSuperAdmin ? 'admin' : normalizeAppRole(authorizedEntry.role),
           lastLoginAt: now,
         }
         setUser(userData)
@@ -622,7 +631,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const userData: User = {
           email: account.username,
           name: authorizedEntry.name || account.name || account.username,
-          role: authorizedEntry.role || (isSuperAdmin ? 'admin' : 'user'),
+          role: isSuperAdmin ? 'admin' : normalizeAppRole(authorizedEntry.role),
           lastLoginAt: now,
         }
 
@@ -666,7 +675,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // Store photo in shared storage for chat display
             if (typeof window !== 'undefined') {
               const userPhotos = JSON.parse(localStorage.getItem('fis-user-photos') || '{}')
-              userPhotos[userData.email] = base64String
+              userPhotos[userData.email.toLowerCase()] = base64String
               localStorage.setItem('fis-user-photos', JSON.stringify(userPhotos))
             }
           } else {
@@ -696,7 +705,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         setUser(userData)
         localStorage.setItem('fis-user', JSON.stringify(userData))
-        await markUserLogin(account.username)
+        await markUserLogin(account.username, userData.photoUrl)
         await refreshAccessData(account.username)
         return { success: true }
       }
@@ -756,7 +765,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const userData: User = {
       email,
       name,
-      role: isSuperAdmin ? 'admin' : authorizedEntry.role || 'user',
+      role: isSuperAdmin ? 'admin' : normalizeAppRole(authorizedEntry.role),
       lastLoginAt: now,
     }
     setUser(userData)
@@ -780,6 +789,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: !!user,
         isAuthorized,
         isAdmin,
+        isOwner,
+        isAccounting,
         authorizedUsers,
         accessRequests,
         addAuthorizedUser,

@@ -13,8 +13,8 @@ Authentication → Single-page application → Add URI
 
 **Add these 4 URIs:**
 
-1. `https://fis-he6w.vercel.app/signin`
-2. `https://fis-he6w.vercel.app`
+1. `https://pod.floorinteriorservices.com/signin`
+2. `https://pod.floorinteriorservices.com`
 3. `http://localhost:3000/signin`
 4. `http://localhost:3000`
 
@@ -23,7 +23,7 @@ Authentication → Single-page application → Add URI
 - **Wait 5-10 minutes**
 
 ### Step 4: Test
-- Go to: https://fis-he6w.vercel.app/signin
+- Go to: https://pod.floorinteriorservices.com/signin
 - Click "Sign in with Microsoft"
 - ✅ Should work!
 

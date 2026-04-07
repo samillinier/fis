@@ -18,7 +18,7 @@
 3. **Wait 2-3 minutes** for deployment to complete
 
 4. **Test:**
-   - Visit: https://fis-he6w.vercel.app/signin
+   - Visit: https://pod.floorinteriorservices.com/signin
    - Click "Sign in with Microsoft"
    - Should work now! ✅
 
@@ -51,7 +51,7 @@ vercel --prod
    - Make sure both Microsoft variables are there
 
 2. **Test Sign-In:**
-   - Go to: https://fis-he6w.vercel.app/signin
+   - Go to: https://pod.floorinteriorservices.com/signin
    - Click "Sign in with Microsoft"
    - Should open Microsoft login popup
 

@@ -60,3 +60,11 @@ export async function ensureUserExists(email: string, name?: string): Promise<st
   }
 }
 
+// Helper to get shared admin user_id (all admins upload to this shared location)
+// This ensures all data is shared for everyone, regardless of which admin uploaded it
+export async function getSharedAdminUserId(): Promise<string> {
+  // Use a consistent admin email for the shared data location
+  // This ensures all admins upload to the same shared location
+  const sharedAdminEmail = 'sbiru@fiscorponline.com'
+  return await ensureUserExists(sharedAdminEmail)
+}

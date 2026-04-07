@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useAuth } from './AuthContext'
+import { useChatNotification } from './ChatNotificationContext'
 
 interface Message {
   id: string
@@ -30,6 +31,7 @@ interface Conversation {
 
 export default function LowesChatWidget() {
   const { user } = useAuth()
+  const { unreadCount, markAsRead, lastCheckedAt } = useChatNotification()
   const [isOpen, setIsOpen] = useState(false)
   const [isMinimized, setIsMinimized] = useState(false)
   const [chatState, setChatState] = useState<'select' | 'chat' | 'loading'>('select')
@@ -38,6 +40,8 @@ export default function LowesChatWidget() {
   const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null)
   const [previousConversations, setPreviousConversations] = useState<Conversation[]>([])
   const [isLoadingConversations, setIsLoadingConversations] = useState(false)
+  const [workroomFilter, setWorkroomFilter] = useState<string | null>(null)
+  const [workroomFiltered, setWorkroomFiltered] = useState<boolean>(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -46,9 +50,55 @@ export default function LowesChatWidget() {
   const [showDetails, setShowDetails] = useState(true)
   const [userPhotos, setUserPhotos] = useState<Record<string, string>>({})
   const [deletingConversationId, setDeletingConversationId] = useState<string | null>(null)
+  const [confirmDeleteConversationId, setConfirmDeleteConversationId] = useState<string | null>(null)
   const [hasChatAccess, setHasChatAccess] = useState<boolean | null>(null)
   const [groupName, setGroupName] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const [unreadBaseline, setUnreadBaseline] = useState<string | null>(null)
+  const [conversationLastSeen, setConversationLastSeen] = useState<Record<string, string>>({})
+
+  const getConversationLastSeenKey = () => {
+    const email = user?.email ? user.email.toLowerCase() : 'anonymous'
+    return `chat-conv-last-seen-${email}`
+  }
+
+  const loadConversationLastSeen = () => {
+    if (typeof window === 'undefined') return
+    try {
+      const raw = localStorage.getItem(getConversationLastSeenKey())
+      const parsed = raw ? JSON.parse(raw) : {}
+      if (parsed && typeof parsed === 'object') {
+        setConversationLastSeen(parsed)
+      } else {
+        setConversationLastSeen({})
+      }
+    } catch {
+      setConversationLastSeen({})
+    }
+  }
+
+  const setConversationSeenNow = (convId: string) => {
+    if (!convId) return
+    const now = new Date().toISOString()
+    setConversationLastSeen((prev) => {
+      const next = { ...prev, [convId]: now }
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem(getConversationLastSeenKey(), JSON.stringify(next))
+        } catch {
+          // ignore
+        }
+      }
+      return next
+    })
+  }
+
+  // Load per-conversation "last seen" markers for this user
+  useEffect(() => {
+    if (!user?.email) return
+    loadConversationLastSeen()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.email])
 
   // Check if user has chat widget access
   useEffect(() => {
@@ -102,7 +152,7 @@ export default function LowesChatWidget() {
       
       // Always add/update current user's photo if available
       if (user?.photoUrl && user?.email) {
-        photos[user.email] = user.photoUrl
+        photos[user.email.toLowerCase()] = user.photoUrl
         localStorage.setItem('fis-user-photos', JSON.stringify(photos))
       }
       
@@ -110,11 +160,51 @@ export default function LowesChatWidget() {
     }
   }, [user?.email, user?.photoUrl])
 
+  // Pull stored staff photos from the backend so everyone sees staff avatars (not just their own browser cache)
+  useEffect(() => {
+    if (!user?.email) return
+    const loadStaffPhotos = async () => {
+      try {
+        const resp = await fetch('/api/authorized-users', {
+          headers: { Authorization: `Bearer ${user.email}` },
+        })
+        if (!resp.ok) return
+        const data = await resp.json()
+        const list = data.authorizedUsers || []
+
+        if (typeof window === 'undefined') return
+        const stored = localStorage.getItem('fis-user-photos')
+        const photos: Record<string, string> = stored ? JSON.parse(stored) : {}
+
+        let changed = false
+        for (const u of list) {
+          const email = (u.email || '').toLowerCase()
+          const photoUrl = u.photoUrl
+          if (email && typeof photoUrl === 'string' && photoUrl.startsWith('data:image/')) {
+            if (photos[email] !== photoUrl) {
+              photos[email] = photoUrl
+              changed = true
+            }
+          }
+        }
+
+        if (changed) {
+          localStorage.setItem('fis-user-photos', JSON.stringify(photos))
+          setUserPhotos(photos)
+        }
+      } catch (e) {
+        console.warn('Failed to load staff photos:', e)
+      }
+    }
+    loadStaffPhotos()
+  }, [user?.email])
+
   // Function to get photo for a sender
   const getSenderPhoto = (senderEmail: string): string | null => {
+    const normalized = (senderEmail || '').toLowerCase()
     // Check in userPhotos state
-    if (userPhotos[senderEmail]) {
-      return userPhotos[senderEmail]
+    if (userPhotos[normalized]) {
+      return userPhotos[normalized]
     }
     
     // Also check localStorage in case state hasn't updated
@@ -122,8 +212,8 @@ export default function LowesChatWidget() {
       const stored = localStorage.getItem('fis-user-photos')
       if (stored) {
         const photos = JSON.parse(stored)
-        if (photos[senderEmail]) {
-          return photos[senderEmail]
+        if (photos[normalized]) {
+          return photos[normalized]
         }
       }
     }
@@ -131,35 +221,64 @@ export default function LowesChatWidget() {
     return null
   }
 
-  // Fetch previous conversations when widget opens
+  const refreshConversations = useCallback(async (opts?: { silent?: boolean }) => {
+    if (!user?.email) return
+    const silent = opts?.silent === true
+    if (!silent) setIsLoadingConversations(true)
+    try {
+      const response = await fetch('/api/lowes-chat/conversations/all', {
+        headers: { Authorization: `Bearer ${user.email}` },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        const conversations = data.conversations || []
+        setWorkroomFilter(data.workroom || null)
+        setWorkroomFiltered(data.workroomFiltered === true)
+        setPreviousConversations(conversations)
+      }
+    } catch (err) {
+      console.error('Error fetching conversations:', err)
+    } finally {
+      if (!silent) setIsLoadingConversations(false)
+    }
+  }, [user?.email])
+
+  // Fetch previous conversations when widget opens (and ensure we show the list view)
+  useEffect(() => {
+    if (!isOpen || !user?.email) return
+    refreshConversations()
+    setChatState('select')
+  }, [isOpen, user?.email, refreshConversations])
+
+  // Keep the conversation list fresh while the widget is open (no browser restart / reopen needed)
   useEffect(() => {
     if (!isOpen || !user?.email) return
 
-    const fetchPreviousConversations = async () => {
-      setIsLoadingConversations(true)
-      try {
-        // Fetch ALL conversations (started by Lowe's team) for FIS POD users to respond to
-        // Note: FIS POD users see all conversations, filtering is only for Lowe's team members
-        const response = await fetch('/api/lowes-chat/conversations/all', {
-          headers: { 'Authorization': `Bearer ${user.email}` }
-        })
-
-        if (response.ok) {
-          const data = await response.json()
-          const conversations = data.conversations || []
-          setPreviousConversations(conversations)
-          setChatState('select')
-        }
-      } catch (err) {
-        console.error('Error fetching conversations:', err)
-        setChatState('select')
-      } finally {
-        setIsLoadingConversations(false)
-      }
+    const refresh = () => {
+      // If you're actively in a conversation, refresh silently in the background
+      refreshConversations({ silent: true })
     }
 
-    fetchPreviousConversations()
-  }, [isOpen, user?.email])
+    // Refresh immediately on focus/visibility changes
+    const onVisibility = () => {
+      if (document.hidden) return
+      refresh()
+    }
+    const onFocus = () => refresh()
+
+    document.addEventListener('visibilitychange', onVisibility)
+    window.addEventListener('focus', onFocus)
+
+    // Light polling for near-instant updates while the widget is open
+    const interval = setInterval(refresh, 8000)
+
+    return () => {
+      clearInterval(interval)
+      document.removeEventListener('visibilitychange', onVisibility)
+      window.removeEventListener('focus', onFocus)
+    }
+  }, [isOpen, user?.email, refreshConversations])
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -189,6 +308,9 @@ export default function LowesChatWidget() {
           const data = await response.json()
           const fetchedMessages = data.messages || []
           setMessages(fetchedMessages)
+
+          // If you're currently in this conversation, consider it read
+          setConversationSeenNow(conversationId)
           
           // Auto-scroll after messages are loaded
           setTimeout(() => {
@@ -205,8 +327,8 @@ export default function LowesChatWidget() {
     }
 
     fetchMessages()
-    // Poll for new messages every 5 seconds (more frequent)
-    const interval = setInterval(fetchMessages, 5000)
+    // Poll for new messages (near-instant without realtime sockets)
+    const interval = setInterval(fetchMessages, 2500)
     return () => clearInterval(interval)
   }, [isOpen, conversationId, user?.email, chatState])
 
@@ -244,7 +366,6 @@ export default function LowesChatWidget() {
       window.removeEventListener('message-sent' as any, handleMessageUpdate as EventListener)
     }
   }, [isOpen, conversationId, user?.email, chatState])
-
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -295,12 +416,31 @@ export default function LowesChatWidget() {
     })
   }
 
+  const isConversationUnread = (conv: Conversation): boolean => {
+    const baseline = unreadBaseline || lastCheckedAt
+    if (!baseline) return false
+    const baselineDate = new Date(baseline)
+
+    const seenAt = conversationLastSeen[conv.id]
+    const seenDate = seenAt ? new Date(seenAt) : null
+
+    const candidate = conv.last_message_at || conv.created_at
+    const candidateDate = candidate ? new Date(candidate) : null
+    if (!candidateDate) return false
+
+    const effectiveBaseline =
+      seenDate && seenDate > baselineDate ? seenDate : baselineDate
+
+    return candidateDate > effectiveBaseline
+  }
+
   const handleSelectConversation = async (conversation: Conversation) => {
     setChatState('loading')
     setConversationId(conversation.id)
     setConversationKey(conversation.conversation_key)
     setCurrentConversation(conversation)
     setGroupName(null) // Reset group name
+    setConversationSeenNow(conversation.id) // Clear UNREAD immediately for this conversation
     
     // Fetch full conversation details
     try {
@@ -380,13 +520,8 @@ export default function LowesChatWidget() {
     return message.sender_email === user?.email || message.sender_email === user?.email?.toLowerCase()
   }
 
-  const handleDeleteConversation = async (convIdToDelete: string, e: React.MouseEvent) => {
-    e.stopPropagation() // Prevent selecting the conversation
-    
-    if (!confirm('Are you sure you want to delete this conversation? This action cannot be undone.')) {
-      return
-    }
-
+  const handleDeleteConversation = async (convIdToDelete: string) => {
+    if (!convIdToDelete) return
     setDeletingConversationId(convIdToDelete)
     setError(null)
 
@@ -433,15 +568,29 @@ export default function LowesChatWidget() {
       {!isOpen && (
         <button
           onClick={() => {
+            // Capture current baseline so we can still show "UNREAD" labels inside the widget
+            // even after we clear the launcher badge.
+            setUnreadBaseline(lastCheckedAt)
+            markAsRead()
             setIsOpen(true)
             setIsMinimized(false)
           }}
-          className="fixed bottom-6 right-6 w-14 h-14 bg-[#80875d] hover:bg-[#6b7349] text-white rounded-full shadow-lg flex items-center justify-center z-50 transition-all hover:scale-110"
-          aria-label="Open chat"
+          className="fixed bottom-6 right-6 w-14 h-14 bg-[#89ac44] hover:bg-[#6d8a35] text-white rounded-full shadow-lg flex items-center justify-center z-50 transition-all hover:scale-110"
+          aria-label={unreadCount > 0 ? `Open chat (${unreadCount} unread)` : 'Open chat'}
         >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-          </svg>
+          <span className="relative w-full h-full flex items-center justify-center">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+            {unreadCount > 0 && (
+              <span
+                className="pointer-events-none absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-red-600 text-white text-[11px] font-bold flex items-center justify-center shadow"
+                aria-hidden="true"
+              >
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
+          </span>
         </button>
       )}
 
@@ -451,7 +600,7 @@ export default function LowesChatWidget() {
           isMinimized ? 'w-80 h-14' : 'w-96 h-[600px]'
         }`}>
           {/* Header */}
-          <div className="bg-[#80875d] text-white px-4 py-3 rounded-t-lg flex items-center justify-between">
+          <div className="bg-[#89ac44] text-white px-4 py-3 rounded-t-lg flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <div className="relative">
                 <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse shadow-sm"></div>
@@ -463,7 +612,7 @@ export default function LowesChatWidget() {
               {!isMinimized && (
                 <button
                   onClick={() => setIsMinimized(true)}
-                  className="text-white hover:bg-[#6b7349] rounded p-1 transition-colors"
+                  className="text-white hover:bg-[#6d8a35] rounded p-1 transition-colors"
                   aria-label="Minimize"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -475,6 +624,7 @@ export default function LowesChatWidget() {
                 onClick={() => {
                   setIsOpen(false)
                   setIsMinimized(false)
+                  setUnreadBaseline(null)
                 }}
                 className="text-white hover:bg-[#6b7349] rounded p-1 transition-colors"
                 aria-label="Close"
@@ -509,7 +659,13 @@ export default function LowesChatWidget() {
                     <div className="flex flex-col h-full">
                       <div className="px-4 pt-4 pb-3 flex-shrink-0">
                         <h3 className="text-base font-bold text-gray-900 mb-2">Continue Conversation</h3>
-                        <p className="text-sm text-gray-600">Select a previous conversation or start a new one</p>
+                        <p className="text-sm text-gray-600">
+                          {workroomFiltered
+                            ? workroomFilter
+                              ? `Showing conversations for ${workroomFilter}`
+                              : 'Set your workroom in Profile to see conversations'
+                            : 'Select a previous conversation or start a new one'}
+                        </p>
                       </div>
                       
                       {previousConversations.length > 0 && (
@@ -522,7 +678,7 @@ export default function LowesChatWidget() {
                               >
                                 <button
                                   onClick={() => handleSelectConversation(conv)}
-                                  className="w-full text-left p-3 bg-white rounded-lg border border-gray-200 hover:border-[#80875d] hover:shadow-md transition-all"
+                                  className="w-full text-left p-3 bg-white rounded-lg border border-gray-200 hover:border-[#89ac44] hover:shadow-md transition-all"
                                 >
                                   <div className="flex items-start justify-between mb-1">
                                     <div className="flex-1 min-w-0">
@@ -535,14 +691,21 @@ export default function LowesChatWidget() {
                                         <span className="text-sm font-semibold text-gray-700">{conv.flooring_category}</span>
                                       </div>
                                     </div>
-                                    <span className={`px-2.5 py-1.5 text-sm font-bold rounded ${
-                                      conv.status === 'open' ? 'bg-blue-100 text-blue-800' :
-                                      conv.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800' :
-                                      conv.status === 'resolved' ? 'bg-green-100 text-green-800' :
-                                      'bg-gray-100 text-gray-800'
-                                    }`}>
-                                      {conv.status.replace('_', ' ').toUpperCase()}
-                                    </span>
+                                    <div className="flex items-center gap-2 flex-shrink-0">
+                                      {isConversationUnread(conv) && (
+                                        <span className="px-2 py-1 text-[11px] font-bold rounded-full bg-red-600 text-white shadow">
+                                          UNREAD
+                                        </span>
+                                      )}
+                                      <span className={`px-2.5 py-1.5 text-sm font-bold rounded ${
+                                        conv.status === 'open' ? 'bg-blue-100 text-blue-800' :
+                                        conv.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800' :
+                                        conv.status === 'resolved' ? 'bg-green-100 text-green-800' :
+                                        'bg-gray-100 text-gray-800'
+                                      }`}>
+                                        {conv.status.replace('_', ' ').toUpperCase()}
+                                      </span>
+                                    </div>
                                   </div>
                                 <div className="flex items-center justify-between mt-2">
                                   <div className="text-sm text-gray-500">
@@ -550,7 +713,10 @@ export default function LowesChatWidget() {
                                   </div>
                                   {/* Delete Button */}
                                   <button
-                                    onClick={(e) => handleDeleteConversation(conv.id, e)}
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      setConfirmDeleteConversationId(conv.id)
+                                    }}
                                     disabled={deletingConversationId === conv.id}
                                     className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100 disabled:opacity-50 disabled:cursor-not-allowed"
                                     title="Delete conversation"
@@ -576,6 +742,27 @@ export default function LowesChatWidget() {
                               <span className="text-xs text-gray-400 font-medium">Scroll for more</span>
                             </div>
                           )}
+                        </div>
+                      )}
+
+                      {previousConversations.length === 0 && !isLoadingConversations && (
+                        <div className="px-4 pb-6">
+                          <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+                            {workroomFiltered && !workroomFilter ? (
+                              <>
+                                <div className="font-semibold text-gray-900 mb-1">Workroom required</div>
+                                <div className="text-gray-600">
+                                  Go to <span className="font-medium">Settings / Profile</span> and set your workroom
+                                  (Tampa, Naples, Sarasota, etc.) to see only your conversations.
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <div className="font-semibold text-gray-900 mb-1">No conversations</div>
+                                <div className="text-gray-600">No conversations available for your workroom.</div>
+                              </>
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -604,10 +791,10 @@ export default function LowesChatWidget() {
                         }}
                         className="w-full px-4 py-2.5 flex items-center gap-2 hover:bg-gray-50 transition-colors border-b border-gray-200"
                       >
-                        <svg className="w-5 h-5 text-[#80875d]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5 text-[#89ac44]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                         </svg>
-                        <span className="font-semibold text-[#80875d]">All Chats</span>
+                        <span className="font-semibold text-[#89ac44]">All Chats</span>
                       </button>
                       
                       {/* Conversation Details Toggle */}
@@ -666,7 +853,7 @@ export default function LowesChatWidget() {
                                 {currentConversation.question_types.map((type, idx) => (
                                   <span
                                     key={idx}
-                                    className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#80875d] text-white shadow-sm"
+                                    className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#89ac44] text-white shadow-sm"
                                   >
                                     {type}
                                   </span>
@@ -683,7 +870,7 @@ export default function LowesChatWidget() {
                   <div className="flex-1 overflow-y-auto p-5 bg-gradient-to-b from-gray-50 via-white to-gray-50" style={{ maxHeight: '400px', minHeight: '200px' }}>
                       {messages.length === 0 ? (
                         <div className="text-center py-12">
-                          <div className="w-16 h-16 bg-gradient-to-br from-[#80875d] to-[#6b7349] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                          <div className="w-16 h-16 bg-gradient-to-br from-[#89ac44] to-[#6d8a35] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                             <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                             </svg>
@@ -704,7 +891,7 @@ export default function LowesChatWidget() {
                             {!isMine && !isSystem && (() => {
                               const senderPhoto = getSenderPhoto(message.sender_email)
                               return (
-                                <div className="w-12 h-12 bg-gradient-to-br from-[#80875d] to-[#6b7349] rounded-full flex items-center justify-center shadow-md flex-shrink-0 overflow-hidden ring-2 ring-white relative">
+                                <div className="w-12 h-12 bg-gradient-to-br from-[#89ac44] to-[#6d8a35] rounded-full flex items-center justify-center shadow-md flex-shrink-0 overflow-hidden ring-2 ring-white relative">
                                   {senderPhoto ? (
                                     <img 
                                       src={senderPhoto} 
@@ -738,7 +925,7 @@ export default function LowesChatWidget() {
                                   isSystem
                                     ? 'bg-transparent text-gray-500 mx-auto text-center text-xs max-w-md'
                                     : isMine
-                                    ? 'rounded-2xl px-5 py-3.5 bg-gradient-to-br from-[#80875d] to-[#6b7349] text-white rounded-br-md shadow-md'
+                                    ? 'rounded-2xl px-5 py-3.5 bg-gradient-to-br from-[#89ac44] to-[#6d8a35] text-white rounded-br-md shadow-md'
                                     : 'rounded-2xl px-5 py-3.5 bg-white text-gray-900 border border-gray-200 rounded-bl-md shadow-md'
                                 }`}
                               >
@@ -757,7 +944,7 @@ export default function LowesChatWidget() {
                               </div>
                             </div>
                             {isMine && (
-                              <div className="w-12 h-12 bg-gradient-to-br from-[#80875d] to-[#6b7349] rounded-full flex items-center justify-center shadow-md flex-shrink-0 overflow-hidden relative ring-2 ring-white">
+                              <div className="w-12 h-12 bg-gradient-to-br from-[#89ac44] to-[#6d8a35] rounded-full flex items-center justify-center shadow-md flex-shrink-0 overflow-hidden relative ring-2 ring-white">
                                 {user?.photoUrl ? (
                                   <>
                                     <img 
@@ -790,7 +977,7 @@ export default function LowesChatWidget() {
                     {error && (
                       <div className="mb-3 px-4 py-2.5 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-lg text-sm font-medium">{error}</div>
                     )}
-                    <form onSubmit={handleSendMessage} className="flex items-center gap-3 bg-gray-50 rounded-2xl p-2 border-2 border-gray-200 focus-within:border-[#80875d] focus-within:bg-white transition-all">
+                    <form onSubmit={handleSendMessage} className="flex items-center gap-3 bg-gray-50 rounded-2xl p-2 border-2 border-gray-200 focus-within:border-[#89ac44] focus-within:bg-white transition-all">
                       <input
                         type="text"
                         value={newMessage}
@@ -802,7 +989,7 @@ export default function LowesChatWidget() {
                       <button
                         type="submit"
                         disabled={!newMessage.trim() || isSending}
-                        className="px-6 py-3 bg-gradient-to-r from-[#80875d] to-[#6b7349] text-white rounded-xl text-base font-bold hover:from-[#6b7349] hover:to-[#5a623e] focus:outline-none focus:ring-2 focus:ring-[#80875d] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 flex items-center gap-2 min-w-[100px] justify-center"
+                        className="px-6 py-3 bg-gradient-to-r from-[#89ac44] to-[#6d8a35] text-white rounded-xl text-base font-bold hover:from-[#6d8a35] hover:to-[#5a6f2b] focus:outline-none focus:ring-2 focus:ring-[#89ac44] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 flex items-center gap-2 min-w-[100px] justify-center"
                       >
                         {isSending ? (
                           <>
@@ -827,6 +1014,60 @@ export default function LowesChatWidget() {
               )}
             </>
           )}
+        </div>
+      )}
+
+      {/* Delete confirmation modal */}
+      {confirmDeleteConversationId && (
+        <div
+          className="fixed inset-0 flex items-center justify-center p-4"
+          style={{ zIndex: 9999 }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Delete conversation"
+          onClick={() => setConfirmDeleteConversationId(null)}
+        >
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+          <div
+            className="relative w-full max-w-md rounded-2xl bg-white shadow-2xl border border-gray-200 overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-5 py-4 border-b border-gray-100 flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full bg-red-50 text-red-700 flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 4h.01M10.29 3.86l-7.5 13A2 2 0 004.53 20h14.94a2 2 0 001.74-3.04l-7.5-13a2 2 0 00-3.42 0z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <div className="text-base font-semibold text-gray-900">Delete conversation?</div>
+                <div className="text-sm text-gray-600 mt-1">
+                  This action cannot be undone.
+                </div>
+              </div>
+            </div>
+
+            <div className="px-5 py-4 flex items-center justify-end gap-3 bg-gray-50">
+              <button
+                type="button"
+                className="px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 font-semibold hover:bg-gray-100 transition-colors"
+                onClick={() => setConfirmDeleteConversationId(null)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="px-4 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                disabled={deletingConversationId === confirmDeleteConversationId}
+                onClick={async () => {
+                  const id = confirmDeleteConversationId
+                  setConfirmDeleteConversationId(null)
+                  await handleDeleteConversation(id)
+                }}
+              >
+                {deletingConversationId === confirmDeleteConversationId ? 'Deleting…' : 'Delete'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </>

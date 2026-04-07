@@ -54,8 +54,8 @@ They are:
 ## Your Current Keys
 
 The keys you provided:
-- `sb_publishable_Vqo7Xww4Go4iQJ7U44t9vQ_ZbZokbID`
-- `sb_secret_1u_e0Fo-lp_LCy8Zjsw2nQ_7OWZqMBH`
+- `<REDACTED_ANON_KEY>`
+- `<REDACTED_SERVICE_ROLE_KEY>`
 
 These **don't match** the standard Supabase format. You might be looking at:
 - Different service's API keys

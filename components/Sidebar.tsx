@@ -4,10 +4,20 @@ import { useState } from 'react'
 import { useData } from '@/context/DataContext'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
-import ExportButton from '@/components/ExportButton'
 import DualFileUpload from '@/components/DualFileUpload'
+import YearlyDualFileUpload from '@/components/YearlyDualFileUpload'
 import { useAuth } from '@/components/AuthContext'
-import { X } from 'lucide-react'
+import { 
+  X, 
+  BarChart3, 
+  ClipboardList, 
+  Database, 
+  Store, 
+  FileText, 
+  DollarSign, 
+  Target, 
+  Calculator 
+} from 'lucide-react'
 
 interface SidebarProps {
   selectedWorkroom: string
@@ -30,7 +40,8 @@ export default function Sidebar({
 }: SidebarProps) {
   const { data } = useData()
   const pathname = usePathname()
-  const { isAdmin } = useAuth()
+  const { isAdmin, isOwner, isAccounting } = useAuth()
+  const canViewAdminPages = isAdmin || isOwner
 
   // Helper function to check if a workroom name is valid (not "Location #" or similar)
   const isValidWorkroomName = (name: string): boolean => {
@@ -79,6 +90,7 @@ export default function Sidebar({
             className={`sidebar-nav-button ${isActive('/') ? 'sidebar-nav-button--active' : ''}`}
             onClick={handleLinkClick}
           >
+            <BarChart3 size={18} className="mr-2 flex-shrink-0" />
             Visual Breakdown
           </Link>
           <Link
@@ -88,63 +100,94 @@ export default function Sidebar({
             }`}
             onClick={handleLinkClick}
           >
+            <ClipboardList size={18} className="mr-2 flex-shrink-0" />
             Survey Misc
           </Link>
-          {isAdmin && (
+          <Link
+            href="/yearly-breakdown"
+            className={`sidebar-nav-button ${
+              isActive('/yearly-breakdown') ? 'sidebar-nav-button--active' : ''
+            }`}
+            onClick={handleLinkClick}
+          >
+            <BarChart3 size={18} className="mr-2 flex-shrink-0" />
+            Yearly Breakdown
+          </Link>
+          <Link
+            href="/lowes-q1-tracker"
+            className={`sidebar-nav-button ${
+              isActive('/lowes-q1-tracker') ? 'sidebar-nav-button--active' : ''
+            }`}
+            onClick={handleLinkClick}
+          >
+            <Target size={18} className="mr-2 flex-shrink-0" />
+            Q1 Tracker
+          </Link>
+          {(canViewAdminPages || isAccounting) && (
             <>
+              {canViewAdminPages && (
+                <>
+                  <Link
+                    href="/finance-hub"
+                    className={`sidebar-nav-button ${
+                      isActive('/finance-hub') ? 'sidebar-nav-button--active' : ''
+                    }`}
+                    onClick={handleLinkClick}
+                  >
+                    <DollarSign size={18} className="mr-2 flex-shrink-0" />
+                    Finance Hub
+                  </Link>
+                  <Link
+                    href="/store"
+                    className={`sidebar-nav-button ${
+                      isActive('/store') ? 'sidebar-nav-button--active' : ''
+                    }`}
+                    onClick={handleLinkClick}
+                  >
+                    <Store size={18} className="mr-2 flex-shrink-0" />
+                    Store Overview
+                  </Link>
+                  <Link
+                    href="/workroom-report"
+                    className={`sidebar-nav-button ${
+                      isActive('/workroom-report') ? 'sidebar-nav-button--active' : ''
+                    }`}
+                    onClick={handleLinkClick}
+                  >
+                    <FileText size={18} className="mr-2 flex-shrink-0" />
+                    Workroom Report
+                  </Link>
+                  <Link
+                    href="/calculator"
+                    className={`sidebar-nav-button ${
+                      isActive('/calculator') ? 'sidebar-nav-button--active' : ''
+                    }`}
+                    onClick={handleLinkClick}
+                  >
+                    <Calculator size={18} className="mr-2 flex-shrink-0" />
+                    Calculator
+                  </Link>
+                </>
+              )}
               <Link
-                href="/analytics"
+                href="/bonus"
                 className={`sidebar-nav-button ${
-                  isActive('/analytics') ? 'sidebar-nav-button--active' : ''
+                  isActive('/bonus') ? 'sidebar-nav-button--active' : ''
                 }`}
                 onClick={handleLinkClick}
               >
-                Workroom Data
-              </Link>
-              <Link
-                href="/store"
-                className={`sidebar-nav-button ${
-                  isActive('/store') ? 'sidebar-nav-button--active' : ''
-                }`}
-                onClick={handleLinkClick}
-              >
-                Store Overview
-              </Link>
-              <Link
-                href="/workroom-report"
-                className={`sidebar-nav-button ${
-                  isActive('/workroom-report') ? 'sidebar-nav-button--active' : ''
-                }`}
-                onClick={handleLinkClick}
-              >
-                Workroom Report
-              </Link>
-              <Link
-                href="/finance-hub"
-                className={`sidebar-nav-button ${
-                  isActive('/finance-hub') ? 'sidebar-nav-button--active' : ''
-                }`}
-                onClick={handleLinkClick}
-              >
-                Finance Hub
+                <DollarSign size={18} className="mr-2 flex-shrink-0" />
+                Bonus
               </Link>
             </>
           )}
         </nav>
 
-        {isAdmin && (
-          <>
-            <div className="sidebar-filters">
-              {/* Export Button */}
-              <ExportButton />
-            </div>
-          </>
-        )}
       </div>
 
-      {isAdmin && (
+      {canViewAdminPages && (
         <div className="sidebar-upload">
-          <DualFileUpload />
+          {pathname === '/yearly-breakdown' ? <YearlyDualFileUpload /> : <DualFileUpload />}
         </div>
       )}
     </aside>

@@ -35,7 +35,7 @@
    - ❌ Any red errors = Problem
 
 **Step 3: Check database connection**
-1. Visit: `https://your-app.vercel.app/api/db-check`
+1. Visit: `https://pod.floorinteriorservices.com/api/db-check`
 2. Should show:
    ```json
    {
@@ -88,7 +88,7 @@ The file is at: `/Users/samuelendale/Documents/FIS/database/schema.sql`
 
 1. **Test connection:**
    ```
-   https://your-app.vercel.app/api/db-check
+   https://pod.floorinteriorservices.com/api/db-check
    ```
 
 2. **Check tables exist:**

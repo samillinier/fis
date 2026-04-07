@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     const { workroom, role } = body
 
     // Validate role
-    if (role && !['GM', 'PC', 'Corporate', 'President', 'Other'].includes(role)) {
+    if (role && !['GM', 'PC', 'Corporate', 'President', 'Finance', 'IT', 'Other'].includes(role)) {
       return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
     }
 

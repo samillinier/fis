@@ -1,8 +1,8 @@
 # Final Troubleshooting: "undefined didn't connect"
 
 ## Current Status
-- ✅ Code updated to use: `https://fis-phi.vercel.app`
-- ✅ Redirect URI should be: `https://fis-phi.vercel.app/api/quickbooks/callback`
+- ✅ Code updated to use: `https://pod.floorinteriorservices.com`
+- ✅ Redirect URI should be: `https://pod.floorinteriorservices.com/api/quickbooks/callback`
 - ❌ Still getting "undefined didn't connect" error
 
 ## Critical Verification Steps
@@ -13,28 +13,28 @@
 2. Select app: **FISPOD**
 3. Go to **Settings** → **Redirect URIs** → **Development** tab
 4. **Check the EXACT URI listed:**
-   - Should be: `https://fis-phi.vercel.app/api/quickbooks/callback`
-   - NOT: `https://fis-phi.vercel.app/`
-   - NOT: `https://fis-bcbs9n06m-samilliniers-projects.vercel.app/api/quickbooks/callback`
+   - Should be: `https://pod.floorinteriorservices.com/api/quickbooks/callback`
+   - NOT: `https://pod.floorinteriorservices.com/`
+   - NOT: `https://pod.floorinteriorservices.com/api/quickbooks/callback`
 
 5. **If it's the old domain:**
    - Delete it
-   - Add the new one: `https://fis-phi.vercel.app/api/quickbooks/callback`
+   - Add the new one: `https://pod.floorinteriorservices.com/api/quickbooks/callback`
    - Click **Save**
    - Wait 15 minutes
 
 6. **If it's not there at all:**
    - Click "+ Add URI"
-   - Type: `https://fis-phi.vercel.app/api/quickbooks/callback`
+   - Type: `https://pod.floorinteriorservices.com/api/quickbooks/callback`
    - Click **Save**
    - Wait 15 minutes
 
 ### Step 2: Check Browser Console
 
-1. Go to: `https://fis-phi.vercel.app/finance-hub`
+1. Go to: `https://pod.floorinteriorservices.com/finance-hub`
 2. Press **F12** → **Console** tab
 3. Click "Connect to QuickBooks"
-4. Look for: `Redirect URI: https://fis-phi.vercel.app/api/quickbooks/callback`
+4. Look for: `Redirect URI: https://pod.floorinteriorservices.com/api/quickbooks/callback`
 5. **Copy that exact value**
 
 6. **Compare it with Intuit Dashboard:**
@@ -48,9 +48,9 @@
 In Vercel Dashboard → Settings → Environment Variables:
 
 Check `NEXT_PUBLIC_QUICKBOOKS_PRODUCTION_DOMAIN`:
-- Should be: `https://fis-phi.vercel.app`
-- Should NOT be: `https://fis-phi.vercel.app/api/quickbooks/callback`
-- Should NOT be: `https://fis-bcbs9n06m-samilliniers-projects.vercel.app`
+- Should be: `https://pod.floorinteriorservices.com`
+- Should NOT be: `https://pod.floorinteriorservices.com/api/quickbooks/callback`
+- Should NOT be: `https://pod.floorinteriorservices.com`
 
 ### Step 4: Check App Status
 
@@ -72,7 +72,7 @@ Check `NEXT_PUBLIC_QUICKBOOKS_PRODUCTION_DOMAIN`:
 
 ### Issue 1: Redirect URI Not Updated (90% likely)
 - **Symptom:** Still using old domain in Intuit Dashboard
-- **Fix:** Delete old URI, add new one: `https://fis-phi.vercel.app/api/quickbooks/callback`
+- **Fix:** Delete old URI, add new one: `https://pod.floorinteriorservices.com/api/quickbooks/callback`
 
 ### Issue 2: App Not Activated (5% likely)
 - **Symptom:** App status is "Pending" or "Inactive"
@@ -93,11 +93,11 @@ Check `NEXT_PUBLIC_QUICKBOOKS_PRODUCTION_DOMAIN`:
 5. Click **"+ Add URI"**
 6. **Type manually** (don't copy-paste):
    ```
-   https://fis-phi.vercel.app/api/quickbooks/callback
+   https://pod.floorinteriorservices.com/api/quickbooks/callback
    ```
 7. **Double-check:**
    - Starts with `https://`
-   - Domain: `fis-phi.vercel.app`
+   - Domain: `pod.floorinteriorservices.com`
    - Path: `/api/quickbooks/callback`
    - No trailing slash
    - All lowercase
@@ -108,7 +108,7 @@ Check `NEXT_PUBLIC_QUICKBOOKS_PRODUCTION_DOMAIN`:
 
 1. Vercel Dashboard → Settings → Environment Variables
 2. Check `NEXT_PUBLIC_QUICKBOOKS_PRODUCTION_DOMAIN`
-3. Should be: `https://fis-phi.vercel.app`
+3. Should be: `https://pod.floorinteriorservices.com`
 4. If different, update it
 5. Redeploy app
 
@@ -116,7 +116,7 @@ Check `NEXT_PUBLIC_QUICKBOOKS_PRODUCTION_DOMAIN`:
 
 1. Wait 15 minutes after Intuit Dashboard changes
 2. Clear browser cache
-3. Go to: `https://fis-phi.vercel.app/finance-hub`
+3. Go to: `https://pod.floorinteriorservices.com/finance-hub`
 4. Press F12 → Console
 5. Click "Connect to QuickBooks"
 6. Check the logged "Redirect URI" value
@@ -133,7 +133,7 @@ After verifying all of the above, if it still doesn't work:
 2. **Share with Support:**
    - App ID: `694ad793-ff6f-442d-8fce-1ece6e00117b`
    - App Name: `FISPOD`
-   - Redirect URI: `https://fis-phi.vercel.app/api/quickbooks/callback`
+   - Redirect URI: `https://pod.floorinteriorservices.com/api/quickbooks/callback`
    - Environment: Development
    - Error: "undefined didn't connect"
 
@@ -146,14 +146,14 @@ After verifying all of the above, if it still doesn't work:
 
 Before trying again, verify:
 
-- [ ] Redirect URI in Intuit Dashboard: `https://fis-phi.vercel.app/api/quickbooks/callback`
+- [ ] Redirect URI in Intuit Dashboard: `https://pod.floorinteriorservices.com/api/quickbooks/callback`
 - [ ] Redirect URI matches browser console output EXACTLY
-- [ ] `NEXT_PUBLIC_QUICKBOOKS_PRODUCTION_DOMAIN` = `https://fis-phi.vercel.app` in Vercel
+- [ ] `NEXT_PUBLIC_QUICKBOOKS_PRODUCTION_DOMAIN` = `https://pod.floorinteriorservices.com` in Vercel
 - [ ] App Name = `FISPOD` in Intuit Dashboard
 - [ ] App Status = "In Development" or "Active"
 - [ ] Waited 15 minutes after Intuit Dashboard changes
 - [ ] App redeployed after environment variable changes
-- [ ] Testing on: `https://fis-phi.vercel.app/finance-hub`
+- [ ] Testing on: `https://pod.floorinteriorservices.com/finance-hub`
 
 ## Next Steps
 

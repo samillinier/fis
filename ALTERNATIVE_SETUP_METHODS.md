@@ -144,7 +144,7 @@ Since you have Supabase through Vercel:
 
 **Just to verify connection works:**
 
-1. Visit: `https://your-app.vercel.app/api/db-check`
+1. Visit: `https://pod.floorinteriorservices.com/api/db-check`
 2. It will tell you if tables are missing
 3. Then you know you need to run the schema
 

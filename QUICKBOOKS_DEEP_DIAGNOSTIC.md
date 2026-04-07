@@ -7,7 +7,7 @@
 
 ### Step 1: Check Browser Console (CRITICAL)
 
-1. Go to: `https://fis-bcbs9n06m-samilliniers-projects.vercel.app/finance-hub`
+1. Go to: `https://pod.floorinteriorservices.com/finance-hub`
 2. Press **F12** to open Developer Tools
 3. Go to **Console** tab
 4. Click "Connect to QuickBooks"
@@ -15,7 +15,7 @@
    ```
    === QuickBooks OAuth Configuration ===
    Client ID: 694ad793-ff6f-442d-8fce-1ece6e00117b
-   Redirect URI: https://fis-bcbs9n06m-samilliniers-projects.vercel.app/api/quickbooks/callback
+   Redirect URI: https://pod.floorinteriorservices.com/api/quickbooks/callback
    ```
 
 6. **Copy the EXACT "Redirect URI" value** from the console
@@ -62,7 +62,7 @@ Sometimes Intuit needs a fresh entry:
 5. Click **"+ Add URI"**
 6. **Type it manually** (don't copy-paste):
    ```
-   https://fis-bcbs9n06m-samilliniers-projects.vercel.app/api/quickbooks/callback
+   https://pod.floorinteriorservices.com/api/quickbooks/callback
    ```
 7. Click **Save**
 8. Wait 10-15 minutes
@@ -73,7 +73,7 @@ Sometimes Intuit needs a fresh entry:
 In Vercel Dashboard → Settings → Environment Variables:
 
 Check `NEXT_PUBLIC_QUICKBOOKS_PRODUCTION_DOMAIN`:
-- Should be: `https://fis-bcbs9n06m-samilliniers-projects.vercel.app`
+- Should be: `https://pod.floorinteriorservices.com`
 - Should NOT include `/api/quickbooks/callback` (code adds that)
 
 ### Step 7: Check Network Tab

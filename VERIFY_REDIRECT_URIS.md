@@ -5,12 +5,12 @@
 You've already added some redirect URIs! Here's what's currently configured:
 
 ### ✅ Already Added:
-1. `https://fis-he6w.vercel.app/signin` (appears twice - you may want to remove the duplicate)
+1. `https://pod.floorinteriorservices.com/signin` (appears twice - you may want to remove the duplicate)
 2. `http://localhost:3000/signin`
 
 ### ⚠️ Missing (Recommended to Add):
 
-1. **`https://fis-he6w.vercel.app`** (without `/signin`)
+1. **`https://pod.floorinteriorservices.com`** (without `/signin`)
    - Some authentication flows redirect to the root URL
    - Add this for better compatibility
 
@@ -23,20 +23,20 @@ You've already added some redirect URIs! Here's what's currently configured:
 
 Click **"+ Add Redirect URI"** and add:
 
-- `https://fis-he6w.vercel.app` (root URL)
+- `https://pod.floorinteriorservices.com` (root URL)
 - `http://localhost:3000` (root URL for local dev)
 
 ### 2. Remove Duplicate (Optional):
 
-If you see `https://fis-he6w.vercel.app/signin` listed twice:
+If you see `https://pod.floorinteriorservices.com/signin` listed twice:
 - Check one of the duplicates
 - Click **"Delete"** button to remove it
 
 ### 3. Final Configuration Should Have:
 
 **For Production (Vercel):**
-- ✅ `https://fis-he6w.vercel.app/signin`
-- ⚠️ `https://fis-he6w.vercel.app` (add this)
+- ✅ `https://pod.floorinteriorservices.com/signin`
+- ⚠️ `https://pod.floorinteriorservices.com` (add this)
 
 **For Local Development:**
 - ✅ `http://localhost:3000/signin`
@@ -47,7 +47,7 @@ If you see `https://fis-he6w.vercel.app/signin` listed twice:
 1. **Add Root URLs:**
    - Click **"+ Add Redirect URI"**
    - Select **"Single-page application"** platform
-   - Enter: `https://fis-he6w.vercel.app`
+   - Enter: `https://pod.floorinteriorservices.com`
    - Click **"Add"**
    
    - Click **"+ Add Redirect URI"** again
@@ -65,14 +65,14 @@ If you see `https://fis-he6w.vercel.app/signin` listed twice:
    - Wait 5-10 minutes for changes to propagate
 
 5. **Test:**
-   - Go to: https://fis-he6w.vercel.app/signin
+   - Go to: https://pod.floorinteriorservices.com/signin
    - Try sign-in again
 
 ## ✅ Expected Final List:
 
 After adding the missing URIs, you should have:
-- `https://fis-he6w.vercel.app/signin`
-- `https://fis-he6w.vercel.app`
+- `https://pod.floorinteriorservices.com/signin`
+- `https://pod.floorinteriorservices.com`
 - `http://localhost:3000/signin`
 - `http://localhost:3000`
 

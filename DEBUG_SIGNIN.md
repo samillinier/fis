@@ -1,11 +1,11 @@
 # 🔍 Debug: Sign-In Page Not Loading
 
-## Issue: https://fis-he6w.vercel.app/signin shows nothing
+## Issue: https://pod.floorinteriorservices.com/signin shows nothing
 
 ## 🔍 Quick Checks:
 
 ### 1. Check Browser Console
-- Open: https://fis-he6w.vercel.app/signin
+- Open: https://pod.floorinteriorservices.com/signin
 - Press **F12** (or Cmd+Option+I on Mac)
 - Check **Console** tab for errors
 - Check **Network** tab for failed requests
@@ -62,8 +62,8 @@
 **Fix:**
 - Go to Azure Portal → App Registrations → "FIS POD"
 - Authentication → Single-page application
-- Add redirect URI: `https://fis-he6w.vercel.app/signin`
-- Add redirect URI: `https://fis-he6w.vercel.app`
+- Add redirect URI: `https://pod.floorinteriorservices.com/signin`
+- Add redirect URI: `https://pod.floorinteriorservices.com`
 - Save and wait 5-10 minutes
 
 ## 🛠️ Debugging Steps:
@@ -81,7 +81,7 @@
 3. Make sure they're enabled for **Production** environment
 
 ### Step 3: Check Browser Console
-1. Open: https://fis-he6w.vercel.app/signin
+1. Open: https://pod.floorinteriorservices.com/signin
 2. Open Developer Tools (F12)
 3. Check:
    - **Console** tab - any red errors?
@@ -89,7 +89,7 @@
    - **Sources** tab - can you see the page code?
 
 ### Step 4: Test Home Page
-- Try: https://fis-he6w.vercel.app
+- Try: https://pod.floorinteriorservices.com
 - Does the home page load?
 - If home page works but sign-in doesn't, it's a routing issue
 
@@ -111,8 +111,8 @@
 1. Azure Portal: https://portal.azure.com
 2. Azure Active Directory → App registrations → "FIS POD"
 3. Authentication → Single-page application
-4. Add: `https://fis-he6w.vercel.app/signin`
-5. Add: `https://fis-he6w.vercel.app`
+4. Add: `https://pod.floorinteriorservices.com/signin`
+5. Add: `https://pod.floorinteriorservices.com`
 6. Save
 
 ## 📝 What to Check:

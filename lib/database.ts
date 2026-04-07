@@ -85,6 +85,169 @@ export async function fetchDashboardData(): Promise<DashboardData> {
   }
 }
 
+// ============================================================================
+// Yearly Breakdown Data (Supabase via API routes)
+// ============================================================================
+export async function fetchYearlyDashboardData(year: number): Promise<DashboardData> {
+  const authHeader = getAuthHeader()
+  if (!authHeader) {
+    return { workrooms: [] }
+  }
+
+  try {
+    const response = await fetch(`/api/yearly-data?year=${encodeURIComponent(String(year))}`, {
+      method: 'GET',
+      headers: {
+        Authorization: authHeader,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('❌ [fetchYearlyDashboardData] Failed to fetch:', response.status, errorText)
+      return { workrooms: [] }
+    }
+
+    const data = await response.json()
+    return {
+      workrooms: data.workrooms || [],
+      ...(data.rawColumnLValues && { rawColumnLValues: data.rawColumnLValues }),
+      ...(data.rawCraftValues && { rawCraftValues: data.rawCraftValues }),
+      ...(data.rawProfValues && { rawProfValues: data.rawProfValues }),
+      ...(data.rawLaborCategories && { rawLaborCategories: data.rawLaborCategories }),
+      ...(data.rawCompanyValues && { rawCompanyValues: data.rawCompanyValues }),
+      ...(data.rawInstallerNames && { rawInstallerNames: data.rawInstallerNames }),
+      ...(data.excelFileTotalRows && { excelFileTotalRows: data.excelFileTotalRows }),
+    } as DashboardData
+  } catch (error: any) {
+    console.error('❌ [fetchYearlyDashboardData] Error:', error)
+    return { workrooms: [] }
+  }
+}
+
+export async function saveYearlyDashboardData(year: number, data: DashboardData): Promise<boolean> {
+  const authHeader = getAuthHeader()
+  if (!authHeader) {
+    console.error('❌ [saveYearlyDashboardData] No user logged in. Cannot save.')
+    return false
+  }
+
+  try {
+    const response = await fetch(`/api/yearly-data?year=${encodeURIComponent(String(year))}`, {
+      method: 'POST',
+      headers: {
+        Authorization: authHeader,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('❌ [saveYearlyDashboardData] Failed to save:', response.status, errorText)
+      return false
+    }
+
+    return true
+  } catch (error: any) {
+    console.error('❌ [saveYearlyDashboardData] Error saving:', error)
+    return false
+  }
+}
+
+export async function clearYearlyDashboardData(year: number): Promise<boolean> {
+  const authHeader = getAuthHeader()
+  if (!authHeader) return true
+
+  try {
+    const response = await fetch(`/api/yearly-data?year=${encodeURIComponent(String(year))}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: authHeader,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.warn('⚠️ [clearYearlyDashboardData] Failed to clear:', response.status, errorText)
+      return false
+    }
+    return true
+  } catch (error: any) {
+    console.error('❌ [clearYearlyDashboardData] Error:', error)
+    return false
+  }
+}
+
+export async function saveYearlyFileNames(
+  year: number,
+  visualFileName: string | null,
+  surveyFileName: string | null
+): Promise<boolean> {
+  // localStorage backup
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(`fis-yearly-visual-file-name:${year}`, visualFileName || '')
+      localStorage.setItem(`fis-yearly-survey-file-name:${year}`, surveyFileName || '')
+    } catch {
+      // ignore
+    }
+  }
+
+  const authHeader = getAuthHeader()
+  if (!authHeader) return true
+
+  try {
+    const response = await fetch(`/api/yearly-file-names?year=${encodeURIComponent(String(year))}`, {
+      method: 'POST',
+      headers: {
+        Authorization: authHeader,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ visualFileName, surveyFileName }),
+    })
+    if (!response.ok) return true
+    return true
+  } catch (error) {
+    console.error('Error saving yearly file names:', error)
+    return true
+  }
+}
+
+export async function loadYearlyFileNames(year: number): Promise<{ visualFileName: string | null; surveyFileName: string | null }> {
+  const authHeader = getAuthHeader()
+  if (!authHeader) {
+    if (typeof window === 'undefined') return { visualFileName: null, surveyFileName: null }
+    return {
+      visualFileName: localStorage.getItem(`fis-yearly-visual-file-name:${year}`) || null,
+      surveyFileName: localStorage.getItem(`fis-yearly-survey-file-name:${year}`) || null,
+    }
+  }
+
+  try {
+    const response = await fetch(`/api/yearly-file-names?year=${encodeURIComponent(String(year))}`, {
+      method: 'GET',
+      headers: {
+        Authorization: authHeader,
+        'Content-Type': 'application/json',
+      },
+    })
+    if (!response.ok) {
+      return { visualFileName: null, surveyFileName: null }
+    }
+    const data = await response.json()
+    return {
+      visualFileName: data.visualFileName || null,
+      surveyFileName: data.surveyFileName || null,
+    }
+  } catch (error: any) {
+    console.error('Error fetching yearly file names:', error)
+    return { visualFileName: null, surveyFileName: null }
+  }
+}
+
 // Save data to Supabase (visual_data + survey_data tables)
 export async function saveDashboardData(data: DashboardData): Promise<boolean> {
   console.log('💾 [saveDashboardData] Called with', data.workrooms?.length || 0, 'workrooms')

@@ -14,8 +14,8 @@
 3. Click **"Authentication"** (left menu)
 4. Scroll to **"Single-page application"** section
 5. Click **"Add URI"** and add:
-   - `https://fis-he6w.vercel.app/signin`
-   - `https://fis-he6w.vercel.app`
+   - `https://pod.floorinteriorservices.com/signin`
+   - `https://pod.floorinteriorservices.com`
 6. Click **"Save"** at the top
 7. **Wait 5-10 minutes** for Azure to update
 
@@ -35,7 +35,7 @@
 
 **Fix:**
 - Check browser address bar for popup blocked notification
-- Click to allow popups for `fis-he6w.vercel.app`
+- Click to allow popups for `pod.floorinteriorservices.com`
 - Try in Incognito/Private window
 - Disable popup blocker temporarily
 
@@ -43,7 +43,7 @@
 
 **Do this first to see what's wrong:**
 
-1. Open: https://fis-he6w.vercel.app/signin
+1. Open: https://pod.floorinteriorservices.com/signin
 2. Press **F12** (or Cmd+Option+I on Mac)
 3. Click **Console** tab
 4. Click the "Sign in with Microsoft" button

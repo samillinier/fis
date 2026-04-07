@@ -11,8 +11,38 @@ import { workroomStoreData } from '@/data/workroomStoreData'
 import { getStoreName } from '@/data/storeNames'
 import { saveFileNames, loadFileNames } from '@/lib/database'
 
-// SUPER ADMIN - Only this user can upload data
-const SUPER_ADMIN_EMAIL = 'sbiru@fiscorponline.com'
+const VISUAL_UPLOAD_DATE_KEY = 'fis-visual-upload-date'
+const SURVEY_UPLOAD_DATE_KEY = 'fis-survey-upload-date'
+const NOTIFICATION_UPLOAD_RESET_AT_KEY = 'fis-upload-notification-reset-at'
+
+function loadStoredUploadDate(key: string): string | null {
+  if (typeof window === 'undefined') return null
+  try {
+    return localStorage.getItem(key)
+  } catch {
+    return null
+  }
+}
+
+function saveStoredUploadDate(key: string, value: string | null) {
+  if (typeof window === 'undefined') return
+  try {
+    if (value) {
+      localStorage.setItem(key, value)
+    } else {
+      localStorage.removeItem(key)
+    }
+  } catch {
+    // Ignore localStorage write failures.
+  }
+}
+
+function formatUploadDate(value: string | null): string {
+  if (!value) return 'Not uploaded yet'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return 'Not uploaded yet'
+  return date.toLocaleDateString()
+}
 
 export default function DualFileUpload() {
   const [isUploadingVisual, setIsUploadingVisual] = useState(false)
@@ -22,9 +52,13 @@ export default function DualFileUpload() {
   const [deleteProgress, setDeleteProgress] = useState<string>('')
   const [visualFileName, setVisualFileName] = useState<string | null>(null)
   const [surveyFileName, setSurveyFileName] = useState<string | null>(null)
+  const [visualUploadedAt, setVisualUploadedAt] = useState<string | null>(null)
+  const [surveyUploadedAt, setSurveyUploadedAt] = useState<string | null>(null)
   const { data, setData } = useData()
   const { showNotification } = useNotification()
-  const { user } = useAuth()
+  const { user, isAdmin, isOwner } = useAuth()
+  const canViewUploadArea = isAdmin || isOwner
+  const canEditUploads = isAdmin
   const visualFileInputRef = useRef<HTMLInputElement>(null)
   const surveyFileInputRef = useRef<HTMLInputElement>(null)
 
@@ -33,6 +67,8 @@ export default function DualFileUpload() {
     const loadFileNamesData = async () => {
       try {
         const { visualFileName, surveyFileName } = await loadFileNames()
+        const storedVisualUploadDate = loadStoredUploadDate(VISUAL_UPLOAD_DATE_KEY)
+        const storedSurveyUploadDate = loadStoredUploadDate(SURVEY_UPLOAD_DATE_KEY)
         
         // Check if data exists - use both localStorage and current data state
         const storedData = typeof window !== 'undefined' ? localStorage.getItem('fis-dashboard-data') : null
@@ -43,29 +79,37 @@ export default function DualFileUpload() {
         // Set file names if they exist and data exists
         if (visualFileName && hasData) {
           setVisualFileName(visualFileName)
+          setVisualUploadedAt(storedVisualUploadDate)
         } else if (visualFileName && !hasData) {
           // Clear file name if no data exists
           await saveFileNames(null, surveyFileName)
           setVisualFileName(null)
+          setVisualUploadedAt(null)
+          saveStoredUploadDate(VISUAL_UPLOAD_DATE_KEY, null)
         } else if (!visualFileName) {
           // Don't set if no file name (might not be loaded yet)
           // Only clear if we explicitly know there's no data
           if (!hasData) {
             setVisualFileName(null)
+            setVisualUploadedAt(null)
           }
         }
         
         if (surveyFileName && hasData) {
           setSurveyFileName(surveyFileName)
+          setSurveyUploadedAt(storedSurveyUploadDate)
         } else if (surveyFileName && !hasData) {
           // Clear file name if no data exists
           await saveFileNames(visualFileName, null)
           setSurveyFileName(null)
+          setSurveyUploadedAt(null)
+          saveStoredUploadDate(SURVEY_UPLOAD_DATE_KEY, null)
         } else if (!surveyFileName) {
           // Don't set if no file name (might not be loaded yet)
           // Only clear if we explicitly know there's no data
           if (!hasData) {
             setSurveyFileName(null)
+            setSurveyUploadedAt(null)
           }
         }
       } catch (error) {
@@ -91,6 +135,60 @@ export default function DualFileUpload() {
   const saveSurveyFileName = async (fileName: string | null) => {
     setSurveyFileName(fileName)
     await saveFileNames(visualFileName, fileName)
+  }
+
+  const replaceNotificationsWithUploadNotice = async (message: string) => {
+    if (!user?.email) return
+
+    const authHeader = `Bearer ${user.email}`
+    const resetAt = new Date().toISOString()
+    saveStoredUploadDate(NOTIFICATION_UPLOAD_RESET_AT_KEY, resetAt)
+
+    try {
+      const deleteResponse = await fetch('/api/notifications', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: authHeader,
+          'x-notification-delete-intent': 'system',
+          'x-allow-delete-reschedule': 'true',
+        },
+        body: JSON.stringify({ deleteAll: true }),
+      })
+
+      if (!deleteResponse.ok) {
+        const error = await deleteResponse.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('Failed to clear existing notifications before upload notice:', error)
+      }
+    } catch (error) {
+      console.error('Error clearing notifications before upload notice:', error)
+    }
+
+    try {
+      const createResponse = await fetch('/api/notifications', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: authHeader,
+        },
+        body: JSON.stringify({
+          workroom: 'System',
+          message,
+          type: 'info',
+        }),
+      })
+
+      if (!createResponse.ok) {
+        const error = await createResponse.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('Failed to create upload notification:', error)
+      }
+    } catch (error) {
+      console.error('Error creating upload notification:', error)
+    }
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('notifications:refresh'))
+    }
   }
 
   // Helper function to parse visual data (sales, labor PO, vendor debit, cycle time, workroom/store info)
@@ -339,26 +437,34 @@ export default function DualFileUpload() {
       }
 
       if (rescheduleRateIdx >= 0 && row[rescheduleRateIdx] != null && row[rescheduleRateIdx] !== '') {
-        const rescheduleRateValue = Number(row[rescheduleRateIdx])
+        let rescheduleRateValue = Number(row[rescheduleRateIdx])
+        // Excel often stores percentages as fractions (e.g., 27% => 0.27). Normalize to percentage points.
+        if (!isNaN(rescheduleRateValue) && rescheduleRateValue > 0 && rescheduleRateValue <= 1) {
+          rescheduleRateValue = rescheduleRateValue * 100
+        }
         // Store the value even if it's 0 or 0.1 (we want to include all values in the average)
         if (!isNaN(rescheduleRateValue)) {
           workroom.rescheduleRate = rescheduleRateValue
         }
       }
       if (rescheduleRateLYIdx >= 0 && row[rescheduleRateLYIdx] != null && row[rescheduleRateLYIdx] !== '') {
-        const val = Number(row[rescheduleRateLYIdx])
+        let val = Number(row[rescheduleRateLYIdx])
+        if (!isNaN(val) && val > 0 && val <= 1) val = val * 100
         if (!isNaN(val)) workroom.rescheduleRateLY = val
       }
       if (detailRateIdx >= 0 && row[detailRateIdx] != null && row[detailRateIdx] !== '') {
-        const val = Number(row[detailRateIdx])
+        let val = Number(row[detailRateIdx])
+        if (!isNaN(val) && val > 0 && val <= 1) val = val * 100
         if (!isNaN(val)) workroom.detailRate = val
       }
       if (jobRateIdx >= 0 && row[jobRateIdx] != null && row[jobRateIdx] !== '') {
-        const val = Number(row[jobRateIdx])
+        let val = Number(row[jobRateIdx])
+        if (!isNaN(val) && val > 0 && val <= 1) val = val * 100
         if (!isNaN(val)) workroom.jobRate = val
       }
       if (workOrderRateIdx >= 0 && row[workOrderRateIdx] != null && row[workOrderRateIdx] !== '') {
-        const val = Number(row[workOrderRateIdx])
+        let val = Number(row[workOrderRateIdx])
+        if (!isNaN(val) && val > 0 && val <= 1) val = val * 100
         if (!isNaN(val)) workroom.workOrderRate = val
       }
 
@@ -858,6 +964,9 @@ export default function DualFileUpload() {
     try {
       const visualData = await parseVisualData(file)
       await saveVisualFileName(file.name)
+      const uploadedAt = new Date().toISOString()
+      setVisualUploadedAt(uploadedAt)
+      saveStoredUploadDate(VISUAL_UPLOAD_DATE_KEY, uploadedAt)
 
       // DON'T merge - keep visual data separate from survey data
       // Keep existing survey data and add all visual records separately
@@ -887,25 +996,9 @@ export default function DualFileUpload() {
         'success'
       )
       
-      // Create notification in database
-      if (user?.email) {
-        try {
-          await fetch('/api/notifications', {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${user.email}`,
-            },
-            body: JSON.stringify({
-              workroom: 'System',
-              message: `Successfully uploaded ${visualData.length} visual data records. All previous visual data has been replaced.`,
-              type: 'info',
-            }),
-          })
-        } catch (error) {
-          console.error('Error creating upload notification:', error)
-        }
-      }
+      await replaceNotificationsWithUploadNotice(
+        `Successfully uploaded ${visualData.length} visual data records. All previous visual data has been replaced.`
+      )
     } catch (error: any) {
       console.error('Visual data upload error:', error)
       setDeleteProgress('')
@@ -941,6 +1034,9 @@ export default function DualFileUpload() {
         rawInstallerNames
       } = await parseSurveyData(file)
       await saveSurveyFileName(file.name)
+      const uploadedAt = new Date().toISOString()
+      setSurveyUploadedAt(uploadedAt)
+      saveStoredUploadDate(SURVEY_UPLOAD_DATE_KEY, uploadedAt)
 
       // DON'T merge - keep survey data separate from visual data
       // Keep existing visual data and add all survey records separately
@@ -996,25 +1092,9 @@ export default function DualFileUpload() {
         'success'
       )
       
-      // Create notification in database
-      if (user?.email) {
-        try {
-          await fetch('/api/notifications', {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${user.email}`,
-            },
-            body: JSON.stringify({
-              workroom: 'System',
-              message: `Successfully uploaded ${surveyData.length} survey data records. All previous survey data has been replaced.`,
-              type: 'info',
-            }),
-          })
-        } catch (error) {
-          console.error('Error creating upload notification:', error)
-        }
-      }
+      await replaceNotificationsWithUploadNotice(
+        `Successfully uploaded ${surveyData.length} survey data records. All previous survey data has been replaced.`
+      )
     } catch (error: any) {
       console.error('Survey data upload error:', error)
       setDeleteProgress('')
@@ -1029,11 +1109,8 @@ export default function DualFileUpload() {
     }
   }
 
-  // Check if current user is admin (only admin can upload)
-  const isAdmin = user?.email?.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase()
-
-  // If not admin, show read-only message
-  if (!isAdmin) {
+  // If not admin/owner, show read-only message
+  if (!canViewUploadArea) {
     return (
       <div className="space-y-3">
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
@@ -1066,7 +1143,7 @@ export default function DualFileUpload() {
     )
   }
 
-  // Admin view - show upload controls
+  // Admin/owner view - owners are read-only
   return (
     <div className="space-y-3">
       {/* Visual Data Upload */}
@@ -1074,39 +1151,45 @@ export default function DualFileUpload() {
         <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
           Visual Data
         </label>
-        <p className="text-xs text-gray-500 mb-2">
-          Sales, Total Sales, Vendor Debit, Cycle Time, Workroom/Store info
-        </p>
+        <p className="text-xs text-gray-500 mb-2">Upload date: {formatUploadDate(visualUploadedAt)}</p>
         <div className="flex items-center gap-2">
-          <input
-            ref={visualFileInputRef}
-            type="file"
-            accept=".xlsx,.xls,.csv,.json"
-            onChange={handleVisualDataUpload}
-            disabled={isUploadingVisual}
-            className="hidden"
-            id="visual-upload-input"
-          />
-          <label
-            htmlFor="visual-upload-input"
-            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium cursor-pointer transition-colors ${
-              isUploadingVisual
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            {isUploadingVisual ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-400 border-t-transparent" />
-                <span>{isDeletingVisual ? 'Removing old data...' : 'Uploading...'}</span>
-              </>
-            ) : (
-              <>
-                <Upload size={16} />
-                <span>Upload Visual Data</span>
-              </>
-            )}
-          </label>
+          {canEditUploads ? (
+            <>
+              <input
+                ref={visualFileInputRef}
+                type="file"
+                accept=".xlsx,.xls,.csv,.json"
+                onChange={handleVisualDataUpload}
+                disabled={isUploadingVisual}
+                className="hidden"
+                id="visual-upload-input"
+              />
+              <label
+                htmlFor="visual-upload-input"
+                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium cursor-pointer transition-colors ${
+                  isUploadingVisual
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {isUploadingVisual ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-400 border-t-transparent" />
+                    <span>{isDeletingVisual ? 'Removing old data...' : 'Uploading...'}</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload size={16} />
+                    <span>Upload Visual Data</span>
+                  </>
+                )}
+              </label>
+            </>
+          ) : (
+            <div className="flex-1 rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600 text-center">
+              Read Only
+            </div>
+          )}
         </div>
         {deleteProgress && isDeletingVisual && (
           <div className="mt-2 flex items-center gap-2 text-xs text-amber-600">
@@ -1127,39 +1210,45 @@ export default function DualFileUpload() {
         <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
           Survey Data
         </label>
-        <p className="text-xs text-gray-500 mb-2">
-          Survey Scores (LTR, Craft, Prof), Survey Dates, Comments, Labor Category
-        </p>
+        <p className="text-xs text-gray-500 mb-2">Upload date: {formatUploadDate(surveyUploadedAt)}</p>
         <div className="flex items-center gap-2">
-          <input
-            ref={surveyFileInputRef}
-            type="file"
-            accept=".xlsx,.xls,.csv,.json"
-            onChange={handleSurveyDataUpload}
-            disabled={isUploadingSurvey}
-            className="hidden"
-            id="survey-upload-input"
-          />
-          <label
-            htmlFor="survey-upload-input"
-            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium cursor-pointer transition-colors ${
-              isUploadingSurvey
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            {isUploadingSurvey ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-400 border-t-transparent" />
-                <span>{isDeletingSurvey ? 'Removing old data...' : 'Uploading...'}</span>
-              </>
-            ) : (
-              <>
-                <Upload size={16} />
-                <span>Upload Survey Data</span>
-              </>
-            )}
-          </label>
+          {canEditUploads ? (
+            <>
+              <input
+                ref={surveyFileInputRef}
+                type="file"
+                accept=".xlsx,.xls,.csv,.json"
+                onChange={handleSurveyDataUpload}
+                disabled={isUploadingSurvey}
+                className="hidden"
+                id="survey-upload-input"
+              />
+              <label
+                htmlFor="survey-upload-input"
+                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium cursor-pointer transition-colors ${
+                  isUploadingSurvey
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {isUploadingSurvey ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-400 border-t-transparent" />
+                    <span>{isDeletingSurvey ? 'Removing old data...' : 'Uploading...'}</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload size={16} />
+                    <span>Upload Survey Data</span>
+                  </>
+                )}
+              </label>
+            </>
+          ) : (
+            <div className="flex-1 rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600 text-center">
+              Read Only
+            </div>
+          )}
         </div>
         {deleteProgress && isDeletingSurvey && (
           <div className="mt-2 flex items-center gap-2 text-xs text-amber-600">

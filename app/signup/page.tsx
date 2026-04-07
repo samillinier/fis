@@ -159,7 +159,7 @@ export default function SignUpPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#80875d] focus:border-transparent outline-none transition-all"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#89ac44] focus:border-transparent outline-none transition-all"
                 placeholder="Enter your full name"
               />
             </div>
@@ -177,7 +177,7 @@ export default function SignUpPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#80875d] focus:border-transparent outline-none transition-all"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#89ac44] focus:border-transparent outline-none transition-all"
                 placeholder="Enter your email"
               />
             </div>
@@ -196,7 +196,7 @@ export default function SignUpPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#80875d] focus:border-transparent outline-none transition-all"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#89ac44] focus:border-transparent outline-none transition-all"
                 placeholder="Create a password (min 6 characters)"
               />
             </div>
@@ -214,7 +214,7 @@ export default function SignUpPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#80875d] focus:border-transparent outline-none transition-all"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#89ac44] focus:border-transparent outline-none transition-all"
                 placeholder="Confirm your password"
               />
             </div>
@@ -223,7 +223,7 @@ export default function SignUpPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-[#80875d] text-white py-3 rounded-lg font-semibold hover:bg-[#6d7349] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full bg-[#89ac44] text-white py-3 rounded-lg font-semibold hover:bg-[#6d8a35] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isSubmitting ? (
               <>
@@ -242,7 +242,7 @@ export default function SignUpPage() {
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
             Already have an account?{' '}
-            <a href="/signin" className="text-[#80875d] font-semibold hover:underline">
+            <a href="/signin" className="text-[#89ac44] font-semibold hover:underline">
               Sign in
             </a>
           </p>

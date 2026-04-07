@@ -34,7 +34,7 @@ Environment variables are only available to **new deployments**. If you added th
 
 ### Step 4: Test Your App
 
-1. After deployment completes, visit: https://fis-he6w.vercel.app/signin
+1. After deployment completes, visit: https://pod.floorinteriorservices.com/signin
 2. The error should be gone! ✅
 3. Sign-in should work now
 

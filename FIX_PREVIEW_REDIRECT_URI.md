@@ -44,12 +44,12 @@ Make sure these are also added:
 
 **Production URL 1:**
 ```
-https://fis-phi.vercel.app/signin
+https://pod.floorinteriorservices.com/signin
 ```
 
 **Production URL 2:**
 ```
-https://fis-phi.vercel.app
+https://pod.floorinteriorservices.com
 ```
 
 ## ⚠️ Important Note
@@ -76,7 +76,7 @@ https://fis-phi.vercel.app
 
 For now, the easiest solution is to:
 1. ✅ Add the current preview URL (so it works now)
-2. ✅ Use production URL (`https://fis-phi.vercel.app`) for testing auth
+2. ✅ Use production URL (`https://pod.floorinteriorservices.com`) for testing auth
 3. ✅ Preview deployments will work for everything except auth
 
 ---

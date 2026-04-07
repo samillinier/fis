@@ -46,7 +46,7 @@ When contacting Intuit support, include:
 ### Issue Details
 - **Error Message:** "Sorry, but undefined didn't connect"
 - **Error URL:** `https://appcenter.intuit.com/app/connect/oauth2/error?client_id=...`
-- **Redirect URI:** `https://fis-phi.vercel.app/api/quickbooks/callback`
+- **Redirect URI:** `https://pod.floorinteriorservices.com/api/quickbooks/callback`
 
 ### What You've Tried
 - Verified App Name is set to "FISPOD"
@@ -75,7 +75,7 @@ Issue:
 When users click "Connect to QuickBooks", they are redirected to Intuit's OAuth page but receive the error: "Sorry, but undefined didn't connect."
 
 OAuth Request Details:
-- Redirect URI: https://fis-phi.vercel.app/api/quickbooks/callback
+- Redirect URI: https://pod.floorinteriorservices.com/api/quickbooks/callback
 - Scope: com.intuit.quickbooks.accounting
 - Response Type: code
 - Access Type: offline

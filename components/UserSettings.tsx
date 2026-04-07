@@ -17,7 +17,7 @@ const WORKROOMS = [
   'Tampa',
 ]
 
-const ROLES = ['GM', 'PC', 'Corporate', 'President', 'Other'] as const
+const ROLES = ['GM', 'PC', 'Corporate', 'President', 'Finance', 'IT', 'Other'] as const
 
 export default function UserSettings() {
   const { user } = useAuth()
@@ -162,7 +162,7 @@ export default function UserSettings() {
         <button
           onClick={saveProfile}
           disabled={saving || !workroom || !role}
-          className="w-full bg-[#80875d] text-white px-4 py-2 rounded-md hover:bg-[#6d7350] disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+          className="w-full bg-[#89ac44] text-white px-4 py-2 rounded-md hover:bg-[#6d8a35] disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
         >
           {saving ? 'Saving...' : 'Save Profile'}
         </button>

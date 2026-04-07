@@ -3,7 +3,7 @@
 ## 🎯 Quick Test Steps:
 
 ### Step 1: Sign In to Your App
-1. Visit: https://fis-he6w.vercel.app
+1. Visit: https://pod.floorinteriorservices.com
 2. Sign in with Microsoft (after fixing redirect URIs)
 
 ### Step 2: Upload Data
