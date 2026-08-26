@@ -10,6 +10,9 @@ import * as XLSX from 'xlsx'
 import { workroomStoreData } from '@/data/workroomStoreData'
 import { getStoreName } from '@/data/storeNames'
 import { saveFileNames, loadFileNames } from '@/lib/database'
+import { isSurveyRecord, isVisualRecord } from '@/lib/workroomRecordUtils'
+import { DASHBOARD_DATA_UPDATED_EVENT } from '@/lib/dashboardEvents'
+import { excelPercentToPoints } from '@/lib/percentUtils'
 
 const VISUAL_UPLOAD_DATE_KEY = 'fis-visual-upload-date'
 const SURVEY_UPLOAD_DATE_KEY = 'fis-survey-upload-date'
@@ -311,6 +314,16 @@ export default function DualFileUpload() {
     const getItRightLYIdx = headers.length > 43 ? 43 : -1 // Column AR - Get it Right Last Year
     const workrooms: WorkroomData[] = []
 
+    const numberOrZero = (value: unknown): number => {
+      if (value == null || value === '') return 0
+      const cleaned =
+        typeof value === 'string'
+          ? value.replace(/[$€£¥,%\s,]/g, '').trim()
+          : value
+      const numericValue = Number(cleaned)
+      return Number.isFinite(numericValue) ? numericValue : 0
+    }
+
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i]
       if (!row || row.length === 0) continue
@@ -326,18 +339,8 @@ export default function DualFileUpload() {
           ? row[workroomIdx]
           : mapped?.workroom || storeSource || `Record ${i + 1}`
 
-      let salesValue = 0
-      if (salesIdx >= 0 && row[salesIdx] != null) {
-        const salesRaw = row[salesIdx]
-        if (typeof salesRaw === 'number') {
-          salesValue = salesRaw
-        } else if (typeof salesRaw === 'string') {
-          const cleaned = String(salesRaw).replace(/[$€£¥,\s]/g, '').trim()
-          salesValue = Number(cleaned) || 0
-        } else {
-          salesValue = Number(salesRaw) || 0
-        }
-      }
+      const cellNumber = (idx: number): number => (idx >= 0 ? numberOrZero(row[idx]) : 0)
+      const percentCellNumber = (idx: number): number => excelPercentToPoints(cellNumber(idx))
 
       let workroomName = mapped?.workroom || String(nameSource || '').trim()
       // Normalize workroom names
@@ -349,134 +352,34 @@ export default function DualFileUpload() {
         id: `visual-${i}-${Date.now()}`,
         name: workroomName,
         store: mapped?.store ?? storeSource ?? '',
-        sales: salesValue,
-        laborPO: laborPOIdx >= 0 ? Number(row[laborPOIdx] || 0) : 0,
-        vendorDebit: vendorDebitIdx >= 0 ? Number(row[vendorDebitIdx] || 0) : 0,
-      }
-
-      if (cycleTimeIdx >= 0 && row[cycleTimeIdx] != null && row[cycleTimeIdx] !== '') {
-        workroom.cycleTime = Number(row[cycleTimeIdx]) || 0
-      }
-
-      if (completedIdx >= 0 && row[completedIdx] != null && row[completedIdx] !== '') {
-        const completedValue = Number(row[completedIdx])
-        // Store the value even if it's 0.0 (we want to sum all values including zeros)
-        if (!isNaN(completedValue)) {
-          workroom.completed = completedValue
-        }
-      }
-      // Details Cycle Time breakdown (columns P–S)
-      if (detailsRtsSchedIdx >= 0 && row[detailsRtsSchedIdx] != null && row[detailsRtsSchedIdx] !== '') {
-        const val = Number(row[detailsRtsSchedIdx])
-        if (!isNaN(val)) workroom.detailsRtsSched = val
-      }
-      if (detailsSchedStartIdx >= 0 && row[detailsSchedStartIdx] != null && row[detailsSchedStartIdx] !== '') {
-        const val = Number(row[detailsSchedStartIdx])
-        if (!isNaN(val)) workroom.detailsSchedStart = val
-      }
-      if (detailsStartDocsSubIdx >= 0 && row[detailsStartDocsSubIdx] != null && row[detailsStartDocsSubIdx] !== '') {
-        const val = Number(row[detailsStartDocsSubIdx])
-        if (!isNaN(val)) workroom.detailsStartDocsSub = val
-      }
-      if (detailsCycleTimeIdx >= 0 && row[detailsCycleTimeIdx] != null && row[detailsCycleTimeIdx] !== '') {
-        const val = Number(row[detailsCycleTimeIdx])
-        if (!isNaN(val)) workroom.detailsCycleTime = val
-      }
-
-      if (rtsSchedDetailsIdx >= 0 && row[rtsSchedDetailsIdx] != null && row[rtsSchedDetailsIdx] !== '') {
-        const val = Number(row[rtsSchedDetailsIdx])
-        if (!isNaN(val)) workroom.rtsSchedDetails = val
-      }
-      if (schedStartDetailsIdx >= 0 && row[schedStartDetailsIdx] != null && row[schedStartDetailsIdx] !== '') {
-        const val = Number(row[schedStartDetailsIdx])
-        if (!isNaN(val)) workroom.schedStartDetails = val
-      }
-      if (startDocsSubDetailsIdx >= 0 && row[startDocsSubDetailsIdx] != null && row[startDocsSubDetailsIdx] !== '') {
-        const val = Number(row[startDocsSubDetailsIdx])
-        if (!isNaN(val)) workroom.startDocsSubDetails = val
-      }
-      if (detailsCycleTimeIdx >= 0 && row[detailsCycleTimeIdx] != null && row[detailsCycleTimeIdx] !== '') {
-        const val = Number(row[detailsCycleTimeIdx])
-        if (!isNaN(val)) workroom.detailsCycleTime = val
-      }
-      if (totalDetailCycleTimeIdx >= 0 && row[totalDetailCycleTimeIdx] != null && row[totalDetailCycleTimeIdx] !== '') {
-        const val = Number(row[totalDetailCycleTimeIdx])
-        if (!isNaN(val)) workroom.totalDetailCycleTime = val
-      }
-      if (rtsSchedJobsIdx >= 0 && row[rtsSchedJobsIdx] != null && row[rtsSchedJobsIdx] !== '') {
-        const val = Number(row[rtsSchedJobsIdx])
-        if (!isNaN(val)) workroom.rtsSchedJobs = val
-      }
-      if (schedStartJobsIdx >= 0 && row[schedStartJobsIdx] != null && row[schedStartJobsIdx] !== '') {
-        const val = Number(row[schedStartJobsIdx])
-        if (!isNaN(val)) workroom.schedStartJobs = val
-      }
-      if (startCompleteJobsIdx >= 0 && row[startCompleteJobsIdx] != null && row[startCompleteJobsIdx] !== '') {
-        const val = Number(row[startCompleteJobsIdx])
-        if (!isNaN(val)) workroom.startCompleteJobs = val
-      }
-      if (jobsWorkCycleTimeIdx >= 0 && row[jobsWorkCycleTimeIdx] != null && row[jobsWorkCycleTimeIdx] !== '') {
-        const val = Number(row[jobsWorkCycleTimeIdx])
-        if (!isNaN(val)) workroom.jobsWorkCycleTime = val
-      }
-      if (workOrderStage1Idx >= 0 && row[workOrderStage1Idx] != null && row[workOrderStage1Idx] !== '') {
-        const val = Number(row[workOrderStage1Idx])
-        if (!isNaN(val)) workroom.workOrderStage1 = val
-      }
-      if (workOrderStage2Idx >= 0 && row[workOrderStage2Idx] != null && row[workOrderStage2Idx] !== '') {
-        const val = Number(row[workOrderStage2Idx])
-        if (!isNaN(val)) workroom.workOrderStage2 = val
-      }
-      if (workOrderStage3Idx >= 0 && row[workOrderStage3Idx] != null && row[workOrderStage3Idx] !== '') {
-        const val = Number(row[workOrderStage3Idx])
-        if (!isNaN(val)) workroom.workOrderStage3 = val
-      }
-      if (totalWorkOrderCycleTimeIdx >= 0 && row[totalWorkOrderCycleTimeIdx] != null && row[totalWorkOrderCycleTimeIdx] !== '') {
-        const val = Number(row[totalWorkOrderCycleTimeIdx])
-        if (!isNaN(val)) workroom.totalWorkOrderCycleTime = val
-      }
-
-      if (rescheduleRateIdx >= 0 && row[rescheduleRateIdx] != null && row[rescheduleRateIdx] !== '') {
-        let rescheduleRateValue = Number(row[rescheduleRateIdx])
-        // Excel often stores percentages as fractions (e.g., 27% => 0.27). Normalize to percentage points.
-        if (!isNaN(rescheduleRateValue) && rescheduleRateValue > 0 && rescheduleRateValue <= 1) {
-          rescheduleRateValue = rescheduleRateValue * 100
-        }
-        // Store the value even if it's 0 or 0.1 (we want to include all values in the average)
-        if (!isNaN(rescheduleRateValue)) {
-          workroom.rescheduleRate = rescheduleRateValue
-        }
-      }
-      if (rescheduleRateLYIdx >= 0 && row[rescheduleRateLYIdx] != null && row[rescheduleRateLYIdx] !== '') {
-        let val = Number(row[rescheduleRateLYIdx])
-        if (!isNaN(val) && val > 0 && val <= 1) val = val * 100
-        if (!isNaN(val)) workroom.rescheduleRateLY = val
-      }
-      if (detailRateIdx >= 0 && row[detailRateIdx] != null && row[detailRateIdx] !== '') {
-        let val = Number(row[detailRateIdx])
-        if (!isNaN(val) && val > 0 && val <= 1) val = val * 100
-        if (!isNaN(val)) workroom.detailRate = val
-      }
-      if (jobRateIdx >= 0 && row[jobRateIdx] != null && row[jobRateIdx] !== '') {
-        let val = Number(row[jobRateIdx])
-        if (!isNaN(val) && val > 0 && val <= 1) val = val * 100
-        if (!isNaN(val)) workroom.jobRate = val
-      }
-      if (workOrderRateIdx >= 0 && row[workOrderRateIdx] != null && row[workOrderRateIdx] !== '') {
-        let val = Number(row[workOrderRateIdx])
-        if (!isNaN(val) && val > 0 && val <= 1) val = val * 100
-        if (!isNaN(val)) workroom.workOrderRate = val
-      }
-
-      if (getItRightIdx >= 0 && row[getItRightIdx] != null && row[getItRightIdx] !== '') {
-        const getItRightValue = Number(row[getItRightIdx])
-        if (!isNaN(getItRightValue)) {
-          workroom.getItRight = getItRightValue
-        }
-      }
-      if (getItRightLYIdx >= 0 && row[getItRightLYIdx] != null && row[getItRightLYIdx] !== '') {
-        const val = Number(row[getItRightLYIdx])
-        if (!isNaN(val)) workroom.getItRightLY = val
+        sales: cellNumber(salesIdx),
+        laborPO: cellNumber(laborPOIdx),
+        vendorDebit: cellNumber(vendorDebitIdx),
+        cycleTime: cellNumber(cycleTimeIdx),
+        completed: cellNumber(completedIdx),
+        detailsRtsSched: cellNumber(detailsRtsSchedIdx),
+        detailsSchedStart: cellNumber(detailsSchedStartIdx),
+        detailsStartDocsSub: cellNumber(detailsStartDocsSubIdx),
+        detailsCycleTime: cellNumber(detailsCycleTimeIdx),
+        rtsSchedDetails: cellNumber(rtsSchedDetailsIdx),
+        schedStartDetails: cellNumber(schedStartDetailsIdx),
+        startDocsSubDetails: cellNumber(startDocsSubDetailsIdx),
+        totalDetailCycleTime: cellNumber(totalDetailCycleTimeIdx),
+        rtsSchedJobs: cellNumber(rtsSchedJobsIdx),
+        schedStartJobs: cellNumber(schedStartJobsIdx),
+        startCompleteJobs: cellNumber(startCompleteJobsIdx),
+        jobsWorkCycleTime: cellNumber(jobsWorkCycleTimeIdx),
+        workOrderStage1: cellNumber(workOrderStage1Idx),
+        workOrderStage2: cellNumber(workOrderStage2Idx),
+        workOrderStage3: cellNumber(workOrderStage3Idx),
+        totalWorkOrderCycleTime: cellNumber(totalWorkOrderCycleTimeIdx),
+        rescheduleRate: percentCellNumber(rescheduleRateIdx),
+        rescheduleRateLY: percentCellNumber(rescheduleRateLYIdx),
+        detailRate: percentCellNumber(detailRateIdx),
+        jobRate: percentCellNumber(jobRateIdx),
+        workOrderRate: percentCellNumber(workOrderRateIdx),
+        getItRight: cellNumber(getItRightIdx),
+        getItRightLY: cellNumber(getItRightLYIdx),
       }
 
       if (detailsCycleTimeIdx >= 0 && row[detailsCycleTimeIdx] != null && row[detailsCycleTimeIdx] !== '') {
@@ -672,7 +575,8 @@ export default function DualFileUpload() {
         workroomName = 'Panama City'
       }
 
-      // Read column L (index 11) - include ALL rows, even if column L is empty
+      // Read column L (index 11) - include ALL rows, even if column L is empty.
+      // Normalize survey LTR to the dashboard scale: 0-8 => 0, 9-10 => 10.
       // We want to capture every row from the survey file
       let columnLValue: number | null = null
       if (row.length > 11) {
@@ -680,8 +584,8 @@ export default function DualFileUpload() {
         if (rawValue != null && rawValue !== '') {
           const numValue = Number(rawValue)
           if (!isNaN(numValue)) {
-            columnLValue = numValue
-            columnLValues.push(numValue) // Debug: track all valid column L values
+            columnLValue = numValue <= 8 ? 0 : numValue >= 9 ? 10 : numValue
+            columnLValues.push(columnLValue) // Debug: track all valid normalized column L values
           }
         }
       }
@@ -963,26 +867,25 @@ export default function DualFileUpload() {
 
     try {
       const visualData = await parseVisualData(file)
+
+      // Replace ALL visual rows; keep only existing survey rows.
+      const existingSurveyData: WorkroomData[] = data.workrooms.filter(isSurveyRecord)
+
+      const combinedData = { workrooms: [...existingSurveyData, ...visualData] }
+
+      console.log('💾 [DualFileUpload] Saving visual data to Supabase...')
+      setDeleteProgress('Deleting all previous visual data records from database...')
+
+      await setData(combinedData)
+
       await saveVisualFileName(file.name)
       const uploadedAt = new Date().toISOString()
       setVisualUploadedAt(uploadedAt)
       saveStoredUploadDate(VISUAL_UPLOAD_DATE_KEY, uploadedAt)
 
-      // DON'T merge - keep visual data separate from survey data
-      // Keep existing survey data and add all visual records separately
-      const existingSurveyData: WorkroomData[] = data.workrooms.filter(
-        (w) => w.ltrScore != null || w.craftScore != null || w.profScore != null
-      )
-
-      // Combine: survey data + all visual records (no merging)
-      const combinedData = { workrooms: [...existingSurveyData, ...visualData] }
-      
-      // Save to Supabase - this will delete old data and save new data
-      console.log('💾 [DualFileUpload] Saving visual data to Supabase...')
-      setDeleteProgress('Deleting all previous visual data records from database...')
-      
-      // setData will trigger saveDashboardData which deletes old data then inserts new
-      await setData(combinedData)
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event(DASHBOARD_DATA_UPDATED_EVENT))
+      }
       
       setDeleteProgress('')
       setIsDeletingVisual(false)
@@ -1033,16 +936,9 @@ export default function DualFileUpload() {
         rawCompanyValues,
         rawInstallerNames
       } = await parseSurveyData(file)
-      await saveSurveyFileName(file.name)
-      const uploadedAt = new Date().toISOString()
-      setSurveyUploadedAt(uploadedAt)
-      saveStoredUploadDate(SURVEY_UPLOAD_DATE_KEY, uploadedAt)
 
-      // DON'T merge - keep survey data separate from visual data
-      // Keep existing visual data and add all survey records separately
-      const existingVisualData: WorkroomData[] = data.workrooms.filter(
-        (w) => w.sales != null || w.laborPO != null || w.vendorDebit != null
-      )
+      // Replace ALL survey rows; keep only existing visual/operational rows.
+      const existingVisualData: WorkroomData[] = data.workrooms.filter(isVisualRecord)
 
       // Convert survey data to full WorkroomData records (each row = one record)
       const surveyRecords: WorkroomData[] = surveyData.map((survey, index) => ({
@@ -1077,19 +973,27 @@ export default function DualFileUpload() {
       
       setDeleteProgress('Deleting all previous survey data records from database...')
       
-      // setData will trigger saveDashboardData which deletes old data then inserts new
       await setData(combinedData)
-      
+
+      await saveSurveyFileName(file.name)
+      const uploadedAt = new Date().toISOString()
+      setSurveyUploadedAt(uploadedAt)
+      saveStoredUploadDate(SURVEY_UPLOAD_DATE_KEY, uploadedAt)
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event(DASHBOARD_DATA_UPDATED_EVENT))
+      }
+
       setDeleteProgress('')
       setIsDeletingSurvey(false)
-      
+
       showNotification(
         `Successfully uploaded ${surveyData.length} survey data records! ${
           existingVisualData.length > 0
-            ? `Kept ${existingVisualData.length} existing visual records separate.`
+            ? `Survey updated only — Jobs Completed & cycle times still use the current Visual Data file (${visualFileName || 'see sidebar'}). Upload Visual Data (weekly POD) to refresh those metrics.`
             : ''
         }`,
-        'success'
+        existingVisualData.length > 0 ? 'info' : 'success'
       )
       
       await replaceNotificationsWithUploadNotice(
@@ -1149,7 +1053,7 @@ export default function DualFileUpload() {
       {/* Visual Data Upload */}
       <div className="bg-white border border-gray-200 rounded-lg p-3">
         <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
-          Visual Data
+          Visual Data (weekly POD)
         </label>
         <p className="text-xs text-gray-500 mb-2">Upload date: {formatUploadDate(visualUploadedAt)}</p>
         <div className="flex items-center gap-2">
@@ -1208,7 +1112,7 @@ export default function DualFileUpload() {
       {/* Survey Data Upload */}
       <div className="bg-white border border-gray-200 rounded-lg p-3">
         <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
-          Survey Data
+          Survey Data (weekly POD)
         </label>
         <p className="text-xs text-gray-500 mb-2">Upload date: {formatUploadDate(surveyUploadedAt)}</p>
         <div className="flex items-center gap-2">

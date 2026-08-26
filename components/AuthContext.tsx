@@ -14,7 +14,7 @@ interface User {
   email: string
   name: string
   photoUrl?: string
-  role?: 'admin' | 'owner' | 'user' | 'accounting'
+  role?: 'admin' | 'owner' | 'manager' | 'user' | 'accounting'
   lastLoginAt?: string
   jobTitle?: string
 }
@@ -22,7 +22,7 @@ interface User {
 interface AuthorizedUser {
   email: string
   name?: string
-  role?: 'admin' | 'owner' | 'user' | 'accounting'
+  role?: 'admin' | 'owner' | 'manager' | 'user' | 'accounting'
   isActive?: boolean
   createdAt?: string
   createdBy?: string
@@ -42,6 +42,7 @@ interface AuthContextType {
   isAuthorized: boolean
   isAdmin: boolean
   isOwner: boolean
+  isManager: boolean
   isAccounting: boolean
   authorizedUsers: AuthorizedUser[]
   accessRequests: AccessRequest[]
@@ -49,7 +50,7 @@ interface AuthContextType {
   removeAuthorizedUser: (email: string) => Promise<boolean>
   approveAccessRequest: (email: string) => Promise<boolean>
   rejectAccessRequest: (email: string) => Promise<void>
-  setUserRole: (email: string, role: 'admin' | 'owner' | 'user' | 'accounting') => Promise<boolean>
+  setUserRole: (email: string, role: 'admin' | 'owner' | 'manager' | 'user' | 'accounting') => Promise<boolean>
   requestAccess: (
     email: string,
     name?: string,
@@ -123,8 +124,8 @@ async function fetchAuthorizedUsersFromApi(actorEmail?: string): Promise<Authori
   return ensureSuperAdminLocal(data.authorizedUsers || [])
 }
 
-function normalizeAppRole(role?: string): 'admin' | 'owner' | 'user' | 'accounting' {
-  if (role === 'admin' || role === 'owner' || role === 'accounting') return role
+function normalizeAppRole(role?: string): 'admin' | 'owner' | 'manager' | 'user' | 'accounting' {
+  if (role === 'admin' || role === 'owner' || role === 'manager' || role === 'accounting') return role
   return 'user'
 }
 
@@ -250,6 +251,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isAdmin =
     user?.email?.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase() || user?.role === 'admin'
   const isOwner = user?.role === 'owner'
+  const isManager = user?.role === 'manager'
   const isAccounting = user?.role === 'accounting'
 
   const isAuthorized =
@@ -403,7 +405,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const setUserRole = async (email: string, role: 'admin' | 'owner' | 'user' | 'accounting'): Promise<boolean> => {
+  const setUserRole = async (
+    email: string,
+    role: 'admin' | 'owner' | 'manager' | 'user' | 'accounting'
+  ): Promise<boolean> => {
     if (!isAdmin) return false
     const normalizedEmail = normalizeEmail(email)
     if (!normalizedEmail) return false
@@ -790,6 +795,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthorized,
         isAdmin,
         isOwner,
+        isManager,
         isAccounting,
         authorizedUsers,
         accessRequests,

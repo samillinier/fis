@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS lowes_store_weekly_forecasts (
   district_q1_jobs INTEGER NOT NULL,
   pct_of_district NUMERIC(10, 6) NOT NULL, -- Store percentage share (Labor PO weighting)
   store_q1_job_forecast INTEGER NOT NULL, -- Total Q1 forecast for the store
-  week_number INTEGER NOT NULL CHECK (week_number >= 1 AND week_number <= 13),
+  week_number INTEGER NOT NULL CHECK (week_number >= 1 AND week_number <= 52),
   jobs_needed INTEGER NOT NULL DEFAULT 0, -- Jobs needed for this store in this week
   workroom TEXT, -- Mapped workroom name from districtToWorkroom
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

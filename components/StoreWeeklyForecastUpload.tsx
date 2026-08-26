@@ -32,7 +32,7 @@ export default function StoreWeeklyForecastUpload() {
     }
 
     // Excel file structure (Store_Weekly_Wide):
-    // Row 0: Headers - District, Store, District_Q1_Jobs, Pct_of_District, Store_Q1_Job_Forecast, Wk1, Wk2, ..., Wk13
+    // Row 0: Headers - District, Store, District_Q2_Jobs, Pct_of_District, Store_Q2_Job_Forecast, Wk14, ..., Wk26
     // Row 1+: Data rows
 
     const headers = (jsonData[0] as any[]).map((h: any) =>
@@ -40,19 +40,25 @@ export default function StoreWeeklyForecastUpload() {
     )
 
     const districtIdx = headers.findIndex(h => 
-      h.toLowerCase().includes('district') && !h.toLowerCase().includes('q1')
+      h.toLowerCase().includes('district') && !h.toLowerCase().includes('q1') && !h.toLowerCase().includes('q2')
     )
     const storeIdx = headers.findIndex(h => 
-      h.toLowerCase().includes('store') && !h.toLowerCase().includes('q1') && !h.toLowerCase().includes('forecast')
+      h.toLowerCase().includes('store') && !h.toLowerCase().includes('q1') && !h.toLowerCase().includes('q2') && !h.toLowerCase().includes('forecast')
     )
     const districtQ1JobsIdx = headers.findIndex(h => 
-      h.toLowerCase().includes('district_q1_jobs') || h.toLowerCase().includes('district q1 jobs')
+      h.toLowerCase().includes('district_q2_jobs') ||
+      h.toLowerCase().includes('district q2 jobs') ||
+      h.toLowerCase().includes('district_q1_jobs') ||
+      h.toLowerCase().includes('district q1 jobs')
     )
     const pctOfDistrictIdx = headers.findIndex(h => 
       h.toLowerCase().includes('pct') || h.toLowerCase().includes('percent') || h.toLowerCase().includes('%')
     )
     const storeQ1ForecastIdx = headers.findIndex(h => 
-      h.toLowerCase().includes('store_q1') || h.toLowerCase().includes('store q1')
+      h.toLowerCase().includes('store_q2') ||
+      h.toLowerCase().includes('store q2') ||
+      h.toLowerCase().includes('store_q1') ||
+      h.toLowerCase().includes('store q1')
     )
 
     if (districtIdx === -1 || storeIdx === -1) {
@@ -62,20 +68,21 @@ export default function StoreWeeklyForecastUpload() {
     const forecasts: any[] = []
     const dataRows = jsonData.slice(1) // Skip header row
 
-    // Find week columns (Wk1, Wk2, ..., Wk13)
+    // Find week columns (Q2 is Wk14-Wk26; store quarter weeks 1-13 for existing DB constraints)
     const weekColumns: { week: number; colIdx: number }[] = []
-    for (let week = 1; week <= 13; week++) {
+    for (let week = 1; week <= 52; week++) {
       const weekColIdx = headers.findIndex(h => {
         const hLower = h.toLowerCase()
         return hLower === `wk${week}` || hLower === `week ${week}` || hLower === `week${week}`
       })
       if (weekColIdx !== -1) {
-        weekColumns.push({ week, colIdx: weekColIdx })
+        const quarterWeek = week >= 14 && week <= 26 ? week - 13 : week
+        weekColumns.push({ week: quarterWeek, colIdx: weekColIdx })
       }
     }
 
     if (weekColumns.length === 0) {
-      throw new Error('Could not find week columns (Wk1-Wk13) in Excel file')
+      throw new Error('Could not find week columns (for example Wk14-Wk26) in Excel file')
     }
 
     // Parse each data row
@@ -224,7 +231,7 @@ export default function StoreWeeklyForecastUpload() {
       </div>
 
       <p className="text-sm text-gray-600 mb-4">
-        Upload the "Q1_Weekly_Store_Job_Forecast" Excel file to import store-level weekly job forecasts with district alignment and workroom mapping.
+        Upload the "Q2_Weekly_Store_Job_Forecast" Excel file to import store-level weekly job forecasts with district alignment and workroom mapping.
       </p>
 
       <div className="flex items-center gap-4">

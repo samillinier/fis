@@ -66,76 +66,81 @@ export default function YearlyBreakdownPage() {
   return (
     <ProtectedRoute>
       <YearlyDataProvider year={year}>
-        <YearlyDataBridgeProvider>
-          <Layout>
-            <div className="space-y-6">
-              <div className="flex items-center justify-end">
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2">
-                    <select
-                      value={year}
-                      onChange={(e) => setYear(Number(e.target.value))}
-                      className="border border-gray-300 rounded-md px-2 py-2 text-sm bg-white"
-                    >
-                      {yearOptions.map((y) => (
-                        <option key={y} value={y}>
-                          {y}
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        try {
-                          window.localStorage.setItem('fis-yearly-default-year', String(year))
-                        } catch {
-                          // ignore
-                        }
-                        setDefaultYear(year)
-                      }}
-                      className={`inline-flex items-center justify-center rounded-md border px-2 py-2 transition-colors ${
-                        defaultYear === year
-                          ? 'border-yellow-300 bg-yellow-50 text-yellow-700'
-                          : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-50'
-                      }`}
-                      title={defaultYear === year ? 'Default year' : 'Set as default year'}
-                      aria-label={defaultYear === year ? 'Default year' : 'Set as default year'}
-                    >
-                      <Star size={16} fill={defaultYear === year ? 'currentColor' : 'none'} />
-                    </button>
-                  </div>
+        <Layout>
+          <div className="space-y-6">
+            <div className="flex items-center justify-end">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <select
+                    value={year}
+                    onChange={(e) => setYear(Number(e.target.value))}
+                    className="border border-gray-300 rounded-md px-2 py-2 text-sm bg-white"
+                  >
+                    {yearOptions.map((y) => (
+                      <option key={y} value={y}>
+                        {y}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      try {
+                        window.localStorage.setItem('fis-yearly-default-year', String(year))
+                      } catch {
+                        // ignore
+                      }
+                      setDefaultYear(year)
+                    }}
+                    className={`inline-flex items-center justify-center rounded-md border px-2 py-2 transition-colors ${
+                      defaultYear === year
+                        ? 'border-yellow-300 bg-yellow-50 text-yellow-700'
+                        : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-50'
+                    }`}
+                    title={defaultYear === year ? 'Default year' : 'Set as default year'}
+                    aria-label={defaultYear === year ? 'Default year' : 'Set as default year'}
+                  >
+                    <Star size={16} fill={defaultYear === year ? 'currentColor' : 'none'} />
+                  </button>
+                </div>
 
-                  <div className="inline-flex rounded-lg border border-gray-200 bg-white p-1 shadow-sm">
-                    <button
-                      type="button"
-                      onClick={() => setTab('visual')}
-                      className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                        tab === 'visual' ? 'bg-gray-900 text-white' : 'text-gray-700 hover:bg-gray-100'
-                      }`}
-                    >
-                      Visual
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setTab('survey')}
-                      className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                        tab === 'survey' ? 'bg-gray-900 text-white' : 'text-gray-700 hover:bg-gray-100'
-                      }`}
-                    >
-                      Survey
-                    </button>
-                  </div>
+                <div className="inline-flex rounded-lg border border-gray-200 bg-white p-1 shadow-sm">
+                  <button
+                    type="button"
+                    onClick={() => setTab('visual')}
+                    className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                      tab === 'visual' ? 'bg-gray-900 text-white' : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    Visual
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTab('survey')}
+                    className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                      tab === 'survey' ? 'bg-gray-900 text-white' : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    Survey
+                  </button>
                 </div>
               </div>
-
-              {tab === 'visual' ? (
-                <VisualBreakdown selectedWorkroom={selectedWorkroom} hiddenWorkrooms={['197', '998']} />
-              ) : (
-                <SurveyMisc />
-              )}
             </div>
-          </Layout>
-        </YearlyDataBridgeProvider>
+
+            {tab === 'visual' ? (
+              <VisualBreakdown
+                selectedWorkroom={selectedWorkroom}
+                hiddenWorkrooms={['197', '998']}
+                dataSource="yearly"
+                dataYear={year}
+              />
+            ) : (
+              <YearlyDataBridgeProvider>
+                <SurveyMisc />
+              </YearlyDataBridgeProvider>
+            )}
+          </div>
+        </Layout>
       </YearlyDataProvider>
     </ProtectedRoute>
   )

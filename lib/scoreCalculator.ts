@@ -24,12 +24,6 @@ export function calculateWeightedPerformanceScore(workroom: WorkroomData, allWor
   let totalLTR = 0
   let ltrCount = 0
 
-  const normalizePercentPoints = (v: number): number => {
-    // Excel sometimes stores percent as fraction (0.27) while UI expects percentage points (27.0)
-    if (!isNaN(v) && v > 0 && v <= 1) return v * 100
-    return v
-  }
-
   workroomData.forEach((w) => {
     totalSales += w.sales || 0
     totalLaborPO += w.laborPO || 0
@@ -42,8 +36,9 @@ export function calculateWeightedPerformanceScore(workroom: WorkroomData, allWor
       totalJobsWorkCycleTime += w.jobsWorkCycleTime
       jobsWorkCycleTimeCount++
     }
+    // Already converted to percentage points at upload — do not re-scale
     if (w.rescheduleRate != null && !isNaN(w.rescheduleRate)) {
-      totalRescheduleRate += normalizePercentPoints(w.rescheduleRate)
+      totalRescheduleRate += w.rescheduleRate
       rescheduleRateCount++
     }
     if (w.ltrScore != null && w.ltrScore > 0) {
@@ -211,12 +206,6 @@ export function calculateComponentScores(workroom: WorkroomData, allWorkrooms: W
   let totalLTR = 0
   let ltrCount = 0
 
-  const normalizePercentPoints = (v: number): number => {
-    // Excel sometimes stores percent as fraction (0.27) while UI expects percentage points (27.0)
-    if (!isNaN(v) && v > 0 && v <= 1) return v * 100
-    return v
-  }
-
   workroomData.forEach((w) => {
     totalSales += w.sales || 0
     totalLaborPO += w.laborPO || 0
@@ -229,8 +218,9 @@ export function calculateComponentScores(workroom: WorkroomData, allWorkrooms: W
       totalJobsWorkCycleTime += w.jobsWorkCycleTime
       jobsWorkCycleTimeCount++
     }
+    // Already converted to percentage points at upload — do not re-scale
     if (w.rescheduleRate != null && !isNaN(w.rescheduleRate)) {
-      totalRescheduleRate += normalizePercentPoints(w.rescheduleRate)
+      totalRescheduleRate += w.rescheduleRate
       rescheduleRateCount++
     }
     if (w.ltrScore != null && w.ltrScore > 0) {

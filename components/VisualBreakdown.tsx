@@ -1,7 +1,10 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useContext } from 'react'
+import { usePathname } from 'next/navigation'
 import { useData } from '@/context/DataContext'
+import { YearlyDataContext } from '@/context/YearlyDataContext'
+import { isOperationalVisualRecord } from '@/lib/workroomRecordUtils'
 import CountUpNumber from '@/components/CountUpNumber'
 import { getStoreName } from '@/data/storeNames'
 import WorkroomMap from '@/components/WorkroomMap'
@@ -50,9 +53,14 @@ import {
   Cell,
 } from 'recharts'
 
+type DashboardDataSource = 'pod' | 'yearly'
+
 interface VisualBreakdownProps {
   selectedWorkroom: string
   hiddenWorkrooms?: Array<string | number>
+  /** Weekly POD (home) vs Yearly Breakdown — each uses a separate upload + database store */
+  dataSource?: DashboardDataSource
+  dataYear?: number
 }
 
 const COLORS = ['#000000', '#333333', '#666666', '#999999', '#CCCCCC', '#E0E0E0'] // For other charts
@@ -65,7 +73,8 @@ const isValidWorkroomName = (name: string): boolean => {
     normalizedName !== 'location #' &&
     normalizedName !== 'location' &&
     normalizedName !== '' &&
-    !normalizedName.includes('location #')
+    !normalizedName.includes('location #') &&
+    !/^\d+$/.test(normalizedName)
   )
 }
 
@@ -78,8 +87,18 @@ const normalizeWorkroomName = (name: string): string => {
   return name.replace(/\s+/g, ' ').trim()
 }
 
-export default function VisualBreakdown({ selectedWorkroom, hiddenWorkrooms }: VisualBreakdownProps) {
-  const { data } = useData()
+export default function VisualBreakdown({
+  selectedWorkroom,
+  hiddenWorkrooms,
+  dataSource = 'pod',
+}: VisualBreakdownProps) {
+  const pathname = usePathname()
+  // Home (/) must always use weekly POD data — never yearly, even if props are wrong.
+  const isYearlyView = pathname === '/yearly-breakdown' && dataSource === 'yearly'
+  const { data: podData } = useData()
+  const yearlyContext = useContext(YearlyDataContext)
+  const data = isYearlyView && yearlyContext ? yearlyContext.data : podData
+
   const [selectedRiskWorkroom, setSelectedRiskWorkroom] = useState<any | null>(null)
   const [isRiskDialogOpen, setIsRiskDialogOpen] = useState(false)
   const [isDetailsCycleDialogOpen, setIsDetailsCycleDialogOpen] = useState(false)
@@ -150,10 +169,7 @@ export default function VisualBreakdown({ selectedWorkroom, hiddenWorkrooms }: V
 
   const detailsCycleMetrics = useMemo(() => {
     // Only use records with visual data (exclude survey-only records)
-    const visualDataOnly = filteredData.filter((w) => {
-      const hasVisualData = (w.sales && w.sales > 0) || (w.laborPO && w.laborPO > 0) || (w.vendorDebit && w.vendorDebit !== 0)
-      return hasVisualData
-    })
+    const visualDataOnly = filteredData.filter(isOperationalVisualRecord)
     
     const averageForKey = (key: string): number | null => {
       const nums = visualDataOnly
@@ -185,10 +201,7 @@ export default function VisualBreakdown({ selectedWorkroom, hiddenWorkrooms }: V
 
   const jobCycleMetrics = useMemo(() => {
     // Only use records with visual data (exclude survey-only records)
-    const visualDataOnly = filteredData.filter((w) => {
-      const hasVisualData = (w.sales && w.sales > 0) || (w.laborPO && w.laborPO > 0) || (w.vendorDebit && w.vendorDebit !== 0)
-      return hasVisualData
-    })
+    const visualDataOnly = filteredData.filter(isOperationalVisualRecord)
     
     const averageForKey = (key: string): number | null => {
       const nums = visualDataOnly
@@ -229,10 +242,7 @@ export default function VisualBreakdown({ selectedWorkroom, hiddenWorkrooms }: V
 
   const workOrderCycleMetrics = useMemo(() => {
     // Only use records with visual data (exclude survey-only records)
-    const visualDataOnly = filteredData.filter((w) => {
-      const hasVisualData = (w.sales && w.sales > 0) || (w.laborPO && w.laborPO > 0) || (w.vendorDebit && w.vendorDebit !== 0)
-      return hasVisualData
-    })
+    const visualDataOnly = filteredData.filter(isOperationalVisualRecord)
     
     const averageForKey = (key: string): number | null => {
       const nums = visualDataOnly
@@ -259,10 +269,7 @@ export default function VisualBreakdown({ selectedWorkroom, hiddenWorkrooms }: V
 
   const rescheduleRateMetrics = useMemo(() => {
     // Only use records with visual data (exclude survey-only records)
-    const visualDataOnly = filteredData.filter((w) => {
-      const hasVisualData = (w.sales && w.sales > 0) || (w.laborPO && w.laborPO > 0) || (w.vendorDebit && w.vendorDebit !== 0)
-      return hasVisualData
-    })
+    const visualDataOnly = filteredData.filter(isOperationalVisualRecord)
     
     const averageForKey = (key: string): number | null => {
       const nums = visualDataOnly
@@ -288,10 +295,7 @@ export default function VisualBreakdown({ selectedWorkroom, hiddenWorkrooms }: V
 
   const getItRightMetrics = useMemo(() => {
     // Only use records with visual data (exclude survey-only records)
-    const visualDataOnly = filteredData.filter((w) => {
-      const hasVisualData = (w.sales && w.sales > 0) || (w.laborPO && w.laborPO > 0) || (w.vendorDebit && w.vendorDebit !== 0)
-      return hasVisualData
-    })
+    const visualDataOnly = filteredData.filter(isOperationalVisualRecord)
     
     const averageForKey = (key: string): number | null => {
       const nums = visualDataOnly
@@ -781,12 +785,8 @@ export default function VisualBreakdown({ selectedWorkroom, hiddenWorkrooms }: V
       const avgCostPerRecord = w.records > 0 ? totalCost / w.records : 0
       const avgLaborPOPerStore = w.stores.size > 0 ? w.laborPO / w.stores.size : 0
       const avgJobsWorkCycleTime = w.jobsWorkCycleTimeCount > 0 ? (w.jobsWorkCycleTime || 0) / w.jobsWorkCycleTimeCount : null
-      const avgRescheduleRateRaw = w.rescheduleRateCount > 0 ? (w.rescheduleRate || 0) / w.rescheduleRateCount : null
-      // Normalize fractions to percentage points (e.g., 27% => 0.27 in Excel)
-      const avgRescheduleRate =
-        avgRescheduleRateRaw != null && !isNaN(Number(avgRescheduleRateRaw)) && Number(avgRescheduleRateRaw) > 0 && Number(avgRescheduleRateRaw) <= 1
-          ? Number(avgRescheduleRateRaw) * 100
-          : avgRescheduleRateRaw
+      // Already converted to percentage points at upload — do not re-scale (1% would become 100%)
+      const avgRescheduleRate = w.rescheduleRateCount > 0 ? (w.rescheduleRate || 0) / w.rescheduleRateCount : null
       const avgDetailsCycleTime = w.detailsCycleTimeCount > 0 ? (w.detailsCycleTime || 0) / w.detailsCycleTimeCount : null
       const avgTicketSale = w.records > 0 ? w.laborPO / w.records : 0
       
@@ -1125,10 +1125,6 @@ export default function VisualBreakdown({ selectedWorkroom, hiddenWorkrooms }: V
     <div className="space-y-0">
       {/* HEATMAP VISUALIZATION - MOVED TO TOP */}
       <section className="compact-section" style={{ marginBottom: '1.5rem' }}>
-        {/* Title */}
-        <div className="compact-section-header" style={{ marginBottom: '1rem' }}>
-          <h3 className="compact-section-title">Performance Operational Dashboard (POD)</h3>
-        </div>
         <div className="compact-chart-container" style={{ minHeight: '300px', padding: '1rem' }}>
           <div style={{ 
             display: 'grid', 
@@ -1440,10 +1436,7 @@ export default function VisualBreakdown({ selectedWorkroom, hiddenWorkrooms }: V
             // Calculate all metrics once
             // Jobs Completed: Sum of values from column T (Completed column)
             // Only include records with visual data (not survey-only records)
-            const visualDataRecords = filteredData.filter((w) => {
-              const hasVisualData = (w.sales && w.sales > 0) || (w.laborPO && w.laborPO > 0) || (w.vendorDebit && w.vendorDebit !== 0)
-              return hasVisualData
-            })
+            const visualDataRecords = filteredData.filter(isOperationalVisualRecord)
             
             // Deduplicate records based on workroom + store + completed value
             // This prevents counting the same record multiple times if uploaded twice
@@ -1500,13 +1493,9 @@ export default function VisualBreakdown({ selectedWorkroom, hiddenWorkrooms }: V
               const value = w.rescheduleRate
               return value != null && value !== undefined && !isNaN(Number(value))
             })
+            // Already converted to percentage points at upload — do not re-scale
             const avgRescheduleRate = rescheduleRateData.length > 0
-              ? rescheduleRateData.reduce((sum, w) => {
-                  let v = Number(w.rescheduleRate ?? 0)
-                  // Normalize fractions to percentage points (e.g., 27% => 0.27 in Excel)
-                  if (!isNaN(v) && v > 0 && v <= 1) v = v * 100
-                  return sum + v
-                }, 0) / rescheduleRateData.length
+              ? rescheduleRateData.reduce((sum, w) => sum + Number(w.rescheduleRate ?? 0), 0) / rescheduleRateData.length
               : null
             
             // Average Get it Right: Average of values from column AQ (ONLY from visual data, NOT survey)

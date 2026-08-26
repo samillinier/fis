@@ -45,6 +45,8 @@ interface StoreForecast {
   workroom: string | null
 }
 
+const Q2_WEEK_OFFSET = 13
+
 export default function LowesQ1TrackerPage() {
   const { user, isAdmin, isOwner } = useAuth()
   const canViewAdminUploads = isAdmin || isOwner
@@ -72,22 +74,11 @@ export default function LowesQ1TrackerPage() {
     setLoading(true)
     try {
       const authHeader = user?.email || ''
+      const fetchOpts = { cache: 'no-store' as RequestCache }
       const [goalsResponse, countsResponse, forecastsResponse] = await Promise.all([
-        fetch('/api/lowes-q1-goals', {
-          headers: {
-            Authorization: `Bearer ${authHeader}`,
-          },
-        }),
-        fetch('/api/lowes-weekly-counts', {
-          headers: {
-            Authorization: `Bearer ${authHeader}`,
-          },
-        }),
-        fetch('/api/lowes-store-weekly-forecasts', {
-          headers: {
-            Authorization: `Bearer ${authHeader}`,
-          },
-        }),
+        fetch('/api/lowes-q1-goals', fetchOpts),
+        fetch('/api/lowes-weekly-counts', fetchOpts),
+        fetch('/api/lowes-store-weekly-forecasts', fetchOpts),
       ])
 
       if (goalsResponse.ok) {
@@ -153,7 +144,7 @@ export default function LowesQ1TrackerPage() {
     return Array.from(workroomSet).sort()
   }, [storeForecasts])
 
-  // Color scheme for weeks (13 weeks for Q1)
+  // Color scheme for Lowe's fiscal weeks
   const getWeekColor = (week: number): string => {
     const colors = [
       '#3B82F6', // Blue - Week 1
@@ -396,7 +387,7 @@ export default function LowesQ1TrackerPage() {
       <div className="p-6 space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Q1 2026 Job Count Tracker
+            Q2 2026 Job Count Tracker
           </h1>
           <p className="text-sm text-gray-600">
             Track job count goals by district and category, week-to-week
@@ -406,7 +397,7 @@ export default function LowesQ1TrackerPage() {
         <SalesLastWeekDistrictPivot
           storeForecasts={storeForecasts}
           weeklyCounts={counts}
-          q1Goals={goals}
+          q2Goals={goals}
         />
 
         {/* Upload Section — admins only */}
@@ -455,7 +446,7 @@ export default function LowesQ1TrackerPage() {
               >
                 <option value="all">All Weeks</option>
                 {weeks.map(w => (
-                  <option key={w} value={w.toString()}>Week {w}</option>
+                  <option key={w} value={w.toString()}>Week {w + Q2_WEEK_OFFSET}</option>
                 ))}
               </select>
             </div>
@@ -611,13 +602,13 @@ export default function LowesQ1TrackerPage() {
                       {forecastView === 'store' ? 'District' : 'Store'}
                     </th>
                     <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      District Q1 Jobs
+                      District Q2 Jobs
                     </th>
                     <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
                       % Share
                     </th>
                     <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Store Q1 Forecast
+                      Store Q2 Forecast
                     </th>
                     {weeks.map(week => (
                       <th 
@@ -625,7 +616,7 @@ export default function LowesQ1TrackerPage() {
                         className="px-3 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider"
                         style={{ backgroundColor: getWeekBgColor(week) }}
                       >
-                        WK{week}
+                        WK{week + Q2_WEEK_OFFSET}
                       </th>
                     ))}
                   </tr>
@@ -931,8 +922,8 @@ export default function LowesQ1TrackerPage() {
                     >
                       <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
                         {row.district === 'TOTAL' ? (
-                          <div className="font-bold text-gray-900">
-                            Total - Week {row.week} {row.category}
+                        <div className="font-bold text-gray-900">
+                            Total - Week {row.week + Q2_WEEK_OFFSET} {row.category}
                           </div>
                         ) : (
                           <div>{`District ${row.district}`}</div>
@@ -948,7 +939,7 @@ export default function LowesQ1TrackerPage() {
                           color: getWeekColor(row.week)
                         }}
                       >
-                        {row.district === 'TOTAL' ? '' : `Week ${row.week}`}
+                        {row.district === 'TOTAL' ? '' : `Week ${row.week + Q2_WEEK_OFFSET}`}
                       </td>
                       <td className={`px-4 py-3 whitespace-nowrap text-sm ${row.district === 'TOTAL' ? 'font-bold text-gray-900' : row.category === 'TOTAL' ? 'font-bold text-gray-900' : 'text-gray-700'}`}>
                         {row.district === 'TOTAL' ? '' : row.category}

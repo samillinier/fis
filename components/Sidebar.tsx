@@ -6,6 +6,10 @@ import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import DualFileUpload from '@/components/DualFileUpload'
 import YearlyDualFileUpload from '@/components/YearlyDualFileUpload'
+import PaymentFileUpload from '@/components/PaymentFileUpload'
+import YearlyPaymentFileUpload from '@/components/YearlyPaymentFileUpload'
+import ScheduledJobFileUpload from '@/components/ScheduledJobFileUpload'
+import { usePaymentShell } from '@/context/PaymentShellContext'
 import { useAuth } from '@/components/AuthContext'
 import { 
   X, 
@@ -16,7 +20,11 @@ import {
   FileText, 
   DollarSign, 
   Target, 
-  Calculator 
+  Calculator,
+  CreditCard,
+  Clock,
+  MapPin,
+  Briefcase,
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -40,8 +48,9 @@ export default function Sidebar({
 }: SidebarProps) {
   const { data } = useData()
   const pathname = usePathname()
-  const { isAdmin, isOwner, isAccounting } = useAuth()
+  const { isAdmin, isOwner, isManager, isAccounting } = useAuth()
   const canViewAdminPages = isAdmin || isOwner
+  const canViewManagerPages = canViewAdminPages || isManager
 
   // Helper function to check if a workroom name is valid (not "Location #" or similar)
   const isValidWorkroomName = (name: string): boolean => {
@@ -50,7 +59,8 @@ export default function Sidebar({
       normalizedName !== 'location #' &&
       normalizedName !== 'location' &&
       normalizedName !== '' &&
-      !normalizedName.includes('location #')
+      !normalizedName.includes('location #') &&
+      !/^\d+$/.test(normalizedName)
     )
   }
 
@@ -113,18 +123,76 @@ export default function Sidebar({
             <BarChart3 size={18} className="mr-2 flex-shrink-0" />
             Yearly Breakdown
           </Link>
+          {canViewAdminPages && (
+            <>
+              <Link
+                href="/cycle-time"
+                className={`sidebar-nav-button ${
+                  isActive('/cycle-time') ? 'sidebar-nav-button--active' : ''
+                }`}
+                onClick={handleLinkClick}
+              >
+                <Clock size={18} className="mr-2 flex-shrink-0" />
+                Cycle Time YTD
+              </Link>
+              <Link
+                href="/cycle-time-ly"
+                className={`sidebar-nav-button ${
+                  isActive('/cycle-time-ly') ? 'sidebar-nav-button--active' : ''
+                }`}
+                onClick={handleLinkClick}
+              >
+                <Clock size={18} className="mr-2 flex-shrink-0" />
+                Cycle Time LY
+              </Link>
+              <Link
+                href="/job"
+                className={`sidebar-nav-button ${
+                  isActive('/job') ? 'sidebar-nav-button--active' : ''
+                }`}
+                onClick={handleLinkClick}
+              >
+                <Briefcase size={18} className="mr-2 flex-shrink-0" />
+                Job
+              </Link>
+              <Link
+                href="/heatmap"
+                className={`sidebar-nav-button ${
+                  isActive('/heatmap') ? 'sidebar-nav-button--active' : ''
+                }`}
+                onClick={handleLinkClick}
+              >
+                <MapPin size={18} className="mr-2 flex-shrink-0" />
+                Heatmap
+              </Link>
+            </>
+          )}
           <Link
-            href="/lowes-q1-tracker"
+            href="/lowes-q2-tracker"
             className={`sidebar-nav-button ${
-              isActive('/lowes-q1-tracker') ? 'sidebar-nav-button--active' : ''
+              isActive('/lowes-q2-tracker') || isActive('/lowes-q1-tracker') ? 'sidebar-nav-button--active' : ''
             }`}
             onClick={handleLinkClick}
           >
             <Target size={18} className="mr-2 flex-shrink-0" />
-            Q1 Tracker
+            Q2 Tracker
           </Link>
-          {(canViewAdminPages || isAccounting) && (
+          {canViewAdminPages && (
+            <Link
+              href="/payment"
+              className={`sidebar-nav-button ${
+                isActive('/payment') ? 'sidebar-nav-button--active' : ''
+              }`}
+              onClick={handleLinkClick}
+            >
+              <CreditCard size={18} className="mr-2 flex-shrink-0" />
+              Payment
+            </Link>
+          )}
+          {(canViewAdminPages || canViewManagerPages || isAccounting) && (
             <>
+              {/* HIDDEN: Finance Hub and Store Overview temporarily disabled */}
+              {/*
               {canViewAdminPages && (
                 <>
                   <Link
@@ -147,6 +215,11 @@ export default function Sidebar({
                     <Store size={18} className="mr-2 flex-shrink-0" />
                     Store Overview
                   </Link>
+                </>
+              )}
+              */}
+              {canViewManagerPages && (
+                <>
                   <Link
                     href="/workroom-report"
                     className={`sidebar-nav-button ${
@@ -157,6 +230,8 @@ export default function Sidebar({
                     <FileText size={18} className="mr-2 flex-shrink-0" />
                     Workroom Report
                   </Link>
+                  {/* HIDDEN: Calculator and Bonus pages temporarily disabled */}
+                  {/*
                   <Link
                     href="/calculator"
                     className={`sidebar-nav-button ${
@@ -167,8 +242,10 @@ export default function Sidebar({
                     <Calculator size={18} className="mr-2 flex-shrink-0" />
                     Calculator
                   </Link>
+                  */}
                 </>
               )}
+              {/*
               <Link
                 href="/bonus"
                 className={`sidebar-nav-button ${
@@ -179,18 +256,39 @@ export default function Sidebar({
                 <DollarSign size={18} className="mr-2 flex-shrink-0" />
                 Bonus
               </Link>
+              */}
             </>
           )}
         </nav>
 
       </div>
 
-      {canViewAdminPages && (
+      {canViewAdminPages &&
+        pathname !== '/cycle-time' &&
+        pathname !== '/cycle-time-ly' &&
+        pathname !== '/heatmap' &&
+        pathname !== '/job' && (
         <div className="sidebar-upload">
-          {pathname === '/yearly-breakdown' ? <YearlyDualFileUpload /> : <DualFileUpload />}
+          {pathname === '/payment' ? (
+            <PaymentSidebarUpload />
+          ) : pathname === '/yearly-breakdown' ? (
+            <YearlyDualFileUpload />
+          ) : (
+            <DualFileUpload />
+          )}
         </div>
       )}
     </aside>
+  )
+}
+
+function PaymentSidebarUpload() {
+  const { mode } = usePaymentShell()
+  return (
+    <div className="sidebar-upload-card">
+      {mode === 'yearly' ? <YearlyPaymentFileUpload /> : <PaymentFileUpload />}
+      <ScheduledJobFileUpload />
+    </div>
   )
 }
 

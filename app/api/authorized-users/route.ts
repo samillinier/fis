@@ -7,8 +7,8 @@ function normalizeEmail(email?: string) {
   return (email || '').trim().toLowerCase()
 }
 
-function normalizeRole(role?: string): 'admin' | 'owner' | 'user' | 'accounting' {
-  if (role === 'admin' || role === 'owner' || role === 'accounting') return role
+function normalizeRole(role?: string): 'admin' | 'owner' | 'manager' | 'user' | 'accounting' {
+  if (role === 'admin' || role === 'owner' || role === 'manager' || role === 'accounting') return role
   return 'user'
 }
 

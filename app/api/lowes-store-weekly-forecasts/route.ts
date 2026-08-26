@@ -98,8 +98,8 @@ export async function POST(request: NextRequest) {
         throw new Error('District and Store are required')
       }
 
-      if (weekNumber < 1 || weekNumber > 13) {
-        throw new Error(`Invalid week number: ${weekNumber}. Must be between 1 and 13.`)
+      if (weekNumber < 1 || weekNumber > 52) {
+        throw new Error(`Invalid week number: ${weekNumber}. Must be between 1 and 52.`)
       }
 
       return {

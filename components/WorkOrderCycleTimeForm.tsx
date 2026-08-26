@@ -192,7 +192,7 @@ export default function WorkOrderCycleTimeForm({ workroom }: WorkOrderCycleTimeF
                   FIS – WORKROOM CYCLE TIME CORRECTIVE REPORT
                 </h1>
                 <p className="text-sm text-gray-600 mt-1">
-                  Required When Weekly Cycle Times Exceed 12 Days
+                  Required When Weekly Cycle Times Exceed 10 Days
                 </p>
               </div>
             </div>
@@ -262,7 +262,7 @@ export default function WorkOrderCycleTimeForm({ workroom }: WorkOrderCycleTimeF
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#80875d]"
                   />
                   <span className="text-gray-600">Days</span>
-                  <span className="text-sm text-gray-500">(Target: 12 Days)</span>
+                  <span className="text-sm text-gray-500">(Target: 10 Days)</span>
                 </div>
               </div>
             </div>

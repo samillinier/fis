@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
-// GET - Fetch Q1 goals for all districts or a specific district
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
+// GET - Fetch Lowe's tracker goals for all districts or a specific district
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -26,18 +29,25 @@ export async function GET(request: NextRequest) {
     const { data, error } = await query
 
     if (error) {
-      console.error('Error fetching Q1 goals:', error)
+      console.error('Error fetching tracker goals:', error)
       return NextResponse.json({ error: 'Failed to fetch goals' }, { status: 500 })
     }
 
-    return NextResponse.json({ goals: data || [] })
+    return NextResponse.json(
+      { goals: data || [] },
+      {
+        headers: {
+          'Cache-Control': 'no-store, max-age=0',
+        },
+      }
+    )
   } catch (error) {
     console.error('Error in GET /api/lowes-q1-goals:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
-// POST - Upload Q1 goals from Excel file (admin only)
+// POST - Upload tracker goals from Excel file (admin only)
 export async function POST(request: NextRequest) {
   try {
     const authHeader = request.headers.get('authorization')
@@ -118,10 +128,10 @@ export async function POST(request: NextRequest) {
       }
     }).filter((goal: any) => {
       // Filter out invalid records
-      return goal.district && 
-             goal.week_number >= 1 && goal.week_number <= 13 &&
+      return goal.district &&
+             goal.week_number >= 1 && goal.week_number <= 52 &&
              ['CARPET', 'HSF', 'TILE', 'TOTAL'].includes(goal.category) &&
-             goal.planned_count > 0
+             (goal.planned_count > 0 || goal.comparable_count > 0)
     })
 
     console.log(`✅ [POST /api/lowes-q1-goals] Validated ${validatedGoals.length} goals (filtered from ${goals.length} total)`)
@@ -130,7 +140,7 @@ export async function POST(request: NextRequest) {
       console.error('❌ [POST /api/lowes-q1-goals] No valid goals after validation')
       return NextResponse.json({
         error: 'No valid goals to save',
-        details: 'All goals were filtered out. Please check that the Excel file has valid district numbers, week numbers (1-13), and categories (CARPET, HSF, TILE, TOTAL).'
+        details: 'All goals were filtered out. Please check that the Excel file has valid district numbers, week numbers (1-52), and categories (CARPET, HSF, TILE, TOTAL).'
       }, { status: 400 })
     }
 

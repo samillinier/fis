@@ -23,7 +23,9 @@ async function assertAdmin(userEmail: string): Promise<boolean> {
   return actorData?.role === 'admin' && actorData?.is_active !== false
 }
 
-async function getActorRole(userEmail: string): Promise<'admin' | 'owner' | 'accounting' | 'user' | null> {
+async function getActorRole(
+  userEmail: string
+): Promise<'admin' | 'owner' | 'accounting' | 'manager' | 'user' | null> {
   const { data: actorData } = await supabase
     .from('authorized_users')
     .select('role, is_active')
@@ -31,7 +33,13 @@ async function getActorRole(userEmail: string): Promise<'admin' | 'owner' | 'acc
     .maybeSingle()
 
   if (!actorData || actorData.is_active === false) return null
-  if (actorData.role === 'admin' || actorData.role === 'owner' || actorData.role === 'accounting') return actorData.role
+  if (
+    actorData.role === 'admin' ||
+    actorData.role === 'owner' ||
+    actorData.role === 'accounting' ||
+    actorData.role === 'manager'
+  )
+    return actorData.role
   return 'user'
 }
 

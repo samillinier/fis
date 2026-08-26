@@ -88,9 +88,9 @@ export async function POST(request: NextRequest) {
 
     // Validate week numbers
     for (const count of validCounts) {
-      if (count.week_number < 1 || count.week_number > 13) {
+      if (count.week_number < 1 || count.week_number > 52) {
         return NextResponse.json(
-          { error: `Invalid week number: ${count.week_number}. Must be between 1 and 13.` },
+          { error: `Invalid week number: ${count.week_number}. Must be between 1 and 52.` },
           { status: 400 }
         )
       }

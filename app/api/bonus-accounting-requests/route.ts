@@ -11,7 +11,9 @@ function getActor(request: NextRequest) {
   return { userEmail }
 }
 
-async function getActorRole(userEmail: string): Promise<'admin' | 'owner' | 'accounting' | 'user' | null> {
+async function getActorRole(
+  userEmail: string
+): Promise<'admin' | 'owner' | 'accounting' | 'manager' | 'user' | null> {
   const { data } = await supabase
     .from('authorized_users')
     .select('role, is_active')
@@ -19,7 +21,13 @@ async function getActorRole(userEmail: string): Promise<'admin' | 'owner' | 'acc
     .maybeSingle()
 
   if (!data || data.is_active === false) return null
-  if (data.role === 'admin' || data.role === 'owner' || data.role === 'accounting') return data.role
+  if (
+    data.role === 'admin' ||
+    data.role === 'owner' ||
+    data.role === 'accounting' ||
+    data.role === 'manager'
+  )
+    return data.role
   return 'user'
 }
 

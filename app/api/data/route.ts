@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase, ensureUserExists } from '@/lib/supabase'
 import type { DashboardData, WorkroomData } from '@/context/DataContext'
+import { isSurveyRecord, isVisualRecord } from '@/lib/workroomRecordUtils'
 
 // Helper to get shared admin user_id (all admins upload to this shared location)
 // This ensures all data is shared for everyone, regardless of which admin uploaded it
@@ -232,20 +233,11 @@ export async function POST(request: NextRequest) {
     const surveyData: WorkroomData[] = []
 
     body.workrooms.forEach((workroom) => {
-      // Check if it's visual data (has sales, laborPO, or vendorDebit)
-      const isVisual = workroom.sales != null || workroom.laborPO != null || workroom.vendorDebit != null
-      
-      // Check if it's survey data (has ltrScore, craftScore, or profScore)
-      const isSurvey = workroom.ltrScore != null || workroom.craftScore != null || workroom.profScore != null
-
-      if (isVisual && !isSurvey) {
-        // Pure visual data
-        visualData.push(workroom)
-      } else if (isSurvey) {
-        // Survey data (may also have some visual fields, but prioritize as survey)
+      if (isSurveyRecord(workroom)) {
         surveyData.push(workroom)
+      } else if (isVisualRecord(workroom)) {
+        visualData.push(workroom)
       } else {
-        // Unknown type - default to visual
         visualData.push(workroom)
       }
     })

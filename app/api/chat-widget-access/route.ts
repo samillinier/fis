@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
             users: usersWithoutColumn?.map((u) => ({
               email: u.email,
               name: u.name || undefined,
-              role: u.role === 'admin' || u.role === 'owner' || u.role === 'accounting' ? u.role : 'user',
+              role: u.role === 'admin' || u.role === 'owner' || u.role === 'manager' || u.role === 'accounting' ? u.role : 'user',
               isActive: u.is_active !== false,
               chatWidgetEnabled: false, // Default to false if column doesn't exist
             })) || [],
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
         users: users?.map((u) => ({
           email: u.email,
           name: u.name || undefined,
-          role: u.role === 'admin' || u.role === 'owner' || u.role === 'accounting' ? u.role : 'user',
+          role: u.role === 'admin' || u.role === 'owner' || u.role === 'manager' || u.role === 'accounting' ? u.role : 'user',
           isActive: u.is_active !== false,
           chatWidgetEnabled: u.chat_widget_enabled === true,
         })) || [],

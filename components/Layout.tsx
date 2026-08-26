@@ -83,6 +83,7 @@ export default function Layout({ children }: LayoutProps) {
                 alt="FIS Logo" 
                 className="dashboard-logo"
               />
+              <div className="dashboard-logo-text">POD Dashboard</div>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>

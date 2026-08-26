@@ -21,7 +21,7 @@ export type WeeklyCountForVariance = {
   actual_count: number
 }
 
-export type Q1GoalForVariance = {
+export type QuarterGoalForVariance = {
   district: string
   week_number: number
   category: string
@@ -52,7 +52,7 @@ function getDistrictFromCsvWorkroom(raw: string | undefined): string | null {
   return workroom ? CSV_WORKROOM_TO_DISTRICT[workroom] || null : null
 }
 
-/** Map CSV project category labels to Q1 tracker / gateway categories */
+/** Map CSV project category labels to tracker / gateway categories */
 function mapProjectCategoryToTracker(raw: string): TrackerCat | null {
   const u = safeString(raw).toUpperCase().replace(/\s+/g, ' ').trim()
   if (!u) return null
@@ -103,8 +103,8 @@ function buildGatewayByDistrictWeek(counts: WeeklyCountForVariance[]) {
   return m
 }
 
-/** Planned counts from Q1 Goals upload (same shape as gateway index for lookup). */
-function buildPlanIndexFromGoals(goalsRows: Q1GoalForVariance[]) {
+/** Planned counts from Goals upload (same shape as gateway index for lookup). */
+function buildPlanIndexFromGoals(goalsRows: QuarterGoalForVariance[]) {
   const m = new Map<string, { TOTAL?: number; CARPET?: number; HSF?: number; TILE?: number }>()
   for (const g of goalsRows) {
     const d = normalizeDistrictKey(g.district)
@@ -186,10 +186,11 @@ type SalesRow = {
   projectCategory?: string
 }
 
-// Lowe's Q1 tracker week 1 aligns with the uploaded sales file period,
-// which starts on 2026-02-01 (Sunday) for the current 2026 tracker.
-const Q1_2026_START_UTC = Date.UTC(2026, 1, 1)
-const Q1_2026_WEEK_COUNT = 13
+// Lowe's Q2 tracker starts at fiscal week 14 on 2026-04-25 for the Q2 sales file.
+const Q2_2026_START_UTC = Date.UTC(2026, 3, 25)
+const Q2_2026_FIRST_WEEK = 14
+const Q2_2026_LAST_WEEK = 26
+const Q2_WEEK_OFFSET = 13
 
 function normalizeStoreName(input: string): string {
   return String(input || '')
@@ -226,6 +227,19 @@ function parseSalesDate(input: string | undefined): Date | null {
     return new Date(Date.UTC(year, parseInt(mm, 10) - 1, parseInt(dd, 10)))
   }
 
+  // Published Sales Last Week CSV uses MM-DD-YYYY (e.g. 05-11-2026)
+  const dashMatch = raw.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/)
+  if (dashMatch) {
+    const [, mm, dd, yyyy] = dashMatch
+    return new Date(Date.UTC(parseInt(yyyy, 10), parseInt(mm, 10) - 1, parseInt(dd, 10)))
+  }
+
+  const dashShortYearMatch = raw.match(/^(\d{1,2})-(\d{1,2})-(\d{2})$/)
+  if (dashShortYearMatch) {
+    const [, mm, dd, yy] = dashShortYearMatch
+    return new Date(Date.UTC(2000 + parseInt(yy, 10), parseInt(mm, 10) - 1, parseInt(dd, 10)))
+  }
+
   const isoMatch = raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/)
   if (isoMatch) {
     const [, yyyy, mm, dd] = isoMatch
@@ -240,16 +254,16 @@ function parseSalesDate(input: string | undefined): Date | null {
   return null
 }
 
-function getQ1WeekNumberFromSalesDate(dateSold: string | undefined): number | null {
+function getQ2WeekNumberFromSalesDate(dateSold: string | undefined): number | null {
   const parsed = parseSalesDate(dateSold)
   if (!parsed) return null
 
-  const diffDays = Math.floor((parsed.getTime() - Q1_2026_START_UTC) / 86400000)
+  const diffDays = Math.floor((parsed.getTime() - Q2_2026_START_UTC) / 86400000)
   if (diffDays < 0) return null
 
-  const weekNumber = Math.floor(diffDays / 7) + 1
-  if (weekNumber < 1 || weekNumber > Q1_2026_WEEK_COUNT) return null
-  return weekNumber
+  const fiscalWeekNumber = Q2_2026_FIRST_WEEK + Math.floor(diffDays / 7)
+  if (fiscalWeekNumber < Q2_2026_FIRST_WEEK || fiscalWeekNumber > Q2_2026_LAST_WEEK) return null
+  return fiscalWeekNumber - Q2_WEEK_OFFSET
 }
 
 function parseCsvViaXlsx(file: File): Promise<SalesRow[]> {
@@ -294,11 +308,11 @@ function parseCsvTextViaXlsx(csvText: string): SalesRow[] {
 export default function SalesLastWeekDistrictPivot(props: {
   storeForecasts: StoreForecastLike[]
   weeklyCounts?: WeeklyCountForVariance[]
-  /** Q1 Goals file data — used for variance when Vendor Gateway actuals (`lowes_weekly_job_counts`) are empty */
-  q1Goals?: Q1GoalForVariance[]
+  /** Q2 Goals file data — used for variance when Vendor Gateway actuals (`lowes_weekly_job_counts`) are empty */
+  q2Goals?: QuarterGoalForVariance[]
 }) {
   const { user, isAdmin, isOwner } = useAuth()
-  const canViewAdminSalesTools = isAdmin || isOwner
+  const canPublishSales = isAdmin || isOwner
   const authEmail = user?.email || ''
   const { showNotification } = useNotification()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -314,14 +328,16 @@ export default function SalesLastWeekDistrictPivot(props: {
   const [isSavingCloud, setIsSavingCloud] = useState(false)
   const [isClearingCloud, setIsClearingCloud] = useState(false)
 
-  const defaultServerFileName = 'Sales Last Week_1_2026_2_23 (2).csv'
+  const defaultServerFileName = 'Sales Last Week_1_2026_5_6.csv'
 
   const [fetchedWeeklyCounts, setFetchedWeeklyCounts] = useState<WeeklyCountForVariance[]>([])
   const [weeklyCountsFetchDone, setWeeklyCountsFetchDone] = useState(false)
+  const [fetchedQ2Goals, setFetchedQ2Goals] = useState<QuarterGoalForVariance[]>([])
+  const [q2GoalsFetchDone, setQ2GoalsFetchDone] = useState(false)
 
   useEffect(() => {
     let cancelled = false
-    fetch('/api/lowes-weekly-counts')
+    fetch('/api/lowes-weekly-counts', { cache: 'no-store' })
       .then((r) => r.json())
       .then((d) => {
         if (cancelled) return
@@ -336,27 +352,53 @@ export default function SalesLastWeekDistrictPivot(props: {
     }
   }, [])
 
+  // Always load Q2 goals here so variance works for every signed-in user (not only admins).
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/lowes-q1-goals', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((d) => {
+        if (cancelled) return
+        if (Array.isArray(d?.goals)) {
+          setFetchedQ2Goals(d.goals as QuarterGoalForVariance[])
+        }
+      })
+      .catch((e) => {
+        console.error('Failed to load Q2 goals for variance:', e)
+      })
+      .finally(() => {
+        if (!cancelled) setQ2GoalsFetchDone(true)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   const weeklyCounts = useMemo(() => {
     const fromProps = props.weeklyCounts
     if (fromProps && fromProps.length > 0) return fromProps
     return fetchedWeeklyCounts
   }, [props.weeklyCounts, fetchedWeeklyCounts])
 
-  const q1Goals = props.q1Goals || []
+  const q2Goals = useMemo(() => {
+    const fromProps = props.q2Goals || []
+    if (fromProps.length > 0) return fromProps
+    return fetchedQ2Goals
+  }, [props.q2Goals, fetchedQ2Goals])
 
-  /** Prefer comparing CSV output against Q1 plan when plan exists. */
+  /** Prefer comparing CSV output against the uploaded plan when plan exists. */
   const comparisonSource: 'gateway' | 'plan' | 'none' =
-    q1Goals.length > 0 ? 'plan' : weeklyCounts.length > 0 ? 'gateway' : 'none'
+    q2Goals.length > 0 ? 'plan' : weeklyCounts.length > 0 ? 'gateway' : 'none'
 
   const comparisonIndex = useMemo(() => {
-    if (q1Goals.length > 0) return buildPlanIndexFromGoals(q1Goals)
+    if (q2Goals.length > 0) return buildPlanIndexFromGoals(q2Goals)
     if (weeklyCounts.length > 0) return buildGatewayByDistrictWeek(weeklyCounts)
     return new Map<string, { TOTAL?: number; CARPET?: number; HSF?: number; TILE?: number }>()
-  }, [weeklyCounts, q1Goals])
+  }, [weeklyCounts, q2Goals])
 
   const varianceWeekOptions = useMemo(() => {
     const weeks = new Set<number>()
-    for (const g of q1Goals) {
+    for (const g of q2Goals) {
       const w = parseInt(String(g.week_number), 10)
       if (Number.isFinite(w) && w >= 1 && w <= 52) weeks.add(w)
     }
@@ -367,7 +409,7 @@ export default function SalesLastWeekDistrictPivot(props: {
       }
     }
     return Array.from(weeks).sort((a, b) => a - b)
-  }, [weeklyCounts, q1Goals])
+  }, [weeklyCounts, q2Goals])
 
   const defaultVarianceWeek = useMemo(() => {
     if (varianceWeekOptions.length === 0) return null
@@ -379,11 +421,11 @@ export default function SalesLastWeekDistrictPivot(props: {
     varianceWeekOverride != null ? varianceWeekOverride : defaultVarianceWeek
 
   const hasWeeklyCounts = weeklyCounts.length > 0
-  const hasQ1Goals = q1Goals.length > 0
+  const hasQ2Goals = q2Goals.length > 0
 
   const filteredSalesRows = useMemo(() => {
     if (varianceWeek == null) return rows
-    return rows.filter((row) => getQ1WeekNumberFromSalesDate(row.dateSold) === varianceWeek)
+    return rows.filter((row) => getQ2WeekNumberFromSalesDate(row.dateSold) === varianceWeek)
   }, [rows, varianceWeek])
 
   const salesRowsOutsideSelectedWeek = rows.length - filteredSalesRows.length
@@ -414,7 +456,7 @@ export default function SalesLastWeekDistrictPivot(props: {
     const loadCloud = async () => {
       setCloudLoading(true)
       try {
-        const res = await fetch('/api/lowes-sales-last-week-cloud')
+        const res = await fetch('/api/lowes-sales-last-week-cloud', { cache: 'no-store' })
         const data = await res.json().catch(() => ({}))
         if (cancelled) return
         if (!res.ok) {
@@ -565,6 +607,31 @@ export default function SalesLastWeekDistrictPivot(props: {
     return allVisibleDistricts.filter((d) => d === selectedDistrict)
   }, [allVisibleDistricts, selectedDistrict])
 
+  const trackerDataLoading = !q2GoalsFetchDone || cloudLoading
+
+  /** Plan/gateway districts must show even when sales CSV is not loaded (rows empty). */
+  const showDistrictComparison = allVisibleDistricts.length > 0
+
+  const publishSalesToCloud = async (fileName: string, csvText: string) => {
+    if (!canPublishSales || !authEmail) {
+      throw new Error('Not authorized to publish sales data')
+    }
+    const res = await fetch('/api/lowes-sales-last-week-cloud', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${authEmail}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ fileName, csvText }),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      throw new Error(data?.error || 'Save failed')
+    }
+    setHasCloudSnapshot(true)
+    setCloudUpdatedAt(new Date().toISOString())
+  }
+
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -577,6 +644,25 @@ export default function SalesLastWeekDistrictPivot(props: {
       setRows(parsed)
       setUploadedFileName(file.name)
       setSelectedDistrict('all')
+
+      if (canPublishSales && parsed.length > 0) {
+        setIsSavingCloud(true)
+        try {
+          await publishSalesToCloud(file.name, text)
+          showNotification(
+            'Sales Last Week published — all users on Q2 Tracker will see this update.',
+            'success'
+          )
+        } catch (publishErr: any) {
+          console.error('Auto-publish Sales Last Week failed:', publishErr)
+          showNotification(
+            `CSV loaded for you, but could not publish for other users: ${publishErr?.message || 'Save failed'}. Use Save to cloud.`,
+            'error'
+          )
+        } finally {
+          setIsSavingCloud(false)
+        }
+      }
     } catch (err: any) {
       console.error('Failed to parse Sales Last Week CSV:', err)
       setParseError(err?.message || 'Failed to parse CSV')
@@ -603,6 +689,25 @@ export default function SalesLastWeekDistrictPivot(props: {
       setRows(parsed)
       setUploadedFileName(defaultServerFileName)
       setSelectedDistrict('all')
+
+      if (canPublishSales && parsed.length > 0) {
+        setIsSavingCloud(true)
+        try {
+          await publishSalesToCloud(defaultServerFileName, raw)
+          showNotification(
+            'Sales Last Week published — all users on Q2 Tracker will see this update.',
+            'success'
+          )
+        } catch (publishErr: any) {
+          console.error('Auto-publish Sales Last Week failed:', publishErr)
+          showNotification(
+            `Loaded locally but could not publish: ${publishErr?.message || 'Save failed'}.`,
+            'error'
+          )
+        } finally {
+          setIsSavingCloud(false)
+        }
+      }
     } catch (err: any) {
       console.error('Failed to load Sales Last Week CSV from server:', err)
       setParseError(err?.message || 'Failed to load CSV from server')
@@ -615,24 +720,14 @@ export default function SalesLastWeekDistrictPivot(props: {
   }
 
   const handleSaveToCloud = async () => {
-    if (!isAdmin || !uploadedFileName || !csvSourceText || rows.length === 0) return
+    if (!canPublishSales || !uploadedFileName || !csvSourceText || rows.length === 0) return
     setIsSavingCloud(true)
     try {
-      const res = await fetch('/api/lowes-sales-last-week-cloud', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${authEmail}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ fileName: uploadedFileName, csvText: csvSourceText }),
-      })
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok) {
-        throw new Error(data?.error || 'Save failed')
-      }
-      setHasCloudSnapshot(true)
-      setCloudUpdatedAt(new Date().toISOString())
-      showNotification('Sales Last Week file saved to cloud.', 'success')
+      await publishSalesToCloud(uploadedFileName, csvSourceText)
+      showNotification(
+        'Sales Last Week published — all users on Q2 Tracker will see this update.',
+        'success'
+      )
     } catch (err: any) {
       showNotification(err?.message || 'Could not save to cloud', 'error')
     } finally {
@@ -641,7 +736,7 @@ export default function SalesLastWeekDistrictPivot(props: {
   }
 
   const handleClearCloudAndLocal = async () => {
-    if (!isAdmin) return
+    if (!canPublishSales) return
     setIsClearingCloud(true)
     try {
       const res = await fetch('/api/lowes-sales-last-week-cloud', {
@@ -762,8 +857,8 @@ export default function SalesLastWeekDistrictPivot(props: {
 
     const cmpLabel =
       comparisonSource === 'gateway'
-        ? `Vendor Gateway Week ${varianceWeek} (TOTAL)`
-        : `Q1 planned Week ${varianceWeek} (TOTAL)`
+        ? `Vendor Gateway Week ${varianceWeek + Q2_WEEK_OFFSET} (TOTAL)`
+        : `Q2 planned Week ${varianceWeek + Q2_WEEK_OFFSET} (TOTAL)`
     const cmpColumnHeader = comparisonSource === 'gateway' ? 'Gateway' : 'Planned'
     const cmpKind = comparisonSource === 'gateway' ? 'gateway' : 'plan'
 
@@ -801,7 +896,7 @@ export default function SalesLastWeekDistrictPivot(props: {
                 {showCategoryVariance ? (
                   <div className="mt-2 rounded-md border border-gray-200 overflow-hidden">
                     <div className="bg-gray-50 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-gray-600">
-                      By category — sales file vs {comparisonSource === 'gateway' ? 'gateway' : 'Q1 plan'}
+                      By category — sales file vs {comparisonSource === 'gateway' ? 'gateway' : 'Q2 plan'}
                     </div>
                     <table className="min-w-full text-xs">
                       <thead>
@@ -918,8 +1013,9 @@ export default function SalesLastWeekDistrictPivot(props: {
             })
           ) : (
             <div className="md:col-span-2 rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-sm text-gray-500">
-              No sales-file rows matched district {district} for week {varianceWeek ?? 'the selected week'}. Plan and
-              actual comparison still appears above.
+              No sales-file rows matched district {district} for{' '}
+              {varianceWeek == null ? 'the selected week' : `week ${varianceWeek + Q2_WEEK_OFFSET}`}. Plan and actual
+              comparison still appears above.
             </div>
           )}
         </div>
@@ -936,11 +1032,11 @@ export default function SalesLastWeekDistrictPivot(props: {
             <h3 className="text-sm font-semibold text-gray-900">Sales Last Week (by District)</h3>
           </div>
         </div>
-        {canViewAdminSalesTools && uploadedFileName ? <CheckCircle2 size={16} className="text-green-600" /> : null}
+        {canPublishSales && uploadedFileName ? <CheckCircle2 size={16} className="text-green-600" /> : null}
       </div>
 
       <div className="flex flex-col md:flex-row md:flex-wrap md:items-center gap-3">
-        {isAdmin ? (
+        {canPublishSales ? (
           <>
             <input
               ref={fileInputRef}
@@ -968,13 +1064,9 @@ export default function SalesLastWeekDistrictPivot(props: {
               {isLoadingFromServer ? 'Loading…' : 'Load from Project File'}
             </button>
           </>
-        ) : canViewAdminSalesTools ? (
-          <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600">
-            Read Only
-          </div>
         ) : null}
 
-        {isAdmin && (rows.length > 0 || hasCloudSnapshot) ? (
+        {canPublishSales && (rows.length > 0 || hasCloudSnapshot) ? (
           <>
             <button
               type="button"
@@ -997,7 +1089,7 @@ export default function SalesLastWeekDistrictPivot(props: {
               ) : (
                 <>
                   <Cloud size={16} />
-                  Save to cloud
+                  Publish for all users
                 </>
               )}
             </button>
@@ -1024,27 +1116,36 @@ export default function SalesLastWeekDistrictPivot(props: {
         ) : null}
 
         {cloudLoading ? (
-          <span className="text-xs text-gray-500">{canViewAdminSalesTools ? 'Loading cloud copy…' : 'Loading…'}</span>
+          <span className="text-xs text-gray-500">Loading published sales data…</span>
         ) : null}
 
-        {canViewAdminSalesTools && uploadedFileName ? (
+        {canPublishSales && uploadedFileName ? (
           <div className="text-xs text-gray-700">
             Loaded: <span className="font-semibold">{uploadedFileName}</span> ({formatCount(pivot.totalRows)} rows)
             {varianceWeek != null ? (
               <span className="block text-gray-500 mt-0.5">
-                Showing {formatCount(pivot.filteredRows)} rows from sales week {varianceWeek}
+                Showing {formatCount(pivot.filteredRows)} rows from sales week {varianceWeek + Q2_WEEK_OFFSET}
                 {salesRowsOutsideSelectedWeek > 0 ? ` (${formatCount(salesRowsOutsideSelectedWeek)} rows excluded)` : ''}
               </span>
             ) : null}
             {hasCloudSnapshot && cloudUpdatedAt ? (
               <span className="block text-gray-500 mt-0.5">
-                Cloud: {new Date(cloudUpdatedAt).toLocaleString()}
+                Published for all users: {new Date(cloudUpdatedAt).toLocaleString()}
               </span>
-            ) : null}
+            ) : (
+              <span className="block text-amber-700 mt-0.5 font-medium">
+                Not published yet — other users will not see this file until you publish.
+              </span>
+            )}
           </div>
-        ) : !canViewAdminSalesTools && rows.length > 0 ? (
+        ) : !canPublishSales && rows.length > 0 ? (
           <div className="text-xs text-gray-600">
             {formatCount(pivot.filteredRows)} projects in roll-up
+            {hasCloudSnapshot && cloudUpdatedAt ? (
+              <span className="block text-gray-500 mt-0.5">
+                Updated {new Date(cloudUpdatedAt).toLocaleString()}
+              </span>
+            ) : null}
           </div>
         ) : null}
       </div>
@@ -1061,23 +1162,37 @@ export default function SalesLastWeekDistrictPivot(props: {
         </div>
       )}
 
-      {!canViewAdminSalesTools && !cloudLoading && rows.length === 0 && !parseError ? (
-        <p className="mt-3 text-xs text-gray-500">No sales roll-up has been published yet.</p>
+      {trackerDataLoading && !showDistrictComparison && !parseError ? (
+        <p className="mt-3 text-xs text-gray-500">Loading Q2 variance data…</p>
       ) : null}
 
-      {rows.length > 0 && (
+      {!canPublishSales && !trackerDataLoading && !showDistrictComparison && !parseError ? (
+        <p className="mt-3 text-xs text-gray-600">
+          No Q2 tracker data is available yet. An admin must upload Q2 Goals and the Sales Last Week CSV on Q2
+          Tracker (sales publish automatically for everyone).
+        </p>
+      ) : null}
+
+      {!canPublishSales && !trackerDataLoading && hasQ2Goals && rows.length === 0 && !parseError ? (
+        <p className="mt-3 text-xs text-gray-600">
+          Q2 plan is loaded. Sales Last Week has not been published yet — counts below show 0 until an admin uploads
+          the sales CSV.
+        </p>
+      ) : null}
+
+      {showDistrictComparison && (
         <>
           {varianceWeek != null && pivot.filteredRows === 0 ? (
             <div className="mt-4 rounded-md border border-blue-200 bg-blue-50 px-3 py-2.5 text-xs text-blue-900">
-              No `Sales Last Week` rows matched Q1 week {varianceWeek} in this CSV. Sales values below are shown as `0`,
+              No `Sales Last Week` rows matched Q2 week {varianceWeek + Q2_WEEK_OFFSET} in this CSV. Sales values below are shown as `0`,
               while plan/actual comparison still remains visible for that week.
             </div>
           ) : null}
 
-          {weeklyCountsFetchDone && !hasWeeklyCounts && !hasQ1Goals ? (
+          {weeklyCountsFetchDone && !hasWeeklyCounts && !hasQ2Goals ? (
             <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs text-amber-950">
-              <span className="font-semibold">Variance needs Q1 data.</span> Uploading{' '}
-              <span className="font-medium">Q1 Goals</span> only saves plans to{' '}
+              <span className="font-semibold">Variance needs Q2 data.</span> Uploading{' '}
+              <span className="font-medium">Q2 Goals</span> only saves plans to{' '}
               <code className="rounded bg-amber-100/80 px-1 py-0.5 text-[10px]">lowes_q1_goals</code>. Actual job
               counts live in{' '}
               <code className="rounded bg-amber-100/80 px-1 py-0.5 text-[10px]">lowes_weekly_job_counts</code> (Vendor
@@ -1088,7 +1203,9 @@ export default function SalesLastWeekDistrictPivot(props: {
 
           <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg p-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <div className="text-xs text-gray-700">
-              {pivot.unknownDistrictCount > 0 || pivot.unknownStoreCount > 0 ? (
+              {rows.length === 0 ? (
+                <span>Showing Q2 plan by district{hasCloudSnapshot ? '' : ' (sales file not published yet)'}.</span>
+              ) : pivot.unknownDistrictCount > 0 || pivot.unknownStoreCount > 0 ? (
                 <span>
                   Note: <span className="font-semibold">{formatCount(pivot.unknownDistrictCount)}</span> rows couldn’t
                   be mapped to a district
@@ -1125,7 +1242,7 @@ export default function SalesLastWeekDistrictPivot(props: {
               {varianceWeekOptions.length > 0 ? (
                 <div className="flex items-center gap-2">
                   <label className="text-xs font-medium text-gray-700 whitespace-nowrap">
-                    {comparisonSource === 'gateway' ? 'Variance vs Gateway week:' : 'Variance vs Q1 plan week:'}
+                    {comparisonSource === 'gateway' ? 'Variance vs Gateway week:' : 'Variance vs Q2 plan week:'}
                   </label>
                   <select
                     value={varianceWeek ?? varianceWeekOptions[varianceWeekOptions.length - 1]}
@@ -1137,7 +1254,7 @@ export default function SalesLastWeekDistrictPivot(props: {
                   >
                     {varianceWeekOptions.map((w) => (
                       <option key={w} value={w}>
-                        Week {w}
+                        Week {w + Q2_WEEK_OFFSET}
                       </option>
                     ))}
                   </select>

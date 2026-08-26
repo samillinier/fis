@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import path from 'path'
 import fs from 'fs/promises'
+import os from 'os'
 
 function isSafeCsvName(name: string): boolean {
   // Disallow path traversal and only allow .csv files
@@ -24,10 +25,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid file name' }, { status: 400 })
     }
 
-    // Try in repo root (process.cwd()) and its parent (common when file is placed beside `fis/`)
+    // Try common local locations: repo root, parent folder, and Downloads.
     const candidates = [
       path.resolve(process.cwd(), name),
       path.resolve(process.cwd(), '..', name),
+      path.resolve(os.homedir(), 'Downloads', name),
     ]
 
     let csvText: string | null = null

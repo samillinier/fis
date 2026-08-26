@@ -1,0 +1,65 @@
+{
+  "772": {
+    "number": "772",
+    "name": "LOWE'S OF BRADENTON, FL",
+    "address": "7395 52ND PLACE EAST BRADENTON",
+    "city": "Fl",
+    "state": "FL",
+    "zip": "34203",
+    "source": "2014pdf"
+  },
+  "1714": {
+    "number": "1714",
+    "name": "LOWE'S OF S. CLEARWATER, FL",
+    "address": "2619 GULF TO BAY BOULEVARD CLEARWATER",
+    "city": "Fl",
+    "state": "FL",
+    "zip": "33759",
+    "source": "2014pdf"
+  },
+  "2362": {
+    "number": "2362",
+    "name": "LOWE'S OF ESTERO, FL",
+    "address": "10070 ESTERO TOWN COMMONS PLACE ESTERO",
+    "city": "Fl",
+    "state": "FL",
+    "zip": "33928",
+    "source": "2014pdf"
+  },
+  "2221": {
+    "number": "2221",
+    "name": "LOWE'S OF N.E. FT. MYERS, FL",
+    "address": "8040 DANI DRIVE FORT MYERS",
+    "city": "Fl",
+    "state": "FL",
+    "zip": "33912",
+    "source": "2014pdf"
+  },
+  "1701": {
+    "number": "1701",
+    "name": "LOWE'S OF LARGO, FL",
+    "address": "11101 ULMERTON ROAD LARGO",
+    "city": "Fl",
+    "state": "FL",
+    "zip": "33778",
+    "source": "2014pdf"
+  },
+  "1629": {
+    "number": "1629",
+    "name": "LOWE'S OF S. TAMPA, FL",
+    "address": "4210 SOUTH DALE MABRY HWY TAMPA",
+    "city": "Fl",
+    "state": "FL",
+    "zip": "33611",
+    "source": "2014pdf"
+  },
+  "1683": {
+    "number": "1683",
+    "name": "LOWE'S OF VENICE, FL",
+    "address": "1745 TAMIAMI TRAIL SOUTH VENICE",
+    "city": "Fl",
+    "state": "FL",
+    "zip": "34293",
+    "source": "2014pdf"
+  }
+}

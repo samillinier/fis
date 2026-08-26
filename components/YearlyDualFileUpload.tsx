@@ -9,6 +9,7 @@ import { useNotification } from '@/components/NotificationContext'
 import type { DashboardData, WorkroomData } from '@/context/DataContext'
 import { useYearlyData } from '@/context/YearlyDataContext'
 import { loadYearlyFileNames, saveYearlyFileNames } from '@/lib/database'
+import { excelPercentToPoints } from '@/lib/percentUtils'
 
 type FileNames = { visualFileName: string | null; surveyFileName: string | null }
 
@@ -130,6 +131,16 @@ export default function YearlyDualFileUpload() {
 
     const workrooms: WorkroomData[] = []
 
+    const numberOrZero = (value: unknown): number => {
+      if (value == null || value === '') return 0
+      const cleaned =
+        typeof value === 'string'
+          ? value.replace(/[$€£¥,%\s,]/g, '').trim()
+          : value
+      const numericValue = Number(cleaned)
+      return Number.isFinite(numericValue) ? numericValue : 0
+    }
+
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i]
       if (!row || row.length === 0) continue
@@ -142,17 +153,8 @@ export default function YearlyDualFileUpload() {
       const nameSource =
         workroomIdx >= 0 ? row[workroomIdx] : mapped?.workroom || storeSource || `Record ${i + 1}`
 
-      let salesValue = 0
-      if (salesIdx >= 0 && row[salesIdx] != null) {
-        const salesRaw = row[salesIdx]
-        if (typeof salesRaw === 'number') salesValue = salesRaw
-        else if (typeof salesRaw === 'string') {
-          const cleaned = String(salesRaw).replace(/[$€£¥,\s]/g, '').trim()
-          salesValue = Number(cleaned) || 0
-        } else {
-          salesValue = Number(salesRaw) || 0
-        }
-      }
+      const cellNumber = (idx: number): number => (idx >= 0 ? numberOrZero(row[idx]) : 0)
+      const percentCellNumber = (idx: number): number => excelPercentToPoints(cellNumber(idx))
 
       let workroomName = mapped?.workroom || String(nameSource || '').trim()
       if (workroomName === 'Panama Cit') workroomName = 'Panama City'
@@ -161,114 +163,31 @@ export default function YearlyDualFileUpload() {
         id: `yearly-visual-${i}-${Date.now()}`,
         name: workroomName,
         store: mapped?.store ?? storeSource ?? '',
-        sales: salesValue,
-        laborPO: laborPOIdx >= 0 ? Number(row[laborPOIdx] || 0) : 0,
-        vendorDebit: vendorDebitIdx >= 0 ? Number(row[vendorDebitIdx] || 0) : 0,
-      }
-
-      if (cycleTimeIdx >= 0 && row[cycleTimeIdx] != null && row[cycleTimeIdx] !== '') {
-        workroom.cycleTime = Number(row[cycleTimeIdx]) || 0
-      }
-
-      // Completed (Jobs Completed)
-      if (completedIdx >= 0 && row[completedIdx] != null && row[completedIdx] !== '') {
-        const val = Number(row[completedIdx])
-        if (!isNaN(val)) workroom.completed = val
-      }
-
-      // Details cycle breakdown
-      if (detailsRtsSchedIdx >= 0 && row[detailsRtsSchedIdx] != null && row[detailsRtsSchedIdx] !== '') {
-        const val = Number(row[detailsRtsSchedIdx])
-        if (!isNaN(val)) workroom.detailsRtsSched = val
-      }
-      if (detailsSchedStartIdx >= 0 && row[detailsSchedStartIdx] != null && row[detailsSchedStartIdx] !== '') {
-        const val = Number(row[detailsSchedStartIdx])
-        if (!isNaN(val)) workroom.detailsSchedStart = val
-      }
-      if (detailsStartDocsSubIdx >= 0 && row[detailsStartDocsSubIdx] != null && row[detailsStartDocsSubIdx] !== '') {
-        const val = Number(row[detailsStartDocsSubIdx])
-        if (!isNaN(val)) workroom.detailsStartDocsSub = val
-      }
-      if (detailsCycleTimeIdx >= 0 && row[detailsCycleTimeIdx] != null && row[detailsCycleTimeIdx] !== '') {
-        const val = Number(row[detailsCycleTimeIdx])
-        if (!isNaN(val)) workroom.detailsCycleTime = val
-      }
-
-      // Job cycle / detail fields used by UI
-      if (rtsSchedDetailsIdx >= 0 && row[rtsSchedDetailsIdx] != null && row[rtsSchedDetailsIdx] !== '') {
-        const val = Number(row[rtsSchedDetailsIdx])
-        if (!isNaN(val)) workroom.rtsSchedDetails = val
-      }
-      if (schedStartDetailsIdx >= 0 && row[schedStartDetailsIdx] != null && row[schedStartDetailsIdx] !== '') {
-        const val = Number(row[schedStartDetailsIdx])
-        if (!isNaN(val)) workroom.schedStartDetails = val
-      }
-      if (startDocsSubDetailsIdx >= 0 && row[startDocsSubDetailsIdx] != null && row[startDocsSubDetailsIdx] !== '') {
-        const val = Number(row[startDocsSubDetailsIdx])
-        if (!isNaN(val)) workroom.startDocsSubDetails = val
-      }
-      if (totalDetailCycleTimeIdx >= 0 && row[totalDetailCycleTimeIdx] != null && row[totalDetailCycleTimeIdx] !== '') {
-        const val = Number(row[totalDetailCycleTimeIdx])
-        if (!isNaN(val)) workroom.totalDetailCycleTime = val
-      }
-      if (jobsWorkCycleTimeIdx >= 0 && row[jobsWorkCycleTimeIdx] != null && row[jobsWorkCycleTimeIdx] !== '') {
-        const val = Number(row[jobsWorkCycleTimeIdx])
-        if (!isNaN(val)) workroom.jobsWorkCycleTime = val
-      }
-
-      // Work order cycle breakdown
-      if (workOrderStage1Idx >= 0 && row[workOrderStage1Idx] != null && row[workOrderStage1Idx] !== '') {
-        const val = Number(row[workOrderStage1Idx])
-        if (!isNaN(val)) workroom.workOrderStage1 = val
-      }
-      if (workOrderStage2Idx >= 0 && row[workOrderStage2Idx] != null && row[workOrderStage2Idx] !== '') {
-        const val = Number(row[workOrderStage2Idx])
-        if (!isNaN(val)) workroom.workOrderStage2 = val
-      }
-      if (workOrderStage3Idx >= 0 && row[workOrderStage3Idx] != null && row[workOrderStage3Idx] !== '') {
-        const val = Number(row[workOrderStage3Idx])
-        if (!isNaN(val)) workroom.workOrderStage3 = val
-      }
-      if (totalWorkOrderCycleTimeIdx >= 0 && row[totalWorkOrderCycleTimeIdx] != null && row[totalWorkOrderCycleTimeIdx] !== '') {
-        const val = Number(row[totalWorkOrderCycleTimeIdx])
-        if (!isNaN(val)) workroom.totalWorkOrderCycleTime = val
-      }
-
-      // Reschedule rate (normalize fraction -> percent like main uploader)
-      if (rescheduleRateIdx >= 0 && row[rescheduleRateIdx] != null && row[rescheduleRateIdx] !== '') {
-        let val = Number(row[rescheduleRateIdx])
-        if (!isNaN(val) && val > 0 && val <= 1) val = val * 100
-        if (!isNaN(val)) workroom.rescheduleRate = val
-      }
-      if (rescheduleRateLYIdx >= 0 && row[rescheduleRateLYIdx] != null && row[rescheduleRateLYIdx] !== '') {
-        let val = Number(row[rescheduleRateLYIdx])
-        if (!isNaN(val) && val > 0 && val <= 1) val = val * 100
-        if (!isNaN(val)) workroom.rescheduleRateLY = val
-      }
-      if (detailRateIdx >= 0 && row[detailRateIdx] != null && row[detailRateIdx] !== '') {
-        let val = Number(row[detailRateIdx])
-        if (!isNaN(val) && val > 0 && val <= 1) val = val * 100
-        if (!isNaN(val)) workroom.detailRate = val
-      }
-      if (jobRateIdx >= 0 && row[jobRateIdx] != null && row[jobRateIdx] !== '') {
-        let val = Number(row[jobRateIdx])
-        if (!isNaN(val) && val > 0 && val <= 1) val = val * 100
-        if (!isNaN(val)) workroom.jobRate = val
-      }
-      if (workOrderRateIdx >= 0 && row[workOrderRateIdx] != null && row[workOrderRateIdx] !== '') {
-        let val = Number(row[workOrderRateIdx])
-        if (!isNaN(val) && val > 0 && val <= 1) val = val * 100
-        if (!isNaN(val)) workroom.workOrderRate = val
-      }
-
-      // Get It Right
-      if (getItRightIdx >= 0 && row[getItRightIdx] != null && row[getItRightIdx] !== '') {
-        const val = Number(row[getItRightIdx])
-        if (!isNaN(val)) workroom.getItRight = val
-      }
-      if (getItRightLYIdx >= 0 && row[getItRightLYIdx] != null && row[getItRightLYIdx] !== '') {
-        const val = Number(row[getItRightLYIdx])
-        if (!isNaN(val)) workroom.getItRightLY = val
+        sales: cellNumber(salesIdx),
+        laborPO: cellNumber(laborPOIdx),
+        vendorDebit: cellNumber(vendorDebitIdx),
+        cycleTime: cellNumber(cycleTimeIdx),
+        completed: cellNumber(completedIdx),
+        detailsRtsSched: cellNumber(detailsRtsSchedIdx),
+        detailsSchedStart: cellNumber(detailsSchedStartIdx),
+        detailsStartDocsSub: cellNumber(detailsStartDocsSubIdx),
+        detailsCycleTime: cellNumber(detailsCycleTimeIdx),
+        rtsSchedDetails: cellNumber(rtsSchedDetailsIdx),
+        schedStartDetails: cellNumber(schedStartDetailsIdx),
+        startDocsSubDetails: cellNumber(startDocsSubDetailsIdx),
+        totalDetailCycleTime: cellNumber(totalDetailCycleTimeIdx),
+        jobsWorkCycleTime: cellNumber(jobsWorkCycleTimeIdx),
+        workOrderStage1: cellNumber(workOrderStage1Idx),
+        workOrderStage2: cellNumber(workOrderStage2Idx),
+        workOrderStage3: cellNumber(workOrderStage3Idx),
+        totalWorkOrderCycleTime: cellNumber(totalWorkOrderCycleTimeIdx),
+        rescheduleRate: percentCellNumber(rescheduleRateIdx),
+        rescheduleRateLY: percentCellNumber(rescheduleRateLYIdx),
+        detailRate: percentCellNumber(detailRateIdx),
+        jobRate: percentCellNumber(jobRateIdx),
+        workOrderRate: percentCellNumber(workOrderRateIdx),
+        getItRight: cellNumber(getItRightIdx),
+        getItRightLY: cellNumber(getItRightLYIdx),
       }
 
       workrooms.push(workroom)
@@ -431,8 +350,9 @@ export default function YearlyDualFileUpload() {
         if (rawValue != null && rawValue !== '') {
           const numValue = Number(rawValue)
           if (!isNaN(numValue)) {
-            columnLValue = numValue
-            columnLValues.push(numValue)
+            // Normalize survey LTR to the dashboard scale: 0-8 => 0, 9-10 => 10.
+            columnLValue = numValue <= 8 ? 0 : numValue >= 9 ? 10 : numValue
+            columnLValues.push(columnLValue)
           }
         }
       }

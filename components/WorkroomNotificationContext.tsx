@@ -6,6 +6,7 @@ import { useData } from '@/context/DataContext'
 import { calculateWeightedPerformanceScore, calculateComponentScores } from '@/lib/scoreCalculator'
 
 const DISMISSED_NOTIFICATIONS_STORAGE_KEY = 'fis-dismissed-notifications'
+const POD_ANNOUNCEMENT_WORKROOM = '__pod_announcement__'
 
 type DismissedNotificationEntry = {
   message: string
@@ -58,8 +59,7 @@ function isNotificationDismissedForUser(userEmail: string | null | undefined, wo
 
   const allDismissed = getDismissedNotificationStorage()
   const userDismissed = allDismissed[userEmail.toLowerCase()] || {}
-  const entry = userDismissed[key]
-  return entry?.message === (message || '').trim()
+  return Boolean(userDismissed[key])
 }
 
 function dismissNotificationsForUser(
@@ -85,26 +85,30 @@ function dismissNotificationsForUser(
   setDismissedNotificationStorage(allDismissed)
 }
 
-function clearDismissedNotificationsForUser(
+function syncDismissedNotificationsForUser(
   userEmail: string | null | undefined,
   notifications: Array<Pick<WorkroomNotification, 'workroom' | 'message'>>
 ) {
-  if (!userEmail || typeof window === 'undefined' || notifications.length === 0) return
+  if (!userEmail || typeof window === 'undefined') return
 
   const emailKey = userEmail.toLowerCase()
   const allDismissed = getDismissedNotificationStorage()
   const currentUserDismissed = allDismissed[emailKey]
   if (!currentUserDismissed) return
 
-  const nextUserDismissed = { ...currentUserDismissed }
+  const activeKeys = new Set(
+    notifications
+      .map((notification) => buildDismissedNotificationKey(notification.workroom, notification.message))
+      .filter((key): key is string => Boolean(key))
+  )
+
+  const nextUserDismissed: Record<string, DismissedNotificationEntry> = {}
   let changed = false
 
-  notifications.forEach((notification) => {
-    const key = buildDismissedNotificationKey(notification.workroom, notification.message)
-    if (!key) return
-
-    if (nextUserDismissed[key]?.message === (notification.message || '').trim()) {
-      delete nextUserDismissed[key]
+  Object.entries(currentUserDismissed).forEach(([key, entry]) => {
+    if (activeKeys.has(key)) {
+      nextUserDismissed[key] = entry
+    } else {
       changed = true
     }
   })
@@ -226,7 +230,7 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
           // Delete workroom performance notifications (not System)
           const workroomNotifications = allNotifications.filter((n: any) => {
             const workroom = (n.workroom || '').trim()
-            return workroom !== 'System'
+            return workroom !== 'System' && workroom !== POD_ANNOUNCEMENT_WORKROOM
           })
           
           if (workroomNotifications.length > 0) {
@@ -280,7 +284,7 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
           const messageLower = (n.message || '').toLowerCase()
           const workroom = (n.workroom || '').trim()
           // Delete old format (no hazard icon) but keep System workroom notifications
-          return !messageLower.includes('⚠') && workroom !== 'System'
+          return !messageLower.includes('⚠') && workroom !== 'System' && workroom !== POD_ANNOUNCEMENT_WORKROOM
         })
         
         if (oldFormatNotifications.length > 0) {
@@ -613,14 +617,8 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
           const ltrPercent = w.sales > 0 ? (w.laborPO / w.sales) * 100 : 0
           const vendorDebitRatio = totalCost > 0 ? Math.abs(w.vendorDebit) / totalCost : 0
           const avgJobsWorkCycleTime = w.jobsWorkCycleTimeCount > 0 ? (w.jobsWorkCycleTime || 0) / w.jobsWorkCycleTimeCount : null
-          const avgRescheduleRateRaw = w.rescheduleRateCount > 0 ? (w.rescheduleRate || 0) / w.rescheduleRateCount : null
-          const avgRescheduleRate =
-            avgRescheduleRateRaw != null &&
-            !isNaN(Number(avgRescheduleRateRaw)) &&
-            Number(avgRescheduleRateRaw) > 0 &&
-            Number(avgRescheduleRateRaw) <= 1
-              ? Number(avgRescheduleRateRaw) * 100
-              : avgRescheduleRateRaw
+          // Already converted to percentage points at upload — do not re-scale (1% would become 100%)
+          const avgRescheduleRate = w.rescheduleRateCount > 0 ? (w.rescheduleRate || 0) / w.rescheduleRateCount : null
           const avgDetailsCycleTime = w.detailsCycleTimeCount > 0 ? (w.detailsCycleTime || 0) / w.detailsCycleTimeCount : null
           // Use cycleTime directly (not averaged) to match VisualBreakdown logic
           // VisualBreakdown uses w.cycleTime directly (first non-null value from aggregation)
@@ -828,6 +826,7 @@ export function WorkroomNotificationProvider({ children }: { children: ReactNode
         })).catch(() => [])
 
         console.log(`[Notifications] 📊 Total hazards detected: ${hazards.length}`, hazards.map(h => `${h.workroom}: ${h.metric}`))
+        syncDismissedNotificationsForUser(user.email, hazards)
         
         // Create notifications for each hazard - send them one at a time with delays
         for (let i = 0; i < hazards.length; i++) {

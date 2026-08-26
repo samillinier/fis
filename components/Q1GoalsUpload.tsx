@@ -26,7 +26,7 @@ export default function Q1GoalsUpload() {
 
     // Excel file structure:
     // Row 0: Empty or title row
-    // Row 1: "Provider Job Count Goals" with week numbers (1-13, Q1)
+    // Row 1: "Provider Job Count Goals" with week numbers (14-26 for Q2 2026)
     // Row 2: Headers - Provider (col 1), District (col 2), then categories (CARPET, HSF, TILE, TOTAL) repeated for each week
     // Row 3: Sub-headers - Plan/Comp repeated for each category/week
     // Row 4+: Data rows with actual values
@@ -38,7 +38,7 @@ export default function Q1GoalsUpload() {
     // Column 0: Provider name with suffix (e.g., "FLOOR INTERIOR SERVICES CORP_868")
     // Column 1: Provider name (e.g., "FLOOR INTERIOR SERVICES CORP")
     // Column 2: District number (e.g., 868, 1222, etc.) or "Total"
-    // Column 3+: For each week (1-13), 8 columns per week:
+    // Column 3+: For each week, 8 columns per week:
     //   - CARPET Plan, CARPET Comp
     //   - HSF Plan, HSF Comp
     //   - TILE Plan, TILE Comp
@@ -72,10 +72,11 @@ export default function Q1GoalsUpload() {
         continue
       }
 
-      // Parse weeks - each week has 8 columns starting from column 3
-      // Week 1: columns 3-10, Week 2: columns 11-18, etc.
-      for (let weekNumber = 1; weekNumber <= 13; weekNumber++) {
-        const weekStartCol = firstWeekStartCol + (weekNumber - 1) * columnsPerWeek
+      // Parse weeks - each week has 8 columns starting from column 3.
+      // Store quarter week 1-13 so the existing Supabase constraint remains valid.
+      for (let weekIndex = 0; weekIndex < 13; weekIndex++) {
+        const weekStartCol = firstWeekStartCol + weekIndex * columnsPerWeek
+        const weekNumber = weekIndex + 1
         
         // Check if we have enough columns for this week
         if (weekStartCol + columnsPerWeek - 1 >= row.length) {
@@ -196,7 +197,7 @@ export default function Q1GoalsUpload() {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <FileText size={20} className="text-gray-600" />
-          <h3 className="text-sm font-semibold text-gray-900">Q1 2026 Goals</h3>
+          <h3 className="text-sm font-semibold text-gray-900">Q2 2026 Goals</h3>
         </div>
         {uploadedFileName && (
           <CheckCircle2 size={16} className="text-green-600" />
@@ -212,10 +213,10 @@ export default function Q1GoalsUpload() {
               accept=".xlsx,.xls"
               onChange={handleFileUpload}
               className="hidden"
-              id="q1-goals-upload"
+              id="q2-goals-upload"
             />
             <label
-              htmlFor="q1-goals-upload"
+              htmlFor="q2-goals-upload"
               className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-[#89ac44] text-white rounded-md hover:bg-[#6d8a35] cursor-pointer transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed text-sm font-medium"
             >
               {isUploading ? (
@@ -242,7 +243,7 @@ export default function Q1GoalsUpload() {
           </p>
         )}
         <p className="text-xs text-gray-500 text-center">
-          Upload the "Q1 2026 Goals FIS.xlsx" file
+          Upload the "Q2 2026 Goals FIS.xlsx" file
         </p>
       </div>
     </div>

@@ -24,7 +24,8 @@ const isValidWorkroomName = (name: string): boolean => {
     normalizedName !== 'location #' &&
     normalizedName !== 'location' &&
     normalizedName !== '' &&
-    !normalizedName.includes('location #')
+    !normalizedName.includes('location #') &&
+    !/^\d+$/.test(normalizedName)
   )
 }
 
@@ -43,7 +44,7 @@ interface WorkroomSurveyRow {
   ltrAvg: number
   craftAvg: number
   profAvg: number
-  weightedAvg: number // Weighted average: (L*0.60 + M*0.20 + N*0.10 + P*0.02 + Q*0.03)
+  weightedAvg: number // Weighted average normalized to a 10-point scale
   company?: string
   installerName?: string
   poNumber?: string | number
@@ -254,13 +255,17 @@ export default function SurveyMisc() {
           storeNumbers.length === 0 ? r.storeNumber : storeNumbers.length === 1 ? storeNumbers[0] : 'Multiple'
         const storeNameDisplay =
           storeNames.length === 0 ? r.storeName : storeNames.length === 1 ? storeNames[0] : 'Multiple'
-        // Calculate weighted average: (L*0.60 + M*0.20 + N*0.10 + P*0.02 + Q*0.03)
         const ltrAvg = r.count > 0 ? r.ltrSum / r.count : 0
         const columnMAvg = r.count > 0 ? r.columnMSum / r.count : 0
         const columnNAvg = r.count > 0 ? r.columnNSum / r.count : 0
         const columnPAvg = r.count > 0 ? r.columnPSum / r.count : 0
         const columnQAvg = r.count > 0 ? r.columnQSum / r.count : 0
-        const weightedAvg = (ltrAvg * 0.60) + (columnMAvg * 0.20) + (columnNAvg * 0.10) + (columnPAvg * 0.02) + (columnQAvg * 0.03)
+        const weightedAvg =
+          (ltrAvg * 0.60) +
+          (columnMAvg * 0.20) +
+          (columnNAvg * 0.10) +
+          (columnPAvg * 0.05) +
+          (columnQAvg * 0.05)
         
         return {
           workroom: r.workroom,

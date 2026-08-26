@@ -7,6 +7,7 @@ import { Upload } from 'lucide-react'
 import type { DashboardData, WorkroomData } from '@/context/DataContext'
 import * as XLSX from 'xlsx'
 import { workroomStoreData } from '@/data/workroomStoreData'
+import { excelPercentToPoints } from '@/lib/percentUtils'
 
 export default function FileUpload() {
   const [isUploading, setIsUploading] = useState(false)
@@ -209,6 +210,16 @@ export default function FileUpload() {
 
         const workrooms: WorkroomData[] = []
 
+        const numberOrZero = (value: unknown): number => {
+          if (value == null || value === '') return 0
+          const cleaned =
+            typeof value === 'string'
+              ? value.replace(/[$€£¥,%\s,]/g, '').trim()
+              : value
+          const numericValue = Number(cleaned)
+          return Number.isFinite(numericValue) ? numericValue : 0
+        }
+
         for (let i = 1; i < jsonData.length; i++) {
           const row = jsonData[i] as any[]
           if (!row || row.length === 0) continue
@@ -232,6 +243,7 @@ export default function FileUpload() {
           // Map store number to saved workroom name when possible
           const storeNumber = Number(storeSource || nameSource)
           const mapped = workroomStoreData.find((r) => r.store === storeNumber)
+          const cellNumber = (idx: number): number => (idx >= 0 ? numberOrZero(row[idx]) : 0)
 
           // Parse sales value - handle various formats (currency, numbers, strings)
           let salesValue = 0
@@ -259,8 +271,33 @@ export default function FileUpload() {
             name: workroomName,
             store: mapped?.store ?? storeSource ?? '',
             sales: salesValue,
-            laborPO: laborPOIdx >= 0 ? Number(row[laborPOIdx] || 0) : 0,
-            vendorDebit: vendorDebitIdx >= 0 ? Number(row[vendorDebitIdx] || 0) : 0,
+            laborPO: cellNumber(laborPOIdx),
+            vendorDebit: cellNumber(vendorDebitIdx),
+            cycleTime: cellNumber(cycleTimeIdx),
+            completed: cellNumber(completedIdx),
+            detailsRtsSched: cellNumber(detailsRtsSchedIdx),
+            detailsSchedStart: cellNumber(detailsSchedStartIdx),
+            detailsStartDocsSub: cellNumber(detailsStartDocsSubIdx),
+            detailsCycleTime: cellNumber(detailsCycleTimeIdx),
+            rtsSchedDetails: cellNumber(rtsSchedDetailsIdx),
+            schedStartDetails: cellNumber(schedStartDetailsIdx),
+            startDocsSubDetails: cellNumber(startDocsSubDetailsIdx),
+            totalDetailCycleTime: cellNumber(totalDetailCycleTimeIdx),
+            rtsSchedJobs: cellNumber(rtsSchedJobsIdx),
+            schedStartJobs: cellNumber(schedStartJobsIdx),
+            startCompleteJobs: cellNumber(startCompleteJobsIdx),
+            jobsWorkCycleTime: cellNumber(jobsWorkCycleTimeIdx),
+            workOrderStage1: cellNumber(workOrderStage1Idx),
+            workOrderStage2: cellNumber(workOrderStage2Idx),
+            workOrderStage3: cellNumber(workOrderStage3Idx),
+            totalWorkOrderCycleTime: cellNumber(totalWorkOrderCycleTimeIdx),
+            rescheduleRate: cellNumber(rescheduleRateIdx),
+            rescheduleRateLY: cellNumber(rescheduleRateLYIdx),
+            detailRate: cellNumber(detailRateIdx),
+            jobRate: cellNumber(jobRateIdx),
+            workOrderRate: cellNumber(workOrderRateIdx),
+            getItRight: cellNumber(getItRightIdx),
+            getItRightLY: cellNumber(getItRightLYIdx),
           }
 
           if (cycleTimeIdx >= 0 && row[cycleTimeIdx] != null && row[cycleTimeIdx] !== '') {
@@ -345,24 +382,24 @@ export default function FileUpload() {
           if (rescheduleRateIdx >= 0 && row[rescheduleRateIdx] != null && row[rescheduleRateIdx] !== '') {
             const rescheduleRateValue = Number(row[rescheduleRateIdx])
             if (!isNaN(rescheduleRateValue)) {
-              workroom.rescheduleRate = rescheduleRateValue
+              workroom.rescheduleRate = excelPercentToPoints(rescheduleRateValue)
             }
           }
           if (rescheduleRateLYIdx >= 0 && row[rescheduleRateLYIdx] != null && row[rescheduleRateLYIdx] !== '') {
             const val = Number(row[rescheduleRateLYIdx])
-            if (!isNaN(val)) workroom.rescheduleRateLY = val
+            if (!isNaN(val)) workroom.rescheduleRateLY = excelPercentToPoints(val)
           }
           if (detailRateIdx >= 0 && row[detailRateIdx] != null && row[detailRateIdx] !== '') {
             const val = Number(row[detailRateIdx])
-            if (!isNaN(val)) workroom.detailRate = val
+            if (!isNaN(val)) workroom.detailRate = excelPercentToPoints(val)
           }
           if (jobRateIdx >= 0 && row[jobRateIdx] != null && row[jobRateIdx] !== '') {
             const val = Number(row[jobRateIdx])
-            if (!isNaN(val)) workroom.jobRate = val
+            if (!isNaN(val)) workroom.jobRate = excelPercentToPoints(val)
           }
           if (workOrderRateIdx >= 0 && row[workOrderRateIdx] != null && row[workOrderRateIdx] !== '') {
             const val = Number(row[workOrderRateIdx])
-            if (!isNaN(val)) workroom.workOrderRate = val
+            if (!isNaN(val)) workroom.workOrderRate = excelPercentToPoints(val)
           }
           if (getItRightIdx >= 0 && row[getItRightIdx] != null && row[getItRightIdx] !== '') {
             const getItRightValue = Number(row[getItRightIdx])
@@ -562,6 +599,16 @@ export default function FileUpload() {
 
           const storeNumber = Number(rawStore || rawName)
           const mapped = workroomStoreData.find((r) => r.store === storeNumber)
+          const numberOrZero = (value: unknown): number => {
+            if (value == null || value === '') return 0
+            const cleaned =
+              typeof value === 'string'
+                ? value.replace(/[$€£¥,%\s,]/g, '').trim()
+                : value
+            const numericValue = Number(cleaned)
+            return Number.isFinite(numericValue) ? numericValue : 0
+          }
+          const cellNumber = (idx: number): number => (idx >= 0 ? numberOrZero(values[idx]) : 0)
           let workroomName = mapped?.workroom || rawName
           // Normalize workroom names
           if (workroomName === 'Panama Cit') {
@@ -573,8 +620,26 @@ export default function FileUpload() {
             name: workroomName,
             store: mapped?.store ?? rawStore,
             sales: 0,
-            laborPO: laborPOIdx >= 0 ? Number(values[laborPOIdx] || 0) : 0,
-            vendorDebit: vendorDebitIdx >= 0 ? Number(values[vendorDebitIdx] || 0) : 0,
+            laborPO: cellNumber(laborPOIdx),
+            vendorDebit: cellNumber(vendorDebitIdx),
+            cycleTime: cellNumber(cycleTimeIdx),
+            completed: cellNumber(completedIdx),
+            detailsRtsSched: cellNumber(detailsRtsSchedIdx),
+            detailsSchedStart: cellNumber(detailsSchedStartIdx),
+            detailsStartDocsSub: cellNumber(detailsStartDocsSubIdx),
+            detailsCycleTime: cellNumber(detailsCycleTimeIdx),
+            jobsWorkCycleTime: cellNumber(jobsWorkCycleTimeIdx),
+            rescheduleRate: cellNumber(rescheduleRateIdx),
+            rescheduleRateLY: cellNumber(rescheduleRateLYIdx),
+            detailRate: cellNumber(detailRateIdx),
+            jobRate: cellNumber(jobRateIdx),
+            workOrderRate: cellNumber(workOrderRateIdx),
+            getItRight: cellNumber(getItRightIdx),
+            getItRightLY: cellNumber(getItRightLYIdx),
+            workOrderStage1: cellNumber(workOrderStage1Idx),
+            workOrderStage2: cellNumber(workOrderStage2Idx),
+            workOrderStage3: cellNumber(workOrderStage3Idx),
+            totalWorkOrderCycleTime: cellNumber(totalWorkOrderCycleTimeIdx),
           }
 
           if (cycleTimeIdx >= 0 && values[cycleTimeIdx]) {
@@ -613,24 +678,24 @@ export default function FileUpload() {
           if (rescheduleRateIdx >= 0 && values[rescheduleRateIdx] != null && values[rescheduleRateIdx] !== '') {
             const rescheduleRateValue = Number(values[rescheduleRateIdx])
             if (!isNaN(rescheduleRateValue)) {
-              workroom.rescheduleRate = rescheduleRateValue
+              workroom.rescheduleRate = excelPercentToPoints(rescheduleRateValue)
             }
           }
           if (rescheduleRateLYIdx >= 0 && values[rescheduleRateLYIdx] != null && values[rescheduleRateLYIdx] !== '') {
             const val = Number(values[rescheduleRateLYIdx])
-            if (!isNaN(val)) workroom.rescheduleRateLY = val
+            if (!isNaN(val)) workroom.rescheduleRateLY = excelPercentToPoints(val)
           }
           if (detailRateIdx >= 0 && values[detailRateIdx] != null && values[detailRateIdx] !== '') {
             const val = Number(values[detailRateIdx])
-            if (!isNaN(val)) workroom.detailRate = val
+            if (!isNaN(val)) workroom.detailRate = excelPercentToPoints(val)
           }
           if (jobRateIdx >= 0 && values[jobRateIdx] != null && values[jobRateIdx] !== '') {
             const val = Number(values[jobRateIdx])
-            if (!isNaN(val)) workroom.jobRate = val
+            if (!isNaN(val)) workroom.jobRate = excelPercentToPoints(val)
           }
           if (workOrderRateIdx >= 0 && values[workOrderRateIdx] != null && values[workOrderRateIdx] !== '') {
             const val = Number(values[workOrderRateIdx])
-            if (!isNaN(val)) workroom.workOrderRate = val
+            if (!isNaN(val)) workroom.workOrderRate = excelPercentToPoints(val)
           }
           if (getItRightIdx >= 0 && values[getItRightIdx] != null && values[getItRightIdx] !== '') {
             const getItRightValue = Number(values[getItRightIdx])

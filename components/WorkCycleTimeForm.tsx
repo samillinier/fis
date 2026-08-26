@@ -184,7 +184,7 @@ export default function WorkCycleTimeForm({ workroom }: WorkCycleTimeFormProps) 
                   FIS – WORKROOM CYCLE TIME CORRECTIVE REPORT
                 </h1>
                 <p className="text-sm text-gray-600 mt-1">
-                  Required When Weekly Cycle Times Exceed 12 Days
+                  Required When Weekly Cycle Times Exceed 10 Days
                 </p>
               </div>
             </div>

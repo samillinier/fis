@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase, ensureUserExists } from '@/lib/supabase'
 
+const POD_ANNOUNCEMENT_WORKROOM = '__pod_announcement__'
+
 function canonicalizeWorkroomName(name: string): string {
   return String(name || '').replace(/\s+/g, ' ').trim()
 }
@@ -576,6 +578,15 @@ export async function DELETE(request: NextRequest) {
           console.warn('[DELETE /api/notifications] Blocked delete of Reschedule Rate hazard notification(s)')
           return NextResponse.json(
             { error: 'Delete blocked for Reschedule Rate hazard notifications' },
+            { status: 403 }
+          )
+        }
+
+        const hasPodAnnouncement = toDelete.some((n: any) => (n.workroom || '').trim() === POD_ANNOUNCEMENT_WORKROOM)
+        if (hasPodAnnouncement) {
+          console.warn('[DELETE /api/notifications] Blocked delete of POD announcement row')
+          return NextResponse.json(
+            { error: 'Delete blocked for POD announcement' },
             { status: 403 }
           )
         }

@@ -58,9 +58,17 @@ export function YearlyDataProvider({ year, children }: { year: number; children:
   }, [year])
 
   const setData = useCallback(async (next: DashboardData) => {
-    setDataState(next)
+    let previousData: DashboardData = initialData
+    setDataState((prev) => {
+      previousData = prev
+      return next
+    })
     persist(next)
-    await saveYearlyDashboardData(year, next)
+    const saved = await saveYearlyDashboardData(year, next)
+    if (!saved) {
+      setDataState(previousData)
+      persist(previousData)
+    }
   }, [persist, year])
 
   const resetData = useCallback(async () => {

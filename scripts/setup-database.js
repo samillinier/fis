@@ -99,7 +99,7 @@ async function main() {
   await checkTables()
   console.log('\n' + '='.repeat(50))
   console.log('To set up tables, please use Supabase SQL Editor:')
-  console.log('1. Go to: https://supabase.com/dashboard/project/idkuchtgrgooqixdjjcc')
+  console.log('1. Go to your project: https://supabase.com/dashboard → select the new project')
   console.log('2. Click "SQL Editor" → "New Query"')
   console.log('3. Copy content from database/schema.sql')
   console.log('4. Paste and click "Run"')

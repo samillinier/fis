@@ -2,6 +2,18 @@
 // Uses API routes (connected to Vercel Postgres) with localStorage fallback
 
 import type { DashboardData, WorkroomData } from '@/context/DataContext'
+import type { PaymentData } from '@/context/PaymentContext'
+import {
+  type ScheduledJobData,
+  type ScheduledJobSourceBundle,
+  type ScheduledJobSourceType,
+} from '@/context/ScheduledJobContext'
+import {
+  loadScheduledJobDataLocal,
+  saveScheduledJobDataLocal,
+  saveScheduledJobSourceLocal,
+  type ScheduledJobStorageMode,
+} from '@/lib/scheduledJobStorage'
 import type { HistoricalDataEntry } from '@/data/historicalDataStorage'
 import { recordActivity } from '@/lib/activityLog'
 
@@ -734,6 +746,295 @@ function saveHistoricalToLocalStorage(entry: HistoricalDataEntry): void {
   }
 }
 
+// ============================================================================
+// Payment Data (Supabase via API routes)
+// ============================================================================
+
+const emptyPaymentData = (): PaymentData => ({ payments: [] })
+
+export async function fetchPaymentData(): Promise<PaymentData> {
+  const authHeader = getAuthHeader()
+  if (!authHeader) return emptyPaymentData()
+
+  try {
+    const response = await fetch('/api/payment-data', {
+      method: 'GET',
+      headers: {
+        Authorization: authHeader,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      return emptyPaymentData()
+    }
+
+    const data = await response.json()
+    return {
+      payments: data.payments || [],
+      fileName: data.fileName || undefined,
+      uploadDate: data.uploadDate || undefined,
+    }
+  } catch (error) {
+    console.error('❌ [fetchPaymentData] Error:', error)
+    return emptyPaymentData()
+  }
+}
+
+export async function clearPaymentData(): Promise<boolean> {
+  const authHeader = getAuthHeader()
+  if (!authHeader) return true
+
+  try {
+    const response = await fetch('/api/payment-data', {
+      method: 'DELETE',
+      headers: {
+        Authorization: authHeader,
+        'Content-Type': 'application/json',
+      },
+    })
+    return response.ok
+  } catch (error) {
+    console.error('❌ [clearPaymentData] Error:', error)
+    return false
+  }
+}
+
+export async function savePaymentData(data: PaymentData): Promise<boolean> {
+  const authHeader = getAuthHeader()
+  if (!authHeader) {
+    console.error('❌ [savePaymentData] No user logged in')
+    return false
+  }
+
+  try {
+    const response = await fetch('/api/payment-data', {
+      method: 'POST',
+      headers: {
+        Authorization: authHeader,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        payments: data.payments,
+        fileName: data.fileName || null,
+      }),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('❌ [savePaymentData] Failed:', response.status, errorText)
+      return false
+    }
+
+    return true
+  } catch (error) {
+    console.error('❌ [savePaymentData] Error:', error)
+    return false
+  }
+}
+
+export async function fetchYearlyPaymentData(year: number): Promise<PaymentData> {
+  const authHeader = getAuthHeader()
+  if (!authHeader) return emptyPaymentData()
+
+  try {
+    const response = await fetch(`/api/yearly-payment-data?year=${encodeURIComponent(String(year))}`, {
+      method: 'GET',
+      headers: {
+        Authorization: authHeader,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      return emptyPaymentData()
+    }
+
+    const data = await response.json()
+    return {
+      payments: data.payments || [],
+      fileName: data.fileName || undefined,
+      uploadDate: data.uploadDate || undefined,
+    }
+  } catch (error) {
+    console.error('❌ [fetchYearlyPaymentData] Error:', error)
+    return emptyPaymentData()
+  }
+}
+
+export async function saveYearlyPaymentData(year: number, data: PaymentData): Promise<boolean> {
+  const authHeader = getAuthHeader()
+  if (!authHeader) return false
+
+  try {
+    const response = await fetch(`/api/yearly-payment-data?year=${encodeURIComponent(String(year))}`, {
+      method: 'POST',
+      headers: {
+        Authorization: authHeader,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        payments: data.payments,
+        fileName: data.fileName || null,
+        year,
+      }),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('❌ [saveYearlyPaymentData] Failed:', response.status, errorText)
+      return false
+    }
+
+    return true
+  } catch (error) {
+    console.error('❌ [saveYearlyPaymentData] Error:', error)
+    return false
+  }
+}
+
+export async function clearYearlyPaymentData(year: number): Promise<boolean> {
+  const authHeader = getAuthHeader()
+  if (!authHeader) return true
+
+  try {
+    const response = await fetch(`/api/yearly-payment-data?year=${encodeURIComponent(String(year))}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: authHeader,
+        'Content-Type': 'application/json',
+      },
+    })
+    return response.ok
+  } catch (error) {
+    console.error('❌ [clearYearlyPaymentData] Error:', error)
+    return false
+  }
+}
+
+export async function savePaymentFileName(paymentFileName: string | null): Promise<boolean> {
+  if (typeof window !== 'undefined') {
+    try {
+      if (paymentFileName) {
+        localStorage.setItem('fis-payment-file-name', paymentFileName)
+      } else {
+        localStorage.removeItem('fis-payment-file-name')
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  const authHeader = getAuthHeader()
+  if (!authHeader) return true
+
+  try {
+    const response = await fetch('/api/payment-file-names', {
+      method: 'POST',
+      headers: {
+        Authorization: authHeader,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ paymentFileName }),
+    })
+    return response.ok
+  } catch (error) {
+    console.error('Error saving payment file name:', error)
+    return true
+  }
+}
+
+export async function loadPaymentFileName(): Promise<string | null> {
+  const authHeader = getAuthHeader()
+  if (!authHeader) {
+    if (typeof window === 'undefined') return null
+    return localStorage.getItem('fis-payment-file-name') || null
+  }
+
+  try {
+    const response = await fetch('/api/payment-file-names', {
+      method: 'GET',
+      headers: {
+        Authorization: authHeader,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      return localStorage.getItem('fis-payment-file-name') || null
+    }
+
+    const data = await response.json()
+    return data.paymentFileName || null
+  } catch (error) {
+    console.error('Error loading payment file name:', error)
+    return localStorage.getItem('fis-payment-file-name') || null
+  }
+}
+
+export async function saveYearlyPaymentFileName(year: number, paymentFileName: string | null): Promise<boolean> {
+  if (typeof window !== 'undefined') {
+    try {
+      const key = `fis-yearly-payment-file-name:${year}`
+      if (paymentFileName) {
+        localStorage.setItem(key, paymentFileName)
+      } else {
+        localStorage.removeItem(key)
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  const authHeader = getAuthHeader()
+  if (!authHeader) return true
+
+  try {
+    const response = await fetch(`/api/yearly-payment-file-names?year=${encodeURIComponent(String(year))}`, {
+      method: 'POST',
+      headers: {
+        Authorization: authHeader,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ paymentFileName }),
+    })
+    return response.ok
+  } catch (error) {
+    console.error('Error saving yearly payment file name:', error)
+    return true
+  }
+}
+
+export async function loadYearlyPaymentFileName(year: number): Promise<string | null> {
+  const authHeader = getAuthHeader()
+  const localKey = `fis-yearly-payment-file-name:${year}`
+
+  if (!authHeader) {
+    if (typeof window === 'undefined') return null
+    return localStorage.getItem(localKey) || null
+  }
+
+  try {
+    const response = await fetch(`/api/yearly-payment-file-names?year=${encodeURIComponent(String(year))}`, {
+      method: 'GET',
+      headers: {
+        Authorization: authHeader,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      return localStorage.getItem(localKey) || null
+    }
+
+    const data = await response.json()
+    return data.paymentFileName || null
+  } catch (error) {
+    console.error('Error loading yearly payment file name:', error)
+    return localStorage.getItem(localKey) || null
+  }
+}
+
 // Helper function for week calculation
 function getISOWeek(date: Date): string {
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
@@ -741,4 +1042,183 @@ function getISOWeek(date: Date): string {
   d.setUTCDate(d.getUTCDate() + 4 - dayNum)
   const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1))
   return String(Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7))
+}
+
+// ============================================================================
+// Scheduled Job Data — local IndexedDB only (browser storage, no cloud)
+// ============================================================================
+
+export async function fetchScheduledJobData(mode: ScheduledJobStorageMode = 'monthly'): Promise<ScheduledJobData> {
+  return loadScheduledJobDataLocal(mode)
+}
+
+export async function saveScheduledJobSource(
+  source: ScheduledJobSourceType,
+  bundle: ScheduledJobSourceBundle,
+  mode: ScheduledJobStorageMode = 'monthly'
+): Promise<boolean> {
+  return saveScheduledJobSourceLocal(mode, source, bundle)
+}
+
+export async function saveScheduledJobData(
+  data: ScheduledJobData,
+  mode: ScheduledJobStorageMode = 'monthly'
+): Promise<boolean> {
+  return saveScheduledJobDataLocal(mode, data)
+}
+
+export async function saveScheduledJobFileName(scheduledJobFileName: string | null): Promise<boolean> {
+  if (typeof window !== 'undefined') {
+    try {
+      if (scheduledJobFileName) {
+        localStorage.setItem('fis-scheduled-job-file-name', scheduledJobFileName)
+      } else {
+        localStorage.removeItem('fis-scheduled-job-file-name')
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  const authHeader = getAuthHeader()
+  if (!authHeader) return true
+
+  try {
+    const response = await fetch('/api/scheduled-job-file-names', {
+      method: 'POST',
+      headers: {
+        Authorization: authHeader,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ scheduledJobFileName }),
+    })
+    return response.ok
+  } catch (error) {
+    console.error('Error saving scheduled job file name:', error)
+    return true
+  }
+}
+
+export async function loadScheduledJobFileName(): Promise<string | null> {
+  const authHeader = getAuthHeader()
+  if (!authHeader) {
+    if (typeof window === 'undefined') return null
+    return localStorage.getItem('fis-scheduled-job-file-name') || null
+  }
+
+  try {
+    const response = await fetch('/api/scheduled-job-file-names', {
+      method: 'GET',
+      headers: {
+        Authorization: authHeader,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      return localStorage.getItem('fis-scheduled-job-file-name') || null
+    }
+
+    const data = await response.json()
+    return data.scheduledJobFileName || null
+  } catch (error) {
+    console.error('Error loading scheduled job file name:', error)
+    return localStorage.getItem('fis-scheduled-job-file-name') || null
+  }
+}
+
+export type CycleTimeCloudVariant = 'ytd' | 'ly'
+
+export interface CycleTimeCloudDataset {
+  records: any[]
+  fileName: string | null
+  uploadedAt: string | null
+}
+
+export async function fetchCycleTimeData(variant: CycleTimeCloudVariant): Promise<CycleTimeCloudDataset> {
+  const authHeader = getAuthHeader()
+  if (!authHeader) {
+    return { records: [], fileName: null, uploadedAt: null }
+  }
+
+  try {
+    const response = await fetch(`/api/cycle-time-data?variant=${encodeURIComponent(variant)}`, {
+      method: 'GET',
+      headers: {
+        Authorization: authHeader,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      return { records: [], fileName: null, uploadedAt: null }
+    }
+
+    const data = await response.json()
+    return {
+      records: Array.isArray(data.records) ? data.records : [],
+      fileName: data.fileName || null,
+      uploadedAt: data.uploadedAt || null,
+    }
+  } catch (error) {
+    console.error('❌ [fetchCycleTimeData] Error:', error)
+    return { records: [], fileName: null, uploadedAt: null }
+  }
+}
+
+export async function saveCycleTimeData(
+  variant: CycleTimeCloudVariant,
+  records: any[],
+  fileName: string | null
+): Promise<boolean> {
+  const authHeader = getAuthHeader()
+  if (!authHeader) {
+    console.error('❌ [saveCycleTimeData] No user logged in')
+    return false
+  }
+
+  try {
+    const response = await fetch(`/api/cycle-time-data?variant=${encodeURIComponent(variant)}`, {
+      method: 'POST',
+      headers: {
+        Authorization: authHeader,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        variant,
+        records,
+        fileName,
+      }),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('❌ [saveCycleTimeData] Failed:', response.status, errorText)
+      return false
+    }
+
+    return true
+  } catch (error) {
+    console.error('❌ [saveCycleTimeData] Error:', error)
+    return false
+  }
+}
+
+export async function clearCycleTimeData(variant: CycleTimeCloudVariant): Promise<boolean> {
+  const authHeader = getAuthHeader()
+  if (!authHeader) return true
+
+  try {
+    const response = await fetch(`/api/cycle-time-data?variant=${encodeURIComponent(variant)}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: authHeader,
+        'Content-Type': 'application/json',
+      },
+    })
+    return response.ok
+  } catch (error) {
+    console.error('❌ [clearCycleTimeData] Error:', error)
+    return false
+  }
 }

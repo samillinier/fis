@@ -60,7 +60,6 @@ export default function ProfilePage() {
   const [newMemberPassword, setNewMemberPassword] = useState('')
   const [newMemberConfirmPassword, setNewMemberConfirmPassword] = useState('')
   const [newMemberGroupId, setNewMemberGroupId] = useState('')
-
   useEffect(() => {
     // Only load data when user is confirmed admin
     // Don't redirect - let ProtectedRoute handle auth
@@ -128,7 +127,7 @@ export default function ProfilePage() {
     showNotification('Request removed.', 'success')
   }
 
-  const handleRoleChange = async (email: string, role: 'admin' | 'owner' | 'user' | 'accounting') => {
+  const handleRoleChange = async (email: string, role: 'admin' | 'owner' | 'manager' | 'user' | 'accounting') => {
     const success = await setUserRole(email, role)
     if (success) {
       showNotification('Role updated.', 'success')
@@ -787,6 +786,8 @@ export default function ProfilePage() {
                             ? 'Admin'
                             : entry.role === 'owner'
                               ? 'Owner'
+                              : entry.role === 'manager'
+                                ? 'Manager'
                             : entry.role === 'accounting'
                               ? 'Accounting'
                               : 'User'}
@@ -804,6 +805,8 @@ export default function ProfilePage() {
                               ? 'admin'
                               : entry.role === 'owner'
                                 ? 'owner'
+                                : entry.role === 'manager'
+                                  ? 'manager'
                                 : entry.role === 'accounting'
                                   ? 'accounting'
                                   : 'user'
@@ -811,13 +814,14 @@ export default function ProfilePage() {
                           onChange={(e) =>
                             handleRoleChange(
                               entry.email,
-                              e.target.value as 'admin' | 'owner' | 'user' | 'accounting'
+                              e.target.value as 'admin' | 'owner' | 'manager' | 'user' | 'accounting'
                             )
                           }
                           disabled={isSuperAdmin || !canEditAccess}
                           className="border rounded-md px-2 py-1 text-sm"
                         >
                           <option value="user">User</option>
+                          <option value="manager">Manager</option>
                           <option value="owner">Owner</option>
                           <option value="accounting">Accounting</option>
                           <option value="admin">Admin</option>

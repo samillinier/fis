@@ -4,7 +4,7 @@
   "description": "Workroom Performance Analytics Dashboard",
   "private": true,
   "scripts": {
-    "dev": "WATCHPACK_POLLING=true next dev",
+    "dev": "WATCHPACK_POLLING=true NO_PROXY=127.0.0.1,::1,localhost,.supabase.co,supabase.co no_proxy=127.0.0.1,::1,localhost,.supabase.co,supabase.co next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -22,7 +22,7 @@
     "leaflet": "^1.9.4",
     "lucide-react": "^0.294.0",
     "nanoid": "^5.1.6",
-    "next": "^14.0.0",
+    "next": "^14.2.33",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-leaflet": "^4.2.1",

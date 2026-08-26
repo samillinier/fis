@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS lowes_q1_goals (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   district TEXT NOT NULL,
   provider TEXT,
-  week_number INTEGER NOT NULL CHECK (week_number >= 1 AND week_number <= 13),
+  week_number INTEGER NOT NULL CHECK (week_number >= 1 AND week_number <= 52),
   category TEXT NOT NULL CHECK (category IN ('CARPET', 'HSF', 'TILE', 'TOTAL')),
   planned_count INTEGER NOT NULL DEFAULT 0,
   comparable_count INTEGER DEFAULT 0, -- Comparable/Comparison data from previous period
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS lowes_q1_goals (
 CREATE TABLE IF NOT EXISTS lowes_weekly_job_counts (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   district TEXT NOT NULL,
-  week_number INTEGER NOT NULL CHECK (week_number >= 1 AND week_number <= 13),
+  week_number INTEGER NOT NULL CHECK (week_number >= 1 AND week_number <= 52),
   category TEXT NOT NULL CHECK (category IN ('CARPET', 'HSF', 'TILE', 'TOTAL')),
   actual_count INTEGER NOT NULL DEFAULT 0,
   week_start_date DATE,

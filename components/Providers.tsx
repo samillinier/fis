@@ -9,6 +9,7 @@ import { NotificationProvider } from '@/components/NotificationContext'
 import { WorkroomNotificationProvider } from '@/components/WorkroomNotificationContext'
 import { AuthProvider, useAuth } from '@/components/AuthContext'
 import { fetchDashboardData, saveDashboardData } from '@/lib/database'
+import { DASHBOARD_DATA_UPDATED_EVENT } from '@/lib/dashboardEvents'
 
 // Inner component that has access to AuthContext
 function DataProvider({ children }: { children: React.ReactNode }) {
@@ -52,16 +53,40 @@ function DataProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user]) // Reload when user changes (logs in/out)
 
+  // Refresh from Supabase after a successful weekly POD upload
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const handleDataUpdated = async () => {
+      try {
+        const dataFromSupabase = await fetchDashboardData()
+        if (dataFromSupabase?.workrooms) {
+          setDataState(dataFromSupabase)
+        }
+      } catch (error) {
+        console.error('❌ [DataProvider] Error refreshing after upload:', error)
+      }
+    }
+
+    window.addEventListener(DASHBOARD_DATA_UPDATED_EVENT, handleDataUpdated)
+    return () => window.removeEventListener(DASHBOARD_DATA_UPDATED_EVENT, handleDataUpdated)
+  }, [])
+
   // When data is uploaded: Update state and save to Supabase
   // Supabase will: DELETE old data → INSERT new data
   const setData = useCallback(async (newData: DashboardData) => {
     console.log('💾 Saving', newData.workrooms?.length || 0, 'workrooms to Supabase...')
-    
-    // Update UI immediately
-    setDataState(newData)
-    
-    // Save to Supabase (deletes old, saves new)
-    await saveDashboardData(newData)
+
+    let previousData: DashboardData = initialData
+    setDataState((prev) => {
+      previousData = prev
+      return newData
+    })
+
+    const saved = await saveDashboardData(newData)
+    if (!saved) {
+      setDataState(previousData)
+    }
   }, [])
 
   return (

@@ -4,7 +4,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase, getSharedAdminUserId } from '@/lib/supabase'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 const MAX_CSV_CHARS = 12_000_000 // ~12 MB text; adjust if needed
+const SUPER_ADMIN_EMAIL = 'sbiru@fiscorponline.com'
 
 function getAdminActor(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
@@ -14,13 +18,18 @@ function getAdminActor(request: NextRequest) {
   return { userEmail }
 }
 
-async function assertAdmin(userEmail: string): Promise<boolean> {
+async function assertCanPublish(userEmail: string): Promise<boolean> {
+  const normalized = userEmail.toLowerCase().trim()
+  if (normalized === SUPER_ADMIN_EMAIL.toLowerCase()) return true
+
   const { data: actorData } = await supabase
     .from('authorized_users')
     .select('role, is_active')
-    .eq('email', userEmail.toLowerCase())
+    .eq('email', normalized)
     .maybeSingle()
-  return actorData?.role === 'admin' && actorData?.is_active !== false
+  if (actorData?.is_active === false) return false
+  const role = actorData?.role
+  return role === 'admin' || role === 'owner'
 }
 
 export async function GET() {
@@ -55,13 +64,20 @@ export async function GET() {
       return NextResponse.json({ snapshot: null })
     }
 
-    return NextResponse.json({
-      snapshot: {
-        fileName: data.file_name,
-        csvText: data.csv_text,
-        updatedAt: data.updated_at,
+    return NextResponse.json(
+      {
+        snapshot: {
+          fileName: data.file_name,
+          csvText: data.csv_text,
+          updatedAt: data.updated_at,
+        },
       },
-    })
+      {
+        headers: {
+          'Cache-Control': 'no-store, max-age=0',
+        },
+      }
+    )
   } catch (e: any) {
     console.error('GET /api/lowes-sales-last-week-cloud:', e)
     return NextResponse.json({ error: e?.message || 'Internal server error' }, { status: 500 })
@@ -73,9 +89,9 @@ export async function POST(request: NextRequest) {
     const actor = getAdminActor(request)
     if ('error' in actor) return actor.error
 
-    if (!(await assertAdmin(actor.userEmail))) {
+    if (!(await assertCanPublish(actor.userEmail))) {
       return NextResponse.json(
-        { error: 'Unauthorized: Only admin users can save this file' },
+        { error: 'Unauthorized: Only admin or owner users can save this file' },
         { status: 403 }
       )
     }
@@ -136,9 +152,9 @@ export async function DELETE(request: NextRequest) {
     const actor = getAdminActor(request)
     if ('error' in actor) return actor.error
 
-    if (!(await assertAdmin(actor.userEmail))) {
+    if (!(await assertCanPublish(actor.userEmail))) {
       return NextResponse.json(
-        { error: 'Unauthorized: Only admin users can clear this file' },
+        { error: 'Unauthorized: Only admin or owner users can clear this file' },
         { status: 403 }
       )
     }

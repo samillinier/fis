@@ -18,6 +18,10 @@ interface WorkroomMapData {
   totalCost: number
   margin: number
   weightedPerformanceScore: number
+  /** Optional cycle-time metrics (Cycle Time page) */
+  detailsCycleTime?: number | null
+  jobsCycleTime?: number | null
+  workOrderCycleTime?: number | null
 }
 
 interface WorkroomMapProps {
@@ -257,15 +261,50 @@ export default function WorkroomMap({ workrooms }: WorkroomMapProps) {
                         <br />
                         <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>{performanceLabel}</span>
                       </div>
-                      <div style={{ marginBottom: '0.25rem' }}>
-                        <strong>Sales:</strong> {formatCurrency(workroom.sales)}
-                      </div>
-                      <div style={{ marginBottom: '0.25rem' }}>
-                        <strong>Total Cost:</strong> {formatCurrency(workroom.totalCost)}
-                      </div>
-                      <div>
-                        <strong>Job Count:</strong> {workroom.records}
-                      </div>
+                      {workroom.detailsCycleTime != null || workroom.jobsCycleTime != null || workroom.workOrderCycleTime != null ? (
+                        <>
+                          {workroom.detailsCycleTime != null && (
+                            <div style={{ marginBottom: '0.25rem' }}>
+                              <strong>Details Cycle Time:</strong> {workroom.detailsCycleTime.toFixed(1)} days
+                            </div>
+                          )}
+                          {workroom.jobsCycleTime != null && (
+                            <div style={{ marginBottom: '0.25rem' }}>
+                              <strong>Job Cycle Time:</strong> {workroom.jobsCycleTime.toFixed(1)} days
+                            </div>
+                          )}
+                          {workroom.workOrderCycleTime != null && (
+                            <div style={{ marginBottom: '0.25rem' }}>
+                              <strong>Work Order Cycle Time:</strong> {workroom.workOrderCycleTime.toFixed(1)} days
+                            </div>
+                          )}
+                          {(workroom.sales !== 0 || workroom.totalCost !== 0) && (
+                            <>
+                              <div style={{ marginBottom: '0.25rem' }}>
+                                <strong>Labor PO:</strong> {formatCurrency(workroom.sales)}
+                              </div>
+                              <div style={{ marginBottom: '0.25rem' }}>
+                                <strong>Vendor Debits:</strong> {formatCurrency(workroom.totalCost)}
+                              </div>
+                            </>
+                          )}
+                          <div>
+                            <strong>Jobs Completed:</strong> {workroom.records}
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div style={{ marginBottom: '0.25rem' }}>
+                            <strong>Sales:</strong> {formatCurrency(workroom.sales)}
+                          </div>
+                          <div style={{ marginBottom: '0.25rem' }}>
+                            <strong>Total Cost:</strong> {formatCurrency(workroom.totalCost)}
+                          </div>
+                          <div>
+                            <strong>Job Count:</strong> {workroom.records}
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
                 </Popup>

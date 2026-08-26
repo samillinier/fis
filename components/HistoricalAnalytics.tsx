@@ -436,6 +436,16 @@ export default function HistoricalAnalytics() {
     )
 
     const workrooms: WorkroomData[] = []
+    const numberOrZero = (value: unknown): number => {
+      if (value == null || value === '') return 0
+      const cleaned =
+        typeof value === 'string'
+          ? value.replace(/[$€£¥,%\s,]/g, '').trim()
+          : value
+      const numericValue = Number(cleaned)
+      return Number.isFinite(numericValue) ? numericValue : 0
+    }
+
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i]
       if (!row || row.length === 0) continue
@@ -445,31 +455,16 @@ export default function HistoricalAnalytics() {
       const storeNumber = Number(storeSource || locationValue)
       const mapped = workroomStoreData.find((r) => r.store === storeNumber)
       const nameSource = workroomIdx >= 0 ? row[workroomIdx] : mapped?.workroom || storeSource || `Record ${i + 1}`
-
-      let salesValue = 0
-      if (salesIdx >= 0 && row[salesIdx] != null) {
-        const salesRaw = row[salesIdx]
-        if (typeof salesRaw === 'number') {
-          salesValue = salesRaw
-        } else if (typeof salesRaw === 'string') {
-          const cleaned = String(salesRaw).replace(/[$€£¥,\s]/g, '').trim()
-          salesValue = Number(cleaned) || 0
-        } else {
-          salesValue = Number(salesRaw) || 0
-        }
-      }
+      const cellNumber = (idx: number): number => (idx >= 0 ? numberOrZero(row[idx]) : 0)
 
       const workroom: WorkroomData = {
         id: `visual-${i}-${Date.now()}`,
         name: mapped?.workroom || String(nameSource || '').trim(),
         store: mapped?.store ?? storeSource ?? '',
-        sales: salesValue,
-        laborPO: laborPOIdx >= 0 ? Number(row[laborPOIdx] || 0) : 0,
-        vendorDebit: vendorDebitIdx >= 0 ? Number(row[vendorDebitIdx] || 0) : 0,
-      }
-
-      if (cycleTimeIdx >= 0 && row[cycleTimeIdx] != null && row[cycleTimeIdx] !== '') {
-        workroom.cycleTime = Number(row[cycleTimeIdx]) || 0
+        sales: cellNumber(salesIdx),
+        laborPO: cellNumber(laborPOIdx),
+        vendorDebit: cellNumber(vendorDebitIdx),
+        cycleTime: cellNumber(cycleTimeIdx),
       }
 
       workrooms.push(workroom)

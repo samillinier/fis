@@ -29,8 +29,8 @@ export interface WorkroomData {
   professionalScore?: number
   columnM?: number // Column M (index 12) - 20% weight
   columnN?: number // Column N (index 13) - 10% weight
-  columnP?: number // Column P (index 15) - 2% weight
-  columnQ?: number // Column Q (index 16) - 3% weight
+  columnP?: number // Column P (index 15) - 5% weight
+  columnQ?: number // Column Q (index 16) - 5% weight
   completed?: number
   // Details Cycle Time breakdown (Excel columns P–T)
   detailsRtsSched?: number // Column P (index 15) - RTS - Sch (Details)
