@@ -42,7 +42,7 @@ export const PATTERN_CLUSTERS: PatternClusterDef[] = [
     id: 'cluster-04-pasco',
     label: "Cluster 4 · Port Richey / Land O'Lakes",
     estimator: 'Gabriel Gardner',
-    stores: [724, 2238, 3477, 2777, 1854, 1003],
+    stores: [724, 2238, 3477, 1854, 1003],
     color: '#0369a1', // sky / steel blue
   },
   {
@@ -91,7 +91,7 @@ export const PATTERN_CLUSTERS: PatternClusterDef[] = [
     id: 'cluster-11-pinellas',
     label: 'Cluster 11 · Pinellas / Clearwater',
     estimator: 'Theron Gentille',
-    stores: [1190, 1701, 1714, 771, 740],
+    stores: [1190, 1701, 1714, 771, 740, 2777],
     color: '#1e3a8a', // navy
   },
   {
