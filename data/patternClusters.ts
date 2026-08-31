@@ -28,7 +28,7 @@ export const PATTERN_CLUSTERS: PatternClusterDef[] = [
   {
     id: 'cluster-02-fort-myers',
     label: 'Cluster 2 · Fort Myers / Cape Coral',
-    stores: [582, 592, 2361, 1732],
+    stores: [582, 592, 2361],
     color: '#c2410c', // burnt orange
   },
   {
@@ -105,7 +105,7 @@ export const PATTERN_CLUSTERS: PatternClusterDef[] = [
     id: 'cluster-13-sarasota',
     label: 'Cluster 13 · Sarasota',
     estimator: 'Scott Eastwood',
-    stores: [1683, 2727, 2933, 1935],
+    stores: [1683, 2727, 2933, 1935, 1732],
     color: '#db2777', // hot pink
   },
   {
