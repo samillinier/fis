@@ -482,10 +482,11 @@ export default function JobsView() {
             <button
               type="button"
               onClick={handleClear}
-              className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-2 py-2 text-gray-600 hover:bg-gray-50"
-              title="Revert to seed export"
+              className="inline-flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-100"
+              title="Remove the uploaded file and revert to the default seed data"
             >
               <Trash2 size={16} />
+              Remove
             </button>
           )}
         </div>
