@@ -62,7 +62,7 @@ export const PATTERN_CLUSTERS: PatternClusterDef[] = [
   {
     id: 'cluster-07-tampa',
     label: 'Cluster 7 · Tampa',
-    estimator: 'Juan Olivares',
+    estimator: 'Juan Olivares · Sasha Pulido',
     stores: [1911, 573, 2282, 2360, 564, 2639, 1629],
     color: '#f59e0b', // amber / yellow-orange (not red)
   },
@@ -111,7 +111,6 @@ export const PATTERN_CLUSTERS: PatternClusterDef[] = [
   {
     id: 'cluster-14-lakeland',
     label: 'Cluster 14 · Lakeland',
-    estimator: 'Sasha Pulido',
     stores: [2531, 2253, 783, 1592, 1079, 2457],
     color: '#0e7490', // cyan-teal (distinct from Naples & Pasco)
   },
