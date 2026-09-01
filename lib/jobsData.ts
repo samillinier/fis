@@ -224,12 +224,96 @@ function clearLegacyOverride(): void {
   }
 }
 
+// ============================================================================
+// Shared cloud storage (Supabase via /api/jobs-data) — so uploads are visible
+// to everyone, not just the browser that uploaded them. IndexedDB is the local
+// cache / offline fallback.
+// ============================================================================
+
+const API_URL = '/api/jobs-data'
+
+function getAuthHeader(): string | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const userStr = window.localStorage.getItem('fis-user')
+    if (!userStr) return null
+    const user = JSON.parse(userStr) as { email?: string }
+    return user.email ? `Bearer ${user.email}` : null
+  } catch {
+    return null
+  }
+}
+
+async function fetchCloudJobs(): Promise<JobsOverride | null> {
+  const auth = getAuthHeader()
+  if (!auth) return null
+  try {
+    const res = await fetch(API_URL, {
+      headers: { Authorization: auth, 'Content-Type': 'application/json' },
+    })
+    if (!res.ok) return null
+    const data = await res.json()
+    const records = Array.isArray(data.records) ? (data.records as JobRecord[]) : []
+    if (records.length === 0) return null
+    return {
+      records,
+      fileName: typeof data.fileName === 'string' ? data.fileName : null,
+      uploadedAt: typeof data.uploadedAt === 'string' ? data.uploadedAt : null,
+    }
+  } catch {
+    return null
+  }
+}
+
+async function pushCloudJobs(override: JobsOverride): Promise<boolean> {
+  const auth = getAuthHeader()
+  if (!auth) return false
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { Authorization: auth, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ records: override.records ?? [], fileName: override.fileName }),
+    })
+    return res.ok
+  } catch {
+    return false
+  }
+}
+
+async function deleteCloudJobs(): Promise<boolean> {
+  const auth = getAuthHeader()
+  if (!auth) return false
+  try {
+    const res = await fetch(API_URL, {
+      method: 'DELETE',
+      headers: { Authorization: auth },
+    })
+    return res.ok
+  } catch {
+    return false
+  }
+}
+
 /**
  * Load a user-uploaded jobs dataset, if one exists. Null records means "use seed".
- * Prefers IndexedDB (large capacity); migrates any legacy localStorage data on first read.
+ * Prefers the shared cloud copy (visible to everyone); falls back to the local
+ * IndexedDB cache when offline or no cloud copy exists.
  */
 export async function loadJobsOverride(): Promise<JobsOverride> {
   if (typeof window === 'undefined') return EMPTY_OVERRIDE
+
+  // Cloud first — the shared source of truth.
+  const cloud = await fetchCloudJobs()
+  if (cloud && cloud.records && cloud.records.length > 0) {
+    try {
+      await idbSet(cloud)
+    } catch {
+      // ignore cache failure
+    }
+    return cloud
+  }
+
+  // Fall back to local IndexedDB (offline or legacy).
   try {
     const existing = await idbGet()
     if (existing && (existing.records?.length || existing.fileName || existing.uploadedAt)) {
@@ -243,13 +327,17 @@ export async function loadJobsOverride(): Promise<JobsOverride> {
     }
     return EMPTY_OVERRIDE
   } catch {
-    // Fall back to legacy localStorage if IndexedDB is unavailable.
+    // IndexedDB unavailable — fall back to legacy localStorage.
     return readLegacyOverride()
   }
 }
 
-export async function saveJobsOverride(records: JobRecord[], fileName: string): Promise<void> {
-  if (typeof window === 'undefined') return
+/**
+ * Save an uploaded jobs dataset locally and push it to the shared cloud copy.
+ * Returns true when the data was shared to the cloud (visible to everyone).
+ */
+export async function saveJobsOverride(records: JobRecord[], fileName: string): Promise<boolean> {
+  if (typeof window === 'undefined') return false
   const override: JobsOverride = {
     records,
     fileName,
@@ -268,6 +356,8 @@ export async function saveJobsOverride(records: JobRecord[], fileName: string): 
       // ignore — data remains in memory for the current session
     }
   }
+
+  return pushCloudJobs(override)
 }
 
 export async function clearJobsOverride(): Promise<void> {
@@ -278,4 +368,5 @@ export async function clearJobsOverride(): Promise<void> {
     // ignore
   }
   clearLegacyOverride()
+  await deleteCloudJobs()
 }

@@ -126,6 +126,7 @@ export default function JobsView() {
   const [records, setRecords] = useState<JobRecord[]>([])
   const [fileName, setFileName] = useState<string | null>(null)
   const [uploadedAt, setUploadedAt] = useState<string | null>(null)
+  const [shareState, setShareState] = useState<'shared' | 'local' | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
@@ -378,10 +379,11 @@ export default function JobsView() {
     try {
       const buffer = await file.arrayBuffer()
       const parsed = parseJobsWorkbook(buffer)
-      await saveJobsOverride(parsed, file.name)
+      const didShare = await saveJobsOverride(parsed, file.name)
       setRecords(parsed)
       setFileName(file.name)
       setUploadedAt(new Date().toISOString())
+      setShareState(didShare ? 'shared' : 'local')
       resetFilters()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to parse file')
@@ -396,6 +398,7 @@ export default function JobsView() {
     setRecords([])
     setFileName(null)
     setUploadedAt(null)
+    setShareState(null)
     setError(null)
     resetFilters()
     // Reload seed data
@@ -450,6 +453,23 @@ export default function JobsView() {
               </span>
               {uploadedAt && (
                 <span className="text-gray-400">{new Date(uploadedAt).toLocaleDateString()}</span>
+              )}
+              {shareState === 'shared' && (
+                <span
+                  className="badge-pill"
+                  style={{ background: '#dcfce7', color: '#15803d', fontSize: '0.65rem', padding: '0.1rem 0.4rem' }}
+                >
+                  Shared
+                </span>
+              )}
+              {shareState === 'local' && (
+                <span
+                  className="badge-pill"
+                  style={{ background: '#fef3c7', color: '#b45309', fontSize: '0.65rem', padding: '0.1rem 0.4rem' }}
+                  title="Saved on this device only — could not sync to the shared copy"
+                >
+                  Local only
+                </span>
               )}
             </div>
           )}
