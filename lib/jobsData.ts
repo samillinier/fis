@@ -269,15 +269,37 @@ async function pushCloudJobs(override: JobsOverride): Promise<boolean> {
   const auth = getAuthHeader()
   if (!auth) return false
   try {
+    const payload = { records: override.records ?? [], fileName: override.fileName }
+    const { body, encoded } = await gzipBody(payload)
+    const headers: Record<string, string> = {
+      Authorization: auth,
+      'Content-Type': 'application/json',
+    }
+    if (encoded) headers['Content-Encoding'] = 'gzip'
     const res = await fetch(API_URL, {
       method: 'POST',
-      headers: { Authorization: auth, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ records: override.records ?? [], fileName: override.fileName }),
+      headers,
+      body,
     })
     return res.ok
   } catch {
     return false
   }
+}
+
+/** Compress a JSON payload with gzip when the browser supports it. */
+async function gzipBody(payload: unknown): Promise<{ body: BodyInit; encoded: boolean }> {
+  const json = JSON.stringify(payload)
+  if (typeof CompressionStream !== 'undefined') {
+    try {
+      const stream = new Blob([json]).stream().pipeThrough(new CompressionStream('gzip'))
+      const buf = await new Response(stream).arrayBuffer()
+      return { body: buf, encoded: true }
+    } catch {
+      // fall through to uncompressed
+    }
+  }
+  return { body: json, encoded: false }
 }
 
 async function deleteCloudJobs(): Promise<boolean> {
