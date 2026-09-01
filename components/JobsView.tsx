@@ -407,6 +407,7 @@ export default function JobsView() {
 
   const start = filtered.length === 0 ? 0 : safePage * PAGE_SIZE + 1
   const end = Math.min(filtered.length, (safePage + 1) * PAGE_SIZE)
+  const hasUpload = Boolean(fileName || uploadedAt)
 
   if (isLoading) {
     return (
@@ -441,7 +442,7 @@ export default function JobsView() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          {(fileName || uploadedAt) && (
+          {hasUpload && (
             <div className="inline-flex items-center gap-2 rounded-md border border-gray-200 bg-white px-2.5 py-2 text-xs text-gray-600">
               <FileSpreadsheet size={14} />
               <span className="font-medium text-gray-800 max-w-[180px] truncate">
@@ -452,7 +453,7 @@ export default function JobsView() {
               )}
             </div>
           )}
-          {!fileName && records.length > 0 && (
+          {!hasUpload && records.length > 0 && (
             <div className="inline-flex items-center gap-2 rounded-md border border-gray-200 bg-white px-2.5 py-2 text-xs text-gray-500">
               <FileSpreadsheet size={14} />
               <span>Seed export</span>
@@ -478,7 +479,7 @@ export default function JobsView() {
             <Upload size={16} />
             {isUploading ? 'Uploading…' : 'Upload'}
           </button>
-          {fileName && (
+          {hasUpload && (
             <button
               type="button"
               onClick={handleClear}
