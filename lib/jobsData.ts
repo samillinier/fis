@@ -19,7 +19,12 @@ export interface JobRecord {
   leadSafePractices: string
 }
 
-const STORAGE_KEYS = {
+const DB_NAME = 'fis-jobs'
+const STORE = 'jobs'
+const DATA_KEY = 'override'
+
+/** Legacy localStorage keys (pre-IndexedDB) — read for migration, then removed. */
+const LEGACY_KEYS = {
   data: 'fis-jobs-data',
   fileName: 'fis-jobs-file-name',
   uploadedAt: 'fis-jobs-uploaded-at',
@@ -126,35 +131,151 @@ export interface JobsOverride {
   uploadedAt: string | null
 }
 
-/** Load a user-uploaded jobs dataset, if one exists. Null records means "use seed". */
-export function loadJobsOverride(): JobsOverride {
-  if (typeof window === 'undefined') {
-    return { records: null, fileName: null, uploadedAt: null }
+const EMPTY_OVERRIDE: JobsOverride = { records: null, fileName: null, uploadedAt: null }
+
+function normalizeOverride(raw: unknown): JobsOverride {
+  if (!raw || typeof raw !== 'object') return EMPTY_OVERRIDE
+  const o = raw as Partial<JobsOverride>
+  return {
+    records: Array.isArray(o.records) ? o.records : null,
+    fileName: typeof o.fileName === 'string' ? o.fileName : null,
+    uploadedAt: typeof o.uploadedAt === 'string' ? o.uploadedAt : null,
   }
+}
+
+function openDb(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, 1)
+    request.onerror = () => reject(request.error ?? new Error('IndexedDB open failed'))
+    request.onsuccess = () => resolve(request.result)
+    request.onupgradeneeded = () => {
+      const db = request.result
+      if (!db.objectStoreNames.contains(STORE)) {
+        db.createObjectStore(STORE)
+      }
+    }
+  })
+}
+
+async function idbGet(): Promise<JobsOverride | null> {
+  const db = await openDb()
   try {
-    const raw = localStorage.getItem(STORAGE_KEYS.data)
-    if (!raw) return { records: null, fileName: null, uploadedAt: null }
+    return await new Promise<JobsOverride | null>((resolve, reject) => {
+      const tx = db.transaction(STORE, 'readonly')
+      const request = tx.objectStore(STORE).get(DATA_KEY)
+      request.onerror = () => reject(request.error ?? new Error('IndexedDB read failed'))
+      request.onsuccess = () => resolve(request.result ? normalizeOverride(request.result) : null)
+    })
+  } finally {
+    db.close()
+  }
+}
+
+async function idbSet(override: JobsOverride): Promise<void> {
+  const db = await openDb()
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(STORE, 'readwrite')
+      const request = tx.objectStore(STORE).put(override, DATA_KEY)
+      request.onerror = () => reject(request.error ?? new Error('IndexedDB write failed'))
+      request.onsuccess = () => resolve()
+    })
+  } finally {
+    db.close()
+  }
+}
+
+async function idbClear(): Promise<void> {
+  const db = await openDb()
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(STORE, 'readwrite')
+      const request = tx.objectStore(STORE).delete(DATA_KEY)
+      request.onerror = () => reject(request.error ?? new Error('IndexedDB delete failed'))
+      request.onsuccess = () => resolve()
+    })
+  } finally {
+    db.close()
+  }
+}
+
+function readLegacyOverride(): JobsOverride {
+  try {
+    const raw = window.localStorage.getItem(LEGACY_KEYS.data)
+    if (!raw) return EMPTY_OVERRIDE
     const records = JSON.parse(raw) as JobRecord[]
     return {
       records: Array.isArray(records) ? records : null,
-      fileName: localStorage.getItem(STORAGE_KEYS.fileName),
-      uploadedAt: localStorage.getItem(STORAGE_KEYS.uploadedAt),
+      fileName: window.localStorage.getItem(LEGACY_KEYS.fileName),
+      uploadedAt: window.localStorage.getItem(LEGACY_KEYS.uploadedAt),
     }
   } catch {
-    return { records: null, fileName: null, uploadedAt: null }
+    return EMPTY_OVERRIDE
   }
 }
 
-export function saveJobsOverride(records: JobRecord[], fileName: string): void {
-  if (typeof window === 'undefined') return
-  localStorage.setItem(STORAGE_KEYS.data, JSON.stringify(records))
-  localStorage.setItem(STORAGE_KEYS.fileName, fileName)
-  localStorage.setItem(STORAGE_KEYS.uploadedAt, new Date().toISOString())
+function clearLegacyOverride(): void {
+  try {
+    window.localStorage.removeItem(LEGACY_KEYS.data)
+    window.localStorage.removeItem(LEGACY_KEYS.fileName)
+    window.localStorage.removeItem(LEGACY_KEYS.uploadedAt)
+  } catch {
+    // ignore
+  }
 }
 
-export function clearJobsOverride(): void {
+/**
+ * Load a user-uploaded jobs dataset, if one exists. Null records means "use seed".
+ * Prefers IndexedDB (large capacity); migrates any legacy localStorage data on first read.
+ */
+export async function loadJobsOverride(): Promise<JobsOverride> {
+  if (typeof window === 'undefined') return EMPTY_OVERRIDE
+  try {
+    const existing = await idbGet()
+    if (existing && (existing.records?.length || existing.fileName || existing.uploadedAt)) {
+      return existing
+    }
+    const legacy = readLegacyOverride()
+    if (legacy.records && legacy.records.length > 0) {
+      await idbSet(legacy)
+      clearLegacyOverride()
+      return legacy
+    }
+    return EMPTY_OVERRIDE
+  } catch {
+    // Fall back to legacy localStorage if IndexedDB is unavailable.
+    return readLegacyOverride()
+  }
+}
+
+export async function saveJobsOverride(records: JobRecord[], fileName: string): Promise<void> {
   if (typeof window === 'undefined') return
-  localStorage.removeItem(STORAGE_KEYS.data)
-  localStorage.removeItem(STORAGE_KEYS.fileName)
-  localStorage.removeItem(STORAGE_KEYS.uploadedAt)
+  const override: JobsOverride = {
+    records,
+    fileName,
+    uploadedAt: new Date().toISOString(),
+  }
+  try {
+    await idbSet(override)
+    clearLegacyOverride()
+  } catch {
+    // Last-resort fallback so the user can still use the page this session.
+    try {
+      window.localStorage.setItem(LEGACY_KEYS.data, JSON.stringify(records))
+      window.localStorage.setItem(LEGACY_KEYS.fileName, fileName)
+      window.localStorage.setItem(LEGACY_KEYS.uploadedAt, override.uploadedAt!)
+    } catch {
+      // ignore — data remains in memory for the current session
+    }
+  }
+}
+
+export async function clearJobsOverride(): Promise<void> {
+  if (typeof window === 'undefined') return
+  try {
+    await idbClear()
+  } catch {
+    // ignore
+  }
+  clearLegacyOverride()
 }

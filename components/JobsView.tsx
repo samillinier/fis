@@ -151,7 +151,7 @@ export default function JobsView() {
       setIsLoading(true)
       setError(null)
       try {
-        const override = loadJobsOverride()
+        const override = await loadJobsOverride()
         if (override.records && override.records.length > 0) {
           if (!cancelled) {
             setRecords(override.records)
@@ -378,7 +378,7 @@ export default function JobsView() {
     try {
       const buffer = await file.arrayBuffer()
       const parsed = parseJobsWorkbook(buffer)
-      saveJobsOverride(parsed, file.name)
+      await saveJobsOverride(parsed, file.name)
       setRecords(parsed)
       setFileName(file.name)
       setUploadedAt(new Date().toISOString())
@@ -391,8 +391,8 @@ export default function JobsView() {
     }
   }
 
-  const handleClear = () => {
-    clearJobsOverride()
+  const handleClear = async () => {
+    await clearJobsOverride()
     setRecords([])
     setFileName(null)
     setUploadedAt(null)
