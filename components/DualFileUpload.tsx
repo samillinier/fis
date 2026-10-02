@@ -40,13 +40,6 @@ function saveStoredUploadDate(key: string, value: string | null) {
   }
 }
 
-function formatUploadDate(value: string | null): string {
-  if (!value) return 'Not uploaded yet'
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return 'Not uploaded yet'
-  return date.toLocaleDateString()
-}
-
 export default function DualFileUpload() {
   const [isUploadingVisual, setIsUploadingVisual] = useState(false)
   const [isUploadingSurvey, setIsUploadingSurvey] = useState(false)
@@ -1055,7 +1048,6 @@ export default function DualFileUpload() {
         <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
           Visual Data (weekly POD)
         </label>
-        <p className="text-xs text-gray-500 mb-2">Upload date: {formatUploadDate(visualUploadedAt)}</p>
         <div className="flex items-center gap-2">
           {canEditUploads ? (
             <>
@@ -1070,7 +1062,8 @@ export default function DualFileUpload() {
               />
               <label
                 htmlFor="visual-upload-input"
-                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium cursor-pointer transition-colors ${
+                title="Upload Visual Data"
+                className={`inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium cursor-pointer transition-colors ${
                   isUploadingVisual
                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -1078,14 +1071,11 @@ export default function DualFileUpload() {
               >
                 {isUploadingVisual ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-400 border-t-transparent" />
+                    <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-gray-400 border-t-transparent" />
                     <span>{isDeletingVisual ? 'Removing old data...' : 'Uploading...'}</span>
                   </>
                 ) : (
-                  <>
-                    <Upload size={16} />
-                    <span>Upload Visual Data</span>
-                  </>
+                  <Upload size={15} />
                 )}
               </label>
             </>
@@ -1114,7 +1104,6 @@ export default function DualFileUpload() {
         <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
           Survey Data (weekly POD)
         </label>
-        <p className="text-xs text-gray-500 mb-2">Upload date: {formatUploadDate(surveyUploadedAt)}</p>
         <div className="flex items-center gap-2">
           {canEditUploads ? (
             <>
@@ -1129,7 +1118,8 @@ export default function DualFileUpload() {
               />
               <label
                 htmlFor="survey-upload-input"
-                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium cursor-pointer transition-colors ${
+                title="Upload Survey Data"
+                className={`inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium cursor-pointer transition-colors ${
                   isUploadingSurvey
                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -1137,14 +1127,11 @@ export default function DualFileUpload() {
               >
                 {isUploadingSurvey ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-400 border-t-transparent" />
+                    <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-gray-400 border-t-transparent" />
                     <span>{isDeletingSurvey ? 'Removing old data...' : 'Uploading...'}</span>
                   </>
                 ) : (
-                  <>
-                    <Upload size={16} />
-                    <span>Upload Survey Data</span>
-                  </>
+                  <Upload size={15} />
                 )}
               </label>
             </>

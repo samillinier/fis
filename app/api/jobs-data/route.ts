@@ -9,7 +9,11 @@ import { gunzipSync, gzipSync } from 'zlib'
 export const maxDuration = 60
 
 const BUCKET = 'jobs'
-const STORAGE_PATH = 'jobs/data.json'
+
+function storagePathFor(request: NextRequest): string {
+  const scope = request.nextUrl.searchParams.get('scope')
+  return scope === 'install' ? 'jobs/install-data.json' : 'jobs/data.json'
+}
 
 async function requireAdminOrOwner(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
@@ -52,7 +56,9 @@ export async function GET(request: NextRequest) {
     }
 
     await ensureBucket()
-    const { data, error } = await supabase.storage.from(BUCKET).download(STORAGE_PATH)
+    const { data, error } = await supabase.storage
+      .from(BUCKET)
+      .download(storagePathFor(request))
 
     if (error || !data) {
       return NextResponse.json(emptyPayload())
@@ -115,11 +121,13 @@ export async function POST(request: NextRequest) {
     const payload = JSON.stringify({ records, fileName, uploadedAt })
     const compressed = gzipSync(payload)
 
-    const { error } = await supabase.storage.from(BUCKET).upload(STORAGE_PATH, compressed, {
-      upsert: true,
-      contentType: 'application/octet-stream',
-      cacheControl: '0',
-    })
+    const { error } = await supabase.storage
+      .from(BUCKET)
+      .upload(storagePathFor(request), compressed, {
+        upsert: true,
+        contentType: 'application/octet-stream',
+        cacheControl: '0',
+      })
 
     if (error) throw error
 
@@ -138,7 +146,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     await ensureBucket()
-    const { error } = await supabase.storage.from(BUCKET).remove([STORAGE_PATH])
+    const { error } = await supabase.storage.from(BUCKET).remove([storagePathFor(request)])
     if (error) throw error
 
     return NextResponse.json({ success: true })

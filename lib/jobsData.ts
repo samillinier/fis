@@ -19,15 +19,23 @@ export interface JobRecord {
   leadSafePractices: string
 }
 
-const DB_NAME = 'fis-jobs'
+export type JobsScope = 'jobs' | 'install'
+
 const STORE = 'jobs'
 const DATA_KEY = 'override'
 
+function dbName(scope: JobsScope): string {
+  return scope === 'jobs' ? 'fis-jobs' : 'fis-install'
+}
+
 /** Legacy localStorage keys (pre-IndexedDB) — read for migration, then removed. */
-const LEGACY_KEYS = {
-  data: 'fis-jobs-data',
-  fileName: 'fis-jobs-file-name',
-  uploadedAt: 'fis-jobs-uploaded-at',
+function legacyKeys(scope: JobsScope) {
+  const prefix = scope === 'jobs' ? 'fis-jobs' : 'fis-install'
+  return {
+    data: `${prefix}-data`,
+    fileName: `${prefix}-file-name`,
+    uploadedAt: `${prefix}-uploaded-at`,
+  }
 }
 
 function str(value: unknown): string {
@@ -143,9 +151,9 @@ function normalizeOverride(raw: unknown): JobsOverride {
   }
 }
 
-function openDb(): Promise<IDBDatabase> {
+function openDb(scope: JobsScope): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, 1)
+    const request = indexedDB.open(dbName(scope), 1)
     request.onerror = () => reject(request.error ?? new Error('IndexedDB open failed'))
     request.onsuccess = () => resolve(request.result)
     request.onupgradeneeded = () => {
@@ -157,8 +165,8 @@ function openDb(): Promise<IDBDatabase> {
   })
 }
 
-async function idbGet(): Promise<JobsOverride | null> {
-  const db = await openDb()
+async function idbGet(scope: JobsScope): Promise<JobsOverride | null> {
+  const db = await openDb(scope)
   try {
     return await new Promise<JobsOverride | null>((resolve, reject) => {
       const tx = db.transaction(STORE, 'readonly')
@@ -171,8 +179,8 @@ async function idbGet(): Promise<JobsOverride | null> {
   }
 }
 
-async function idbSet(override: JobsOverride): Promise<void> {
-  const db = await openDb()
+async function idbSet(scope: JobsScope, override: JobsOverride): Promise<void> {
+  const db = await openDb(scope)
   try {
     await new Promise<void>((resolve, reject) => {
       const tx = db.transaction(STORE, 'readwrite')
@@ -185,8 +193,8 @@ async function idbSet(override: JobsOverride): Promise<void> {
   }
 }
 
-async function idbClear(): Promise<void> {
-  const db = await openDb()
+async function idbClear(scope: JobsScope): Promise<void> {
+  const db = await openDb(scope)
   try {
     await new Promise<void>((resolve, reject) => {
       const tx = db.transaction(STORE, 'readwrite')
@@ -199,26 +207,28 @@ async function idbClear(): Promise<void> {
   }
 }
 
-function readLegacyOverride(): JobsOverride {
+function readLegacyOverride(scope: JobsScope): JobsOverride {
   try {
-    const raw = window.localStorage.getItem(LEGACY_KEYS.data)
+    const keys = legacyKeys(scope)
+    const raw = window.localStorage.getItem(keys.data)
     if (!raw) return EMPTY_OVERRIDE
     const records = JSON.parse(raw) as JobRecord[]
     return {
       records: Array.isArray(records) ? records : null,
-      fileName: window.localStorage.getItem(LEGACY_KEYS.fileName),
-      uploadedAt: window.localStorage.getItem(LEGACY_KEYS.uploadedAt),
+      fileName: window.localStorage.getItem(keys.fileName),
+      uploadedAt: window.localStorage.getItem(keys.uploadedAt),
     }
   } catch {
     return EMPTY_OVERRIDE
   }
 }
 
-function clearLegacyOverride(): void {
+function clearLegacyOverride(scope: JobsScope): void {
   try {
-    window.localStorage.removeItem(LEGACY_KEYS.data)
-    window.localStorage.removeItem(LEGACY_KEYS.fileName)
-    window.localStorage.removeItem(LEGACY_KEYS.uploadedAt)
+    const keys = legacyKeys(scope)
+    window.localStorage.removeItem(keys.data)
+    window.localStorage.removeItem(keys.fileName)
+    window.localStorage.removeItem(keys.uploadedAt)
   } catch {
     // ignore
   }
@@ -230,7 +240,9 @@ function clearLegacyOverride(): void {
 // cache / offline fallback.
 // ============================================================================
 
-const API_URL = '/api/jobs-data'
+function apiUrl(scope: JobsScope): string {
+  return `/api/jobs-data?scope=${scope}`
+}
 
 function getAuthHeader(): string | null {
   if (typeof window === 'undefined') return null
@@ -244,11 +256,11 @@ function getAuthHeader(): string | null {
   }
 }
 
-async function fetchCloudJobs(): Promise<JobsOverride | null> {
+async function fetchCloudJobs(scope: JobsScope): Promise<JobsOverride | null> {
   const auth = getAuthHeader()
   if (!auth) return null
   try {
-    const res = await fetch(API_URL, {
+    const res = await fetch(apiUrl(scope), {
       headers: { Authorization: auth, 'Content-Type': 'application/json' },
     })
     if (!res.ok) return null
@@ -265,7 +277,7 @@ async function fetchCloudJobs(): Promise<JobsOverride | null> {
   }
 }
 
-async function pushCloudJobs(override: JobsOverride): Promise<boolean> {
+async function pushCloudJobs(scope: JobsScope, override: JobsOverride): Promise<boolean> {
   const auth = getAuthHeader()
   if (!auth) return false
   try {
@@ -276,7 +288,7 @@ async function pushCloudJobs(override: JobsOverride): Promise<boolean> {
       'Content-Type': 'application/json',
     }
     if (encoded) headers['Content-Encoding'] = 'gzip'
-    const res = await fetch(API_URL, {
+    const res = await fetch(apiUrl(scope), {
       method: 'POST',
       headers,
       body,
@@ -302,11 +314,11 @@ async function gzipBody(payload: unknown): Promise<{ body: BodyInit; encoded: bo
   return { body: json, encoded: false }
 }
 
-async function deleteCloudJobs(): Promise<boolean> {
+async function deleteCloudJobs(scope: JobsScope): Promise<boolean> {
   const auth = getAuthHeader()
   if (!auth) return false
   try {
-    const res = await fetch(API_URL, {
+    const res = await fetch(apiUrl(scope), {
       method: 'DELETE',
       headers: { Authorization: auth },
     })
@@ -321,14 +333,14 @@ async function deleteCloudJobs(): Promise<boolean> {
  * Prefers the shared cloud copy (visible to everyone); falls back to the local
  * IndexedDB cache when offline or no cloud copy exists.
  */
-export async function loadJobsOverride(): Promise<JobsOverride> {
+export async function loadJobsOverride(scope: JobsScope = 'jobs'): Promise<JobsOverride> {
   if (typeof window === 'undefined') return EMPTY_OVERRIDE
 
   // Cloud first — the shared source of truth.
-  const cloud = await fetchCloudJobs()
+  const cloud = await fetchCloudJobs(scope)
   if (cloud && cloud.records && cloud.records.length > 0) {
     try {
-      await idbSet(cloud)
+      await idbSet(scope, cloud)
     } catch {
       // ignore cache failure
     }
@@ -337,20 +349,20 @@ export async function loadJobsOverride(): Promise<JobsOverride> {
 
   // Fall back to local IndexedDB (offline or legacy).
   try {
-    const existing = await idbGet()
+    const existing = await idbGet(scope)
     if (existing && (existing.records?.length || existing.fileName || existing.uploadedAt)) {
       return existing
     }
-    const legacy = readLegacyOverride()
+    const legacy = readLegacyOverride(scope)
     if (legacy.records && legacy.records.length > 0) {
-      await idbSet(legacy)
-      clearLegacyOverride()
+      await idbSet(scope, legacy)
+      clearLegacyOverride(scope)
       return legacy
     }
     return EMPTY_OVERRIDE
   } catch {
     // IndexedDB unavailable — fall back to legacy localStorage.
-    return readLegacyOverride()
+    return readLegacyOverride(scope)
   }
 }
 
@@ -358,7 +370,11 @@ export async function loadJobsOverride(): Promise<JobsOverride> {
  * Save an uploaded jobs dataset locally and push it to the shared cloud copy.
  * Returns true when the data was shared to the cloud (visible to everyone).
  */
-export async function saveJobsOverride(records: JobRecord[], fileName: string): Promise<boolean> {
+export async function saveJobsOverride(
+  records: JobRecord[],
+  fileName: string,
+  scope: JobsScope = 'jobs'
+): Promise<boolean> {
   if (typeof window === 'undefined') return false
   const override: JobsOverride = {
     records,
@@ -366,29 +382,30 @@ export async function saveJobsOverride(records: JobRecord[], fileName: string): 
     uploadedAt: new Date().toISOString(),
   }
   try {
-    await idbSet(override)
-    clearLegacyOverride()
+    await idbSet(scope, override)
+    clearLegacyOverride(scope)
   } catch {
     // Last-resort fallback so the user can still use the page this session.
     try {
-      window.localStorage.setItem(LEGACY_KEYS.data, JSON.stringify(records))
-      window.localStorage.setItem(LEGACY_KEYS.fileName, fileName)
-      window.localStorage.setItem(LEGACY_KEYS.uploadedAt, override.uploadedAt!)
+      const keys = legacyKeys(scope)
+      window.localStorage.setItem(keys.data, JSON.stringify(records))
+      window.localStorage.setItem(keys.fileName, fileName)
+      window.localStorage.setItem(keys.uploadedAt, override.uploadedAt!)
     } catch {
       // ignore — data remains in memory for the current session
     }
   }
 
-  return pushCloudJobs(override)
+  return pushCloudJobs(scope, override)
 }
 
-export async function clearJobsOverride(): Promise<void> {
+export async function clearJobsOverride(scope: JobsScope = 'jobs'): Promise<void> {
   if (typeof window === 'undefined') return
   try {
-    await idbClear()
+    await idbClear(scope)
   } catch {
     // ignore
   }
-  clearLegacyOverride()
-  await deleteCloudJobs()
+  clearLegacyOverride(scope)
+  await deleteCloudJobs(scope)
 }

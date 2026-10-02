@@ -28,20 +28,21 @@ export const PATTERN_CLUSTERS: PatternClusterDef[] = [
   {
     id: 'cluster-02-fort-myers',
     label: 'Cluster 2 · Fort Myers / Cape Coral',
+    estimator: 'Gerald Kernohan',
     stores: [582, 592, 2361],
     color: '#c2410c', // burnt orange
   },
   {
     id: 'cluster-03-dothan-albany',
     label: 'Cluster 3 · Dothan / Albany',
-    estimator: 'William Kennett · Justin Wells',
+    estimator: 'Open',
     stores: [606, 2884, 281, 2212, 491, 2621, 1564],
     color: '#854d0e', // brown
   },
   {
     id: 'cluster-04-pasco',
     label: "Cluster 4 · Port Richey / Land O'Lakes",
-    estimator: 'Gabriel Gardner',
+    estimator: 'Theron Gentille',
     stores: [724, 2238, 3477, 1854, 1003],
     color: '#0369a1', // sky / steel blue
   },
@@ -55,14 +56,14 @@ export const PATTERN_CLUSTERS: PatternClusterDef[] = [
   {
     id: 'cluster-06-bradenton',
     label: 'Cluster 6 · Bradenton / Parrish',
-    estimator: 'John Johnson',
+    estimator: 'Juan Olivares',
     stores: [772, 1843, 3453],
     color: '#be123c', // crimson
   },
   {
     id: 'cluster-07-tampa',
     label: 'Cluster 7 · Tampa',
-    estimator: 'Juan Olivares · Sasha Pulido',
+    estimator: 'Sasha Pulido',
     stores: [1911, 573, 2282, 2360, 564, 2639, 1629],
     color: '#f59e0b', // amber / yellow-orange (not red)
   },
@@ -70,20 +71,20 @@ export const PATTERN_CLUSTERS: PatternClusterDef[] = [
     id: 'cluster-08-ocala',
     label: 'Cluster 8 · Ocala',
     estimator: 'Angel Meulener',
-    stores: [1605, 1853, 2753, 440, 1855, 1827],
+    stores: [1605, 1853, 2753, 1827],
     color: '#15803d', // forest green
   },
   {
     id: 'cluster-09-gainesville',
     label: 'Cluster 9 · Gainesville',
     estimator: 'Michelle',
-    stores: [3278, 2365, 2984, 179, 2462],
+    stores: [3278, 2365, 2984, 179, 2462, 440, 1855],
     color: '#a21caf', // magenta
   },
   {
     id: 'cluster-10-kissimmee',
     label: 'Cluster 10 · Lake Wales / Kissimmee',
-    estimator: 'Christopher Moss',
+    estimator: 'Open',
     stores: [2224, 2240, 2438, 1652, 2363, 2702],
     color: '#ca8a04', // gold
   },
@@ -97,20 +98,21 @@ export const PATTERN_CLUSTERS: PatternClusterDef[] = [
   {
     id: 'cluster-12-north-central',
     label: 'Cluster 12 · Leesburg / Mt. Dora',
-    estimator: 'Alberto Cabrera',
+    estimator: 'Open',
     stores: [2577, 569, 3351, 1685],
     color: '#4d7c0f', // olive
   },
   {
     id: 'cluster-13-sarasota',
     label: 'Cluster 13 · Sarasota',
-    estimator: 'Scott Eastwood',
+    estimator: 'John Johnson',
     stores: [1683, 2727, 2933, 1935, 1732],
     color: '#db2777', // hot pink
   },
   {
     id: 'cluster-14-lakeland',
     label: 'Cluster 14 · Lakeland',
+    estimator: 'Dusty Vibbert',
     stores: [2531, 2253, 783, 1592, 1079, 2457],
     color: '#0e7490', // cyan-teal (distinct from Naples & Pasco)
   },

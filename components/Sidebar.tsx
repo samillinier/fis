@@ -153,7 +153,17 @@ export default function Sidebar({
                 onClick={handleLinkClick}
               >
                 <Briefcase size={18} className="mr-2 flex-shrink-0" />
-                Job
+                Detail Job
+              </Link>
+              <Link
+                href="/install-job"
+                className={`sidebar-nav-button ${
+                  isActive('/install-job') ? 'sidebar-nav-button--active' : ''
+                }`}
+                onClick={handleLinkClick}
+              >
+                <Briefcase size={18} className="mr-2 flex-shrink-0" />
+                Install Job
               </Link>
               <Link
                 href="/heatmap"
@@ -230,6 +240,16 @@ export default function Sidebar({
                     <FileText size={18} className="mr-2 flex-shrink-0" />
                     Workroom Report
                   </Link>
+                  <Link
+                    href="/budget"
+                    className={`sidebar-nav-button ${
+                      isActive('/budget') ? 'sidebar-nav-button--active' : ''
+                    }`}
+                    onClick={handleLinkClick}
+                  >
+                    <DollarSign size={18} className="mr-2 flex-shrink-0" />
+                    Budget
+                  </Link>
                   {/* HIDDEN: Calculator and Bonus pages temporarily disabled */}
                   {/*
                   <Link
@@ -267,7 +287,8 @@ export default function Sidebar({
         pathname !== '/cycle-time' &&
         pathname !== '/cycle-time-ly' &&
         pathname !== '/heatmap' &&
-        pathname !== '/job' && (
+        pathname !== '/job' &&
+        pathname !== '/install-job' && (
         <div className="sidebar-upload">
           {pathname === '/payment' ? (
             <PaymentSidebarUpload />

@@ -8,11 +8,11 @@ import {
   parseJobsWorkbook,
   saveJobsOverride,
   type JobRecord,
+  type JobsScope,
 } from '@/lib/jobsData'
 import { Upload, Trash2, FileSpreadsheet, Search, X, RotateCcw, ChevronDown, ChevronRight } from 'lucide-react'
 
 const PAGE_SIZE = 50
-const SEED_URL = '/data/jobsSeed.json'
 
 const STATUS_COLORS: Record<string, { bg: string; fg: string }> = {
   Scheduled: { bg: '#dbeafe', fg: '#1d4ed8' },
@@ -122,7 +122,19 @@ function SelectFilter({
   )
 }
 
-export default function JobsView() {
+interface JobsViewProps {
+  scope?: JobsScope
+  seedUrl?: string
+  title?: string
+  subtitle?: string
+}
+
+export default function JobsView({
+  scope = 'jobs',
+  seedUrl = '/data/jobsSeed.json',
+  title = 'Detail Job',
+  subtitle = 'Job export viewer — filter and search all jobs.',
+}: JobsViewProps) {
   const [records, setRecords] = useState<JobRecord[]>([])
   const [fileName, setFileName] = useState<string | null>(null)
   const [uploadedAt, setUploadedAt] = useState<string | null>(null)
@@ -152,7 +164,7 @@ export default function JobsView() {
       setIsLoading(true)
       setError(null)
       try {
-        const override = await loadJobsOverride()
+        const override = await loadJobsOverride(scope)
         if (override.records && override.records.length > 0) {
           if (!cancelled) {
             setRecords(override.records)
@@ -160,7 +172,7 @@ export default function JobsView() {
             setUploadedAt(override.uploadedAt)
           }
         } else {
-          const res = await fetch(SEED_URL)
+          const res = await fetch(seedUrl)
           if (!res.ok) throw new Error('Failed to load jobs data')
           const data = (await res.json()) as JobRecord[]
           if (!cancelled) {
@@ -181,7 +193,7 @@ export default function JobsView() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [scope, seedUrl])
 
   const options = useMemo(() => {
     const uniq = (key: (r: JobRecord) => string) =>
@@ -282,6 +294,7 @@ export default function JobsView() {
         scheduled: records.filter((r) => r.jobStatus === 'Scheduled').length,
         ready: records.filter((r) => r.jobStatus === 'Ready To Schedule').length,
         complete: records.filter((r) => r.jobStatus === 'Work Complete').length,
+        refunded: records.filter((r) => r.jobStatus === 'Refunded').length,
         closed: records.filter((r) => r.jobStatus === 'Closed' || r.jobStatus === 'Closed By Admin').length,
         records,
       }))
@@ -306,6 +319,7 @@ export default function JobsView() {
         scheduled: records.filter((r) => r.jobStatus === 'Scheduled').length,
         ready: records.filter((r) => r.jobStatus === 'Ready To Schedule').length,
         complete: records.filter((r) => r.jobStatus === 'Work Complete').length,
+        refunded: records.filter((r) => r.jobStatus === 'Refunded').length,
         closed: records.filter((r) => r.jobStatus === 'Closed' || r.jobStatus === 'Closed By Admin').length,
         records,
       }))
@@ -379,7 +393,7 @@ export default function JobsView() {
     try {
       const buffer = await file.arrayBuffer()
       const parsed = parseJobsWorkbook(buffer)
-      const didShare = await saveJobsOverride(parsed, file.name)
+      const didShare = await saveJobsOverride(parsed, file.name, scope)
       setRecords(parsed)
       setFileName(file.name)
       setUploadedAt(new Date().toISOString())
@@ -394,7 +408,7 @@ export default function JobsView() {
   }
 
   const handleClear = async () => {
-    await clearJobsOverride()
+    await clearJobsOverride(scope)
     setRecords([])
     setFileName(null)
     setUploadedAt(null)
@@ -402,7 +416,7 @@ export default function JobsView() {
     setError(null)
     resetFilters()
     // Reload seed data
-    fetch(SEED_URL)
+    fetch(seedUrl)
       .then((res) => (res.ok ? res.json() : Promise.reject(new Error('Failed to reload'))))
       .then((data: JobRecord[]) => setRecords(Array.isArray(data) ? data : []))
       .catch((err) => setError(err instanceof Error ? err.message : 'Failed to reload jobs data'))
@@ -439,9 +453,9 @@ export default function JobsView() {
       {/* Header / actions */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Job</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
           <p className="text-sm text-gray-500">
-            Job export viewer — filter and search all jobs.
+            {subtitle}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -791,6 +805,7 @@ export default function JobsView() {
                       <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Sched</th>
                       <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Ready</th>
                       <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Done</th>
+                      <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Refunded</th>
                       <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Labor</th>
                     </tr>
                   </thead>
@@ -807,6 +822,7 @@ export default function JobsView() {
                           scheduled={w.scheduled}
                           ready={w.ready}
                           complete={w.complete}
+                          refunded={w.refunded}
                           labor={w.labor}
                           records={w.records}
                           onSelect={setSelected}
@@ -852,6 +868,7 @@ export default function JobsView() {
                       <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Sched</th>
                       <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Ready</th>
                       <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Done</th>
+                      <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Refunded</th>
                       <th align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.7rem' }}>Labor</th>
                     </tr>
                   </thead>
@@ -868,6 +885,7 @@ export default function JobsView() {
                           scheduled={m.scheduled}
                           ready={m.ready}
                           complete={m.complete}
+                          refunded={m.refunded}
                           labor={m.labor}
                           records={m.records}
                           onSelect={setSelected}
@@ -895,6 +913,7 @@ function RollupRow({
   scheduled,
   ready,
   complete,
+  refunded,
   labor,
   records,
   onSelect,
@@ -906,6 +925,7 @@ function RollupRow({
   scheduled: number
   ready: number
   complete: number
+  refunded: number
   labor: number
   records: JobRecord[]
   onSelect: (job: JobRecord) => void
@@ -937,19 +957,22 @@ function RollupRow({
             {formatInt(complete)}
           </span>
         </td>
+        <td align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.75rem' }}>
+          <span className="badge-pill" style={{ background: '#fee2e2', color: '#b91c1c', fontSize: '0.68rem', padding: '0.1rem 0.4rem' }}>
+            {formatInt(refunded)}
+          </span>
+        </td>
         <td align="right" style={{ padding: '0.5rem 0.75rem', fontSize: '0.75rem', whiteSpace: 'nowrap', fontWeight: 600 }}>
           {formatCurrency(labor)}
         </td>
       </tr>
       {expanded && (
         <tr>
-          <td colSpan={6} style={{ padding: 0, background: '#f8fafc', borderBottom: '1px solid #e5e7eb' }}>
+          <td colSpan={7} style={{ padding: 0, background: '#f8fafc', borderBottom: '1px solid #e5e7eb' }}>
             <div style={{ padding: '0.5rem 0.75rem' }}>
               <table className="professional-table" style={{ fontSize: '0.72rem', width: '100%' }}>
                 <thead>
                   <tr style={{ background: '#eef2f7' }}>
-                    <th style={{ padding: '0.4rem 0.5rem', fontSize: '0.65rem', color: '#374151' }}>ID</th>
-                    <th style={{ padding: '0.4rem 0.5rem', fontSize: '0.65rem', color: '#374151' }}>Customer</th>
                     <th style={{ padding: '0.4rem 0.5rem', fontSize: '0.65rem', color: '#374151' }}>Category</th>
                     <th style={{ padding: '0.4rem 0.5rem', fontSize: '0.65rem', color: '#374151' }}>Status</th>
                     <th style={{ padding: '0.4rem 0.5rem', fontSize: '0.65rem', color: '#374151' }}>Crew Lead</th>
@@ -973,10 +996,6 @@ function RollupRow({
                         e.currentTarget.style.backgroundColor = ''
                       }}
                     >
-                      <td style={{ padding: '0.4rem 0.5rem', fontSize: '0.72rem', color: '#6b7280' }}>{r.id}</td>
-                      <td style={{ padding: '0.4rem 0.5rem', fontSize: '0.72rem', fontWeight: 600 }}>
-                        {[r.firstName, r.lastName].filter(Boolean).join(' ')}
-                      </td>
                       <td style={{ padding: '0.4rem 0.5rem', fontSize: '0.68rem' }}>{r.laborCategory}</td>
                       <td style={{ padding: '0.4rem 0.5rem' }}>
                         <StatusBadge status={r.jobStatus} />

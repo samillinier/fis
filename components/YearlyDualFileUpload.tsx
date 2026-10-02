@@ -695,20 +695,18 @@ export default function YearlyDualFileUpload() {
             />
             <label
               htmlFor="yearly-visual-upload-input"
-              className={`flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium cursor-pointer transition-colors ${
+              title="Upload Visual Data"
+              className={`inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium cursor-pointer transition-colors ${
                 isUploadingVisual ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
               {isUploadingVisual ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-400 border-t-transparent" />
+                  <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-gray-400 border-t-transparent" />
                   <span>Uploading...</span>
                 </>
               ) : (
-                <>
-                  <Upload size={16} />
-                  <span>Upload Visual Data</span>
-                </>
+                <Upload size={15} />
               )}
             </label>
           </>
@@ -743,20 +741,18 @@ export default function YearlyDualFileUpload() {
             />
             <label
               htmlFor="yearly-survey-upload-input"
-              className={`flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium cursor-pointer transition-colors ${
+              title="Upload Survey Data"
+              className={`inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium cursor-pointer transition-colors ${
                 isUploadingSurvey ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
               {isUploadingSurvey ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-400 border-t-transparent" />
+                  <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-gray-400 border-t-transparent" />
                   <span>Uploading...</span>
                 </>
               ) : (
-                <>
-                  <Upload size={16} />
-                  <span>Upload Survey Data</span>
-                </>
+                <Upload size={15} />
               )}
             </label>
           </>

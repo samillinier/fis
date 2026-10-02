@@ -1,0 +1,5982 @@
+{
+  "source": {
+    "historical": "6769bf98...xlsx (Historical Data, Region 27, FY2025)",
+    "pricing": "FY26 Flooring RFP Pricing.xlsx (store-level, Region 27)",
+    "labor": "South BID V2.0.xlsb / Current Labor (JACKSONVILLE)",
+    "avgJobSize": "new areas bid.xlsx UNITS / PROJECTS per category",
+    "rateMap": {
+      "Carpet": {
+        "install": "Input 6",
+        "removal": "Input 12",
+        "furniture": "Input 14",
+        "detail": "Input 1"
+      },
+      "Tile": {
+        "install": "Input 19",
+        "removal": "Input 28",
+        "furniture": "Input 31",
+        "detail": "Input 20"
+      },
+      "Vinyl": {
+        "install": "Input 51",
+        "removal": "Input 44",
+        "furniture": "Input 52",
+        "detail": "Input 41"
+      },
+      "Hardwood/Laminate": {
+        "install": "Input 81",
+        "removal": "Input 70",
+        "furniture": "Input 82",
+        "detail": "Input 64"
+      },
+      "Backsplash": {
+        "install": "Input 116",
+        "removal": "Input 115",
+        "furniture": null,
+        "detail": "Input 114"
+      }
+    },
+    "furniture": "SKU Sales By Store (South BID V2.0) \u2014 MOVE FURNITURE rooms per sqft \u00d7 avg job size",
+    "storeMapping": "new areas bid.xlsx (orange/blue file), branch -> workroom",
+    "detailPay": "South BID V2.0 Current Labor \u2014 Assessment (detail) pay, Jacksonville $30/detail"
+  },
+  "categories": [
+    "Carpet",
+    "Tile",
+    "Vinyl",
+    "Hardwood/Laminate",
+    "Backsplash"
+  ],
+  "workrooms": [
+    "Orlando",
+    "Fort Lauderdale",
+    "Jacksonville",
+    "Melbourne",
+    "Port St. Lucie",
+    "Daytona Beach"
+  ],
+  "stores": [
+    {
+      "store": 240,
+      "name": "LOWE'S OF VERO BEACH, FL",
+      "district": 869,
+      "workroom": "Port St. Lucie"
+    },
+    {
+      "store": 467,
+      "name": "LOWE'S OF ORANGE CITY, FL",
+      "district": 858,
+      "workroom": "Orlando"
+    },
+    {
+      "store": 502,
+      "name": "LOWE'S OF S. JACKSONVILLE, FL",
+      "district": 1249,
+      "workroom": "Jacksonville"
+    },
+    {
+      "store": 503,
+      "name": "LOWE'S OF E. JACKSONVILLE, FL",
+      "district": 1249,
+      "workroom": "Jacksonville"
+    },
+    {
+      "store": 504,
+      "name": "LOWE'S OF TITUSVILLE, FL",
+      "district": 869,
+      "workroom": "Melbourne"
+    },
+    {
+      "store": 604,
+      "name": "LOWE'S OF ALTAMONTE SPRINGS, FL",
+      "district": 858,
+      "workroom": "Orlando"
+    },
+    {
+      "store": 642,
+      "name": "LOWE'S OF W. ORLANDO, FL",
+      "district": 858,
+      "workroom": "Orlando"
+    },
+    {
+      "store": 654,
+      "name": "LOWE'S OF ROYAL PALM BEACH, FL",
+      "district": 869,
+      "workroom": "Fort Lauderdale"
+    },
+    {
+      "store": 670,
+      "name": "LOWE'S OF S. ORLANDO, FL",
+      "district": 858,
+      "workroom": "Orlando"
+    },
+    {
+      "store": 696,
+      "name": "LOWE'S OF MELBOURNE, FL",
+      "district": 869,
+      "workroom": "Melbourne"
+    },
+    {
+      "store": 703,
+      "name": "LOWE'S OF JENSEN BEACH, FL",
+      "district": 869,
+      "workroom": "Port St. Lucie"
+    },
+    {
+      "store": 704,
+      "name": "LOWE'S OF CORAL SPRINGS, FL",
+      "district": 1221,
+      "workroom": "Fort Lauderdale"
+    },
+    {
+      "store": 725,
+      "name": "LOWE'S OF W. DAVIE, FL",
+      "district": 1221,
+      "workroom": "Fort Lauderdale"
+    },
+    {
+      "store": 741,
+      "name": "LOWE'S OF PORT ORANGE, FL",
+      "district": 1249,
+      "workroom": "Daytona Beach"
+    },
+    {
+      "store": 742,
+      "name": "LOWE'S OF ORMOND BEACH, FL",
+      "district": 1249,
+      "workroom": "Daytona Beach"
+    },
+    {
+      "store": 754,
+      "name": "LOWE'S OF OAKLAND PARK, FL",
+      "district": 1221,
+      "workroom": "Fort Lauderdale"
+    },
+    {
+      "store": 1069,
+      "name": "LOWE'S OF W. BOCA RATON, FL",
+      "district": 1221,
+      "workroom": "Fort Lauderdale"
+    },
+    {
+      "store": 1109,
+      "name": "LOWE'S OF STUART, FL",
+      "district": 869,
+      "workroom": "Port St. Lucie"
+    },
+    {
+      "store": 1111,
+      "name": "LOWE'S OF BOYNTON BEACH, FL",
+      "district": 1221,
+      "workroom": "Fort Lauderdale"
+    },
+    {
+      "store": 1113,
+      "name": "LOWE'S OF SUNRISE, FL",
+      "district": 1221,
+      "workroom": "Fort Lauderdale"
+    },
+    {
+      "store": 1140,
+      "name": "LOWE'S OF OVIEDO, FL",
+      "district": 858,
+      "workroom": "Orlando"
+    },
+    {
+      "store": 1161,
+      "name": "LOWE'S OF WATERFORD LAKE, FL",
+      "district": 858,
+      "workroom": "Orlando"
+    },
+    {
+      "store": 1506,
+      "name": "LOWE'S OF ROCKLEDGE, FL",
+      "district": 869,
+      "workroom": "Melbourne"
+    },
+    {
+      "store": 1598,
+      "name": "LOWE'S OF S.E. ORLANDO, FL",
+      "district": 858,
+      "workroom": "Orlando"
+    },
+    {
+      "store": 1647,
+      "name": "LOWE'S OF FERNANDINA BEACH, FL",
+      "district": 1249,
+      "workroom": "Jacksonville"
+    },
+    {
+      "store": 1657,
+      "name": "LOWE'S OF SANFORD, FL",
+      "district": 858,
+      "workroom": "Orlando"
+    },
+    {
+      "store": 1681,
+      "name": "LOWE'S OF PEMBROKE PINES, FL",
+      "district": 1221,
+      "workroom": "Fort Lauderdale"
+    },
+    {
+      "store": 1691,
+      "name": "LOWE'S OF W. JACKSONVILLE, FL",
+      "district": 1249,
+      "workroom": "Jacksonville"
+    },
+    {
+      "store": 1699,
+      "name": "LOWE'S OF N.E. JACKSONVILLE, FL",
+      "district": 1249,
+      "workroom": "Jacksonville"
+    },
+    {
+      "store": 1720,
+      "name": "LOWE'S OF LAKE PARK, FL",
+      "district": 869,
+      "workroom": "Fort Lauderdale"
+    },
+    {
+      "store": 1792,
+      "name": "LOWE'S OF POMPANO BEACH, FL",
+      "district": 1221,
+      "workroom": "Fort Lauderdale"
+    },
+    {
+      "store": 1820,
+      "name": "LOWE'S OF PALATKA, FL",
+      "district": 1249,
+      "workroom": "Jacksonville"
+    },
+    {
+      "store": 1841,
+      "name": "LOWE'S OF N.W. MIAMI/DADE, FL",
+      "district": 1221,
+      "workroom": "Fort Lauderdale"
+    },
+    {
+      "store": 1842,
+      "name": "LOWE'S OF S. CENTRAL JACKSONVILLE, FL",
+      "district": 1249,
+      "workroom": "Jacksonville"
+    },
+    {
+      "store": 1897,
+      "name": "LOWE'S OF ORANGE PARK, FL",
+      "district": 1249,
+      "workroom": "Jacksonville"
+    },
+    {
+      "store": 1945,
+      "name": "LOWE'S OF DE LAND, FL",
+      "district": 858,
+      "workroom": "Orlando"
+    },
+    {
+      "store": 1962,
+      "name": "LOWE'S OF WEST PALM BEACH, FL",
+      "district": 869,
+      "workroom": "Fort Lauderdale"
+    },
+    {
+      "store": 2241,
+      "name": "LOWE'S OF PALM COAST, FL",
+      "district": 1249,
+      "workroom": "Daytona Beach"
+    },
+    {
+      "store": 2254,
+      "name": "LOWE'S OF HIALEAH, FL",
+      "district": 1221,
+      "workroom": "Fort Lauderdale"
+    },
+    {
+      "store": 2349,
+      "name": "LOWE'S OF ST. LUCIE WEST, FL",
+      "district": 869,
+      "workroom": "Port St. Lucie"
+    },
+    {
+      "store": 2351,
+      "name": "LOWE'S OF INDIAN HARBOUR BEACH, FL",
+      "district": 869,
+      "workroom": "Melbourne"
+    },
+    {
+      "store": 2364,
+      "name": "LOWE'S OF DELTONA, FL",
+      "district": 858,
+      "workroom": "Orlando"
+    },
+    {
+      "store": 2437,
+      "name": "LOWE'S OF CLERMONT, FL",
+      "district": 858,
+      "workroom": "Orlando"
+    },
+    {
+      "store": 2472,
+      "name": "LOWE'S OF N. JACKSONVILLE, FL",
+      "district": 1249,
+      "workroom": "Jacksonville"
+    },
+    {
+      "store": 2644,
+      "name": "LOWE'S OF PALM BAY, FL",
+      "district": 869,
+      "workroom": "Melbourne"
+    },
+    {
+      "store": 2651,
+      "name": "LOWE'S OF WINTER GARDEN, FL",
+      "district": 858,
+      "workroom": "Orlando"
+    },
+    {
+      "store": 2652,
+      "name": "LOWE'S OF FERN PARK, FL",
+      "district": 858,
+      "workroom": "Orlando"
+    },
+    {
+      "store": 2673,
+      "name": "LOWE'S OF APOPKA, FL",
+      "district": 858,
+      "workroom": "Orlando"
+    },
+    {
+      "store": 2707,
+      "name": "LOWE'S OF HOMESTEAD, FL",
+      "district": 1221,
+      "workroom": "Fort Lauderdale"
+    },
+    {
+      "store": 2904,
+      "name": "LOWE'S OF KENDALL, FL",
+      "district": 1221,
+      "workroom": "Fort Lauderdale"
+    },
+    {
+      "store": 2970,
+      "name": "LOWE'S OF MIDDLEBURG, FL",
+      "district": 1249,
+      "workroom": "Jacksonville"
+    },
+    {
+      "store": 3238,
+      "name": "LOWE'S OF ST. AUGUSTINE, FL",
+      "district": 1249,
+      "workroom": "Jacksonville"
+    },
+    {
+      "store": 3315,
+      "name": "LOWE'S OF DAVIE, FL",
+      "district": 1221,
+      "workroom": "Fort Lauderdale"
+    },
+    {
+      "store": 3350,
+      "name": "LOWE'S OF LAKE NONA, FL",
+      "district": 858,
+      "workroom": "Orlando"
+    },
+    {
+      "store": 3413,
+      "name": "LOWE'S OF N. MIAMI BEACH, FL",
+      "district": 1221,
+      "workroom": "Fort Lauderdale"
+    },
+    {
+      "store": 3445,
+      "name": "LOWE'S OF ST. JOHNS, FL",
+      "district": 1249,
+      "workroom": "Jacksonville"
+    }
+  ],
+  "historical": [
+    {
+      "Location": 240,
+      "cat": "Backsplash",
+      "Details": 17,
+      "Jobs": 11
+    },
+    {
+      "Location": 240,
+      "cat": "Carpet",
+      "Details": 201,
+      "Jobs": 115
+    },
+    {
+      "Location": 240,
+      "cat": "Hardwood/Laminate",
+      "Details": 26,
+      "Jobs": 13
+    },
+    {
+      "Location": 240,
+      "cat": "Tile",
+      "Details": 55,
+      "Jobs": 14
+    },
+    {
+      "Location": 240,
+      "cat": "Vinyl",
+      "Details": 118,
+      "Jobs": 46
+    },
+    {
+      "Location": 467,
+      "cat": "Backsplash",
+      "Details": 8,
+      "Jobs": 5
+    },
+    {
+      "Location": 467,
+      "cat": "Carpet",
+      "Details": 132,
+      "Jobs": 78
+    },
+    {
+      "Location": 467,
+      "cat": "Hardwood/Laminate",
+      "Details": 18,
+      "Jobs": 8
+    },
+    {
+      "Location": 467,
+      "cat": "Tile",
+      "Details": 28,
+      "Jobs": 6
+    },
+    {
+      "Location": 467,
+      "cat": "Vinyl",
+      "Details": 79,
+      "Jobs": 23
+    },
+    {
+      "Location": 502,
+      "cat": "Backsplash",
+      "Details": 24,
+      "Jobs": 9
+    },
+    {
+      "Location": 502,
+      "cat": "Carpet",
+      "Details": 252,
+      "Jobs": 135
+    },
+    {
+      "Location": 502,
+      "cat": "Hardwood/Laminate",
+      "Details": 42,
+      "Jobs": 10
+    },
+    {
+      "Location": 502,
+      "cat": "Tile",
+      "Details": 46,
+      "Jobs": 11
+    },
+    {
+      "Location": 502,
+      "cat": "Vinyl",
+      "Details": 89,
+      "Jobs": 23
+    },
+    {
+      "Location": 503,
+      "cat": "Backsplash",
+      "Details": 4,
+      "Jobs": 0
+    },
+    {
+      "Location": 503,
+      "cat": "Carpet",
+      "Details": 88,
+      "Jobs": 31
+    },
+    {
+      "Location": 503,
+      "cat": "Hardwood/Laminate",
+      "Details": 25,
+      "Jobs": 5
+    },
+    {
+      "Location": 503,
+      "cat": "Tile",
+      "Details": 14,
+      "Jobs": 6
+    },
+    {
+      "Location": 503,
+      "cat": "Vinyl",
+      "Details": 54,
+      "Jobs": 18
+    },
+    {
+      "Location": 504,
+      "cat": "Backsplash",
+      "Details": 12,
+      "Jobs": 6
+    },
+    {
+      "Location": 504,
+      "cat": "Carpet",
+      "Details": 206,
+      "Jobs": 110
+    },
+    {
+      "Location": 504,
+      "cat": "Hardwood/Laminate",
+      "Details": 27,
+      "Jobs": 16
+    },
+    {
+      "Location": 504,
+      "cat": "Tile",
+      "Details": 26,
+      "Jobs": 5
+    },
+    {
+      "Location": 504,
+      "cat": "Vinyl",
+      "Details": 86,
+      "Jobs": 28
+    },
+    {
+      "Location": 604,
+      "cat": "Backsplash",
+      "Details": 3,
+      "Jobs": 2
+    },
+    {
+      "Location": 604,
+      "cat": "Carpet",
+      "Details": 97,
+      "Jobs": 54
+    },
+    {
+      "Location": 604,
+      "cat": "Hardwood/Laminate",
+      "Details": 15,
+      "Jobs": 8
+    },
+    {
+      "Location": 604,
+      "cat": "Tile",
+      "Details": 26,
+      "Jobs": 5
+    },
+    {
+      "Location": 604,
+      "cat": "Vinyl",
+      "Details": 54,
+      "Jobs": 20
+    },
+    {
+      "Location": 642,
+      "cat": "Backsplash",
+      "Details": 14,
+      "Jobs": 7
+    },
+    {
+      "Location": 642,
+      "cat": "Carpet",
+      "Details": 134,
+      "Jobs": 76
+    },
+    {
+      "Location": 642,
+      "cat": "Hardwood/Laminate",
+      "Details": 27,
+      "Jobs": 10
+    },
+    {
+      "Location": 642,
+      "cat": "Tile",
+      "Details": 32,
+      "Jobs": 2
+    },
+    {
+      "Location": 642,
+      "cat": "Vinyl",
+      "Details": 52,
+      "Jobs": 14
+    },
+    {
+      "Location": 654,
+      "cat": "Backsplash",
+      "Details": 16,
+      "Jobs": 6
+    },
+    {
+      "Location": 654,
+      "cat": "Carpet",
+      "Details": 141,
+      "Jobs": 81
+    },
+    {
+      "Location": 654,
+      "cat": "Hardwood/Laminate",
+      "Details": 31,
+      "Jobs": 15
+    },
+    {
+      "Location": 654,
+      "cat": "Tile",
+      "Details": 61,
+      "Jobs": 15
+    },
+    {
+      "Location": 654,
+      "cat": "Vinyl",
+      "Details": 92,
+      "Jobs": 21
+    },
+    {
+      "Location": 670,
+      "cat": "Backsplash",
+      "Details": 6,
+      "Jobs": 4
+    },
+    {
+      "Location": 670,
+      "cat": "Carpet",
+      "Details": 84,
+      "Jobs": 33
+    },
+    {
+      "Location": 670,
+      "cat": "Hardwood/Laminate",
+      "Details": 24,
+      "Jobs": 6
+    },
+    {
+      "Location": 670,
+      "cat": "Tile",
+      "Details": 45,
+      "Jobs": 10
+    },
+    {
+      "Location": 670,
+      "cat": "Vinyl",
+      "Details": 50,
+      "Jobs": 13
+    },
+    {
+      "Location": 696,
+      "cat": "Backsplash",
+      "Details": 11,
+      "Jobs": 1
+    },
+    {
+      "Location": 696,
+      "cat": "Carpet",
+      "Details": 109,
+      "Jobs": 62
+    },
+    {
+      "Location": 696,
+      "cat": "Hardwood/Laminate",
+      "Details": 27,
+      "Jobs": 13
+    },
+    {
+      "Location": 696,
+      "cat": "Tile",
+      "Details": 30,
+      "Jobs": 1
+    },
+    {
+      "Location": 696,
+      "cat": "Vinyl",
+      "Details": 75,
+      "Jobs": 18
+    },
+    {
+      "Location": 703,
+      "cat": "Backsplash",
+      "Details": 9,
+      "Jobs": 4
+    },
+    {
+      "Location": 703,
+      "cat": "Carpet",
+      "Details": 117,
+      "Jobs": 64
+    },
+    {
+      "Location": 703,
+      "cat": "Hardwood/Laminate",
+      "Details": 31,
+      "Jobs": 9
+    },
+    {
+      "Location": 703,
+      "cat": "Tile",
+      "Details": 46,
+      "Jobs": 7
+    },
+    {
+      "Location": 703,
+      "cat": "Vinyl",
+      "Details": 96,
+      "Jobs": 22
+    },
+    {
+      "Location": 704,
+      "cat": "Backsplash",
+      "Details": 9,
+      "Jobs": 1
+    },
+    {
+      "Location": 704,
+      "cat": "Carpet",
+      "Details": 76,
+      "Jobs": 31
+    },
+    {
+      "Location": 704,
+      "cat": "Hardwood/Laminate",
+      "Details": 21,
+      "Jobs": 5
+    },
+    {
+      "Location": 704,
+      "cat": "Tile",
+      "Details": 51,
+      "Jobs": 10
+    },
+    {
+      "Location": 704,
+      "cat": "Vinyl",
+      "Details": 57,
+      "Jobs": 14
+    },
+    {
+      "Location": 725,
+      "cat": "Backsplash",
+      "Details": 1,
+      "Jobs": 0
+    },
+    {
+      "Location": 725,
+      "cat": "Carpet",
+      "Details": 36,
+      "Jobs": 18
+    },
+    {
+      "Location": 725,
+      "cat": "Hardwood/Laminate",
+      "Details": 21,
+      "Jobs": 5
+    },
+    {
+      "Location": 725,
+      "cat": "Tile",
+      "Details": 32,
+      "Jobs": 5
+    },
+    {
+      "Location": 725,
+      "cat": "Vinyl",
+      "Details": 56,
+      "Jobs": 4
+    },
+    {
+      "Location": 741,
+      "cat": "Backsplash",
+      "Details": 9,
+      "Jobs": 5
+    },
+    {
+      "Location": 741,
+      "cat": "Carpet",
+      "Details": 170,
+      "Jobs": 85
+    },
+    {
+      "Location": 741,
+      "cat": "Hardwood/Laminate",
+      "Details": 16,
+      "Jobs": 7
+    },
+    {
+      "Location": 741,
+      "cat": "Tile",
+      "Details": 50,
+      "Jobs": 13
+    },
+    {
+      "Location": 741,
+      "cat": "Vinyl",
+      "Details": 144,
+      "Jobs": 50
+    },
+    {
+      "Location": 742,
+      "cat": "Backsplash",
+      "Details": 28,
+      "Jobs": 8
+    },
+    {
+      "Location": 742,
+      "cat": "Carpet",
+      "Details": 186,
+      "Jobs": 74
+    },
+    {
+      "Location": 742,
+      "cat": "Hardwood/Laminate",
+      "Details": 54,
+      "Jobs": 21
+    },
+    {
+      "Location": 742,
+      "cat": "Tile",
+      "Details": 82,
+      "Jobs": 7
+    },
+    {
+      "Location": 742,
+      "cat": "Vinyl",
+      "Details": 195,
+      "Jobs": 38
+    },
+    {
+      "Location": 754,
+      "cat": "Backsplash",
+      "Details": 9,
+      "Jobs": 3
+    },
+    {
+      "Location": 754,
+      "cat": "Carpet",
+      "Details": 59,
+      "Jobs": 21
+    },
+    {
+      "Location": 754,
+      "cat": "Hardwood/Laminate",
+      "Details": 18,
+      "Jobs": 5
+    },
+    {
+      "Location": 754,
+      "cat": "Tile",
+      "Details": 52,
+      "Jobs": 2
+    },
+    {
+      "Location": 754,
+      "cat": "Vinyl",
+      "Details": 41,
+      "Jobs": 7
+    },
+    {
+      "Location": 1069,
+      "cat": "Backsplash",
+      "Details": 5,
+      "Jobs": 1
+    },
+    {
+      "Location": 1069,
+      "cat": "Carpet",
+      "Details": 94,
+      "Jobs": 59
+    },
+    {
+      "Location": 1069,
+      "cat": "Hardwood/Laminate",
+      "Details": 43,
+      "Jobs": 14
+    },
+    {
+      "Location": 1069,
+      "cat": "Tile",
+      "Details": 57,
+      "Jobs": 15
+    },
+    {
+      "Location": 1069,
+      "cat": "Vinyl",
+      "Details": 81,
+      "Jobs": 27
+    },
+    {
+      "Location": 1109,
+      "cat": "Backsplash",
+      "Details": 7,
+      "Jobs": 3
+    },
+    {
+      "Location": 1109,
+      "cat": "Carpet",
+      "Details": 164,
+      "Jobs": 89
+    },
+    {
+      "Location": 1109,
+      "cat": "Hardwood/Laminate",
+      "Details": 28,
+      "Jobs": 13
+    },
+    {
+      "Location": 1109,
+      "cat": "Tile",
+      "Details": 37,
+      "Jobs": 6
+    },
+    {
+      "Location": 1109,
+      "cat": "Vinyl",
+      "Details": 103,
+      "Jobs": 52
+    },
+    {
+      "Location": 1111,
+      "cat": "Backsplash",
+      "Details": 11,
+      "Jobs": 7
+    },
+    {
+      "Location": 1111,
+      "cat": "Carpet",
+      "Details": 154,
+      "Jobs": 69
+    },
+    {
+      "Location": 1111,
+      "cat": "Hardwood/Laminate",
+      "Details": 39,
+      "Jobs": 8
+    },
+    {
+      "Location": 1111,
+      "cat": "Tile",
+      "Details": 40,
+      "Jobs": 11
+    },
+    {
+      "Location": 1111,
+      "cat": "Vinyl",
+      "Details": 91,
+      "Jobs": 33
+    },
+    {
+      "Location": 1113,
+      "cat": "Backsplash",
+      "Details": 1,
+      "Jobs": 1
+    },
+    {
+      "Location": 1113,
+      "cat": "Carpet",
+      "Details": 43,
+      "Jobs": 11
+    },
+    {
+      "Location": 1113,
+      "cat": "Hardwood/Laminate",
+      "Details": 43,
+      "Jobs": 6
+    },
+    {
+      "Location": 1113,
+      "cat": "Tile",
+      "Details": 58,
+      "Jobs": 5
+    },
+    {
+      "Location": 1113,
+      "cat": "Vinyl",
+      "Details": 57,
+      "Jobs": 16
+    },
+    {
+      "Location": 1140,
+      "cat": "Backsplash",
+      "Details": 11,
+      "Jobs": 5
+    },
+    {
+      "Location": 1140,
+      "cat": "Carpet",
+      "Details": 263,
+      "Jobs": 138
+    },
+    {
+      "Location": 1140,
+      "cat": "Hardwood/Laminate",
+      "Details": 44,
+      "Jobs": 21
+    },
+    {
+      "Location": 1140,
+      "cat": "Tile",
+      "Details": 39,
+      "Jobs": 15
+    },
+    {
+      "Location": 1140,
+      "cat": "Vinyl",
+      "Details": 104,
+      "Jobs": 32
+    },
+    {
+      "Location": 1161,
+      "cat": "Backsplash",
+      "Details": 19,
+      "Jobs": 6
+    },
+    {
+      "Location": 1161,
+      "cat": "Carpet",
+      "Details": 148,
+      "Jobs": 81
+    },
+    {
+      "Location": 1161,
+      "cat": "Hardwood/Laminate",
+      "Details": 58,
+      "Jobs": 7
+    },
+    {
+      "Location": 1161,
+      "cat": "Tile",
+      "Details": 56,
+      "Jobs": 14
+    },
+    {
+      "Location": 1161,
+      "cat": "Vinyl",
+      "Details": 95,
+      "Jobs": 17
+    },
+    {
+      "Location": 1506,
+      "cat": "Backsplash",
+      "Details": 23,
+      "Jobs": 7
+    },
+    {
+      "Location": 1506,
+      "cat": "Carpet",
+      "Details": 204,
+      "Jobs": 117
+    },
+    {
+      "Location": 1506,
+      "cat": "Hardwood/Laminate",
+      "Details": 40,
+      "Jobs": 17
+    },
+    {
+      "Location": 1506,
+      "cat": "Tile",
+      "Details": 49,
+      "Jobs": 15
+    },
+    {
+      "Location": 1506,
+      "cat": "Vinyl",
+      "Details": 164,
+      "Jobs": 68
+    },
+    {
+      "Location": 1598,
+      "cat": "Backsplash",
+      "Details": 12,
+      "Jobs": 7
+    },
+    {
+      "Location": 1598,
+      "cat": "Carpet",
+      "Details": 136,
+      "Jobs": 67
+    },
+    {
+      "Location": 1598,
+      "cat": "Hardwood/Laminate",
+      "Details": 44,
+      "Jobs": 9
+    },
+    {
+      "Location": 1598,
+      "cat": "Tile",
+      "Details": 46,
+      "Jobs": 11
+    },
+    {
+      "Location": 1598,
+      "cat": "Vinyl",
+      "Details": 67,
+      "Jobs": 15
+    },
+    {
+      "Location": 1647,
+      "cat": "Backsplash",
+      "Details": 9,
+      "Jobs": 5
+    },
+    {
+      "Location": 1647,
+      "cat": "Carpet",
+      "Details": 180,
+      "Jobs": 104
+    },
+    {
+      "Location": 1647,
+      "cat": "Hardwood/Laminate",
+      "Details": 20,
+      "Jobs": 5
+    },
+    {
+      "Location": 1647,
+      "cat": "Tile",
+      "Details": 31,
+      "Jobs": 8
+    },
+    {
+      "Location": 1647,
+      "cat": "Vinyl",
+      "Details": 96,
+      "Jobs": 38
+    },
+    {
+      "Location": 1657,
+      "cat": "Backsplash",
+      "Details": 4,
+      "Jobs": 3
+    },
+    {
+      "Location": 1657,
+      "cat": "Carpet",
+      "Details": 143,
+      "Jobs": 68
+    },
+    {
+      "Location": 1657,
+      "cat": "Hardwood/Laminate",
+      "Details": 30,
+      "Jobs": 12
+    },
+    {
+      "Location": 1657,
+      "cat": "Tile",
+      "Details": 33,
+      "Jobs": 8
+    },
+    {
+      "Location": 1657,
+      "cat": "Vinyl",
+      "Details": 63,
+      "Jobs": 15
+    },
+    {
+      "Location": 1681,
+      "cat": "Backsplash",
+      "Details": 7,
+      "Jobs": 0
+    },
+    {
+      "Location": 1681,
+      "cat": "Carpet",
+      "Details": 49,
+      "Jobs": 16
+    },
+    {
+      "Location": 1681,
+      "cat": "Hardwood/Laminate",
+      "Details": 30,
+      "Jobs": 3
+    },
+    {
+      "Location": 1681,
+      "cat": "Tile",
+      "Details": 66,
+      "Jobs": 5
+    },
+    {
+      "Location": 1681,
+      "cat": "Vinyl",
+      "Details": 49,
+      "Jobs": 4
+    },
+    {
+      "Location": 1691,
+      "cat": "Backsplash",
+      "Details": 15,
+      "Jobs": 4
+    },
+    {
+      "Location": 1691,
+      "cat": "Carpet",
+      "Details": 104,
+      "Jobs": 50
+    },
+    {
+      "Location": 1691,
+      "cat": "Hardwood/Laminate",
+      "Details": 41,
+      "Jobs": 10
+    },
+    {
+      "Location": 1691,
+      "cat": "Tile",
+      "Details": 35,
+      "Jobs": 12
+    },
+    {
+      "Location": 1691,
+      "cat": "Vinyl",
+      "Details": 92,
+      "Jobs": 21
+    },
+    {
+      "Location": 1699,
+      "cat": "Backsplash",
+      "Details": 11,
+      "Jobs": 2
+    },
+    {
+      "Location": 1699,
+      "cat": "Carpet",
+      "Details": 133,
+      "Jobs": 69
+    },
+    {
+      "Location": 1699,
+      "cat": "Hardwood/Laminate",
+      "Details": 23,
+      "Jobs": 9
+    },
+    {
+      "Location": 1699,
+      "cat": "Tile",
+      "Details": 43,
+      "Jobs": 7
+    },
+    {
+      "Location": 1699,
+      "cat": "Vinyl",
+      "Details": 80,
+      "Jobs": 28
+    },
+    {
+      "Location": 1720,
+      "cat": "Backsplash",
+      "Details": 15,
+      "Jobs": 8
+    },
+    {
+      "Location": 1720,
+      "cat": "Carpet",
+      "Details": 152,
+      "Jobs": 102
+    },
+    {
+      "Location": 1720,
+      "cat": "Hardwood/Laminate",
+      "Details": 33,
+      "Jobs": 10
+    },
+    {
+      "Location": 1720,
+      "cat": "Tile",
+      "Details": 27,
+      "Jobs": 6
+    },
+    {
+      "Location": 1720,
+      "cat": "Vinyl",
+      "Details": 65,
+      "Jobs": 22
+    },
+    {
+      "Location": 1792,
+      "cat": "Backsplash",
+      "Details": 3,
+      "Jobs": 0
+    },
+    {
+      "Location": 1792,
+      "cat": "Carpet",
+      "Details": 105,
+      "Jobs": 42
+    },
+    {
+      "Location": 1792,
+      "cat": "Hardwood/Laminate",
+      "Details": 14,
+      "Jobs": 2
+    },
+    {
+      "Location": 1792,
+      "cat": "Tile",
+      "Details": 68,
+      "Jobs": 9
+    },
+    {
+      "Location": 1792,
+      "cat": "Vinyl",
+      "Details": 74,
+      "Jobs": 13
+    },
+    {
+      "Location": 1820,
+      "cat": "Backsplash",
+      "Details": 5,
+      "Jobs": 3
+    },
+    {
+      "Location": 1820,
+      "cat": "Carpet",
+      "Details": 57,
+      "Jobs": 26
+    },
+    {
+      "Location": 1820,
+      "cat": "Hardwood/Laminate",
+      "Details": 15,
+      "Jobs": 4
+    },
+    {
+      "Location": 1820,
+      "cat": "Tile",
+      "Details": 17,
+      "Jobs": 1
+    },
+    {
+      "Location": 1820,
+      "cat": "Vinyl",
+      "Details": 44,
+      "Jobs": 16
+    },
+    {
+      "Location": 1841,
+      "cat": "Backsplash",
+      "Details": 4,
+      "Jobs": 1
+    },
+    {
+      "Location": 1841,
+      "cat": "Carpet",
+      "Details": 12,
+      "Jobs": 2
+    },
+    {
+      "Location": 1841,
+      "cat": "Hardwood/Laminate",
+      "Details": 11,
+      "Jobs": 0
+    },
+    {
+      "Location": 1841,
+      "cat": "Tile",
+      "Details": 39,
+      "Jobs": 3
+    },
+    {
+      "Location": 1841,
+      "cat": "Vinyl",
+      "Details": 42,
+      "Jobs": 6
+    },
+    {
+      "Location": 1842,
+      "cat": "Backsplash",
+      "Details": 13,
+      "Jobs": 4
+    },
+    {
+      "Location": 1842,
+      "cat": "Carpet",
+      "Details": 105,
+      "Jobs": 44
+    },
+    {
+      "Location": 1842,
+      "cat": "Hardwood/Laminate",
+      "Details": 25,
+      "Jobs": 10
+    },
+    {
+      "Location": 1842,
+      "cat": "Tile",
+      "Details": 30,
+      "Jobs": 5
+    },
+    {
+      "Location": 1842,
+      "cat": "Vinyl",
+      "Details": 76,
+      "Jobs": 20
+    },
+    {
+      "Location": 1897,
+      "cat": "Backsplash",
+      "Details": 10,
+      "Jobs": 6
+    },
+    {
+      "Location": 1897,
+      "cat": "Carpet",
+      "Details": 103,
+      "Jobs": 52
+    },
+    {
+      "Location": 1897,
+      "cat": "Hardwood/Laminate",
+      "Details": 36,
+      "Jobs": 18
+    },
+    {
+      "Location": 1897,
+      "cat": "Tile",
+      "Details": 33,
+      "Jobs": 18
+    },
+    {
+      "Location": 1897,
+      "cat": "Vinyl",
+      "Details": 85,
+      "Jobs": 24
+    },
+    {
+      "Location": 1945,
+      "cat": "Backsplash",
+      "Details": 9,
+      "Jobs": 3
+    },
+    {
+      "Location": 1945,
+      "cat": "Carpet",
+      "Details": 128,
+      "Jobs": 73
+    },
+    {
+      "Location": 1945,
+      "cat": "Hardwood/Laminate",
+      "Details": 26,
+      "Jobs": 11
+    },
+    {
+      "Location": 1945,
+      "cat": "Tile",
+      "Details": 36,
+      "Jobs": 18
+    },
+    {
+      "Location": 1945,
+      "cat": "Vinyl",
+      "Details": 90,
+      "Jobs": 39
+    },
+    {
+      "Location": 1962,
+      "cat": "Backsplash",
+      "Details": 12,
+      "Jobs": 7
+    },
+    {
+      "Location": 1962,
+      "cat": "Carpet",
+      "Details": 63,
+      "Jobs": 27
+    },
+    {
+      "Location": 1962,
+      "cat": "Hardwood/Laminate",
+      "Details": 24,
+      "Jobs": 3
+    },
+    {
+      "Location": 1962,
+      "cat": "Tile",
+      "Details": 33,
+      "Jobs": 5
+    },
+    {
+      "Location": 1962,
+      "cat": "Vinyl",
+      "Details": 63,
+      "Jobs": 10
+    },
+    {
+      "Location": 2241,
+      "cat": "Backsplash",
+      "Details": 29,
+      "Jobs": 14
+    },
+    {
+      "Location": 2241,
+      "cat": "Carpet",
+      "Details": 135,
+      "Jobs": 65
+    },
+    {
+      "Location": 2241,
+      "cat": "Hardwood/Laminate",
+      "Details": 30,
+      "Jobs": 12
+    },
+    {
+      "Location": 2241,
+      "cat": "Tile",
+      "Details": 46,
+      "Jobs": 15
+    },
+    {
+      "Location": 2241,
+      "cat": "Vinyl",
+      "Details": 143,
+      "Jobs": 47
+    },
+    {
+      "Location": 2254,
+      "cat": "Backsplash",
+      "Details": 4,
+      "Jobs": 0
+    },
+    {
+      "Location": 2254,
+      "cat": "Carpet",
+      "Details": 10,
+      "Jobs": 0
+    },
+    {
+      "Location": 2254,
+      "cat": "Hardwood/Laminate",
+      "Details": 8,
+      "Jobs": 0
+    },
+    {
+      "Location": 2254,
+      "cat": "Tile",
+      "Details": 47,
+      "Jobs": 4
+    },
+    {
+      "Location": 2254,
+      "cat": "Vinyl",
+      "Details": 36,
+      "Jobs": 3
+    },
+    {
+      "Location": 2349,
+      "cat": "Backsplash",
+      "Details": 21,
+      "Jobs": 9
+    },
+    {
+      "Location": 2349,
+      "cat": "Carpet",
+      "Details": 145,
+      "Jobs": 86
+    },
+    {
+      "Location": 2349,
+      "cat": "Hardwood/Laminate",
+      "Details": 27,
+      "Jobs": 12
+    },
+    {
+      "Location": 2349,
+      "cat": "Tile",
+      "Details": 46,
+      "Jobs": 10
+    },
+    {
+      "Location": 2349,
+      "cat": "Vinyl",
+      "Details": 115,
+      "Jobs": 40
+    },
+    {
+      "Location": 2351,
+      "cat": "Backsplash",
+      "Details": 13,
+      "Jobs": 8
+    },
+    {
+      "Location": 2351,
+      "cat": "Carpet",
+      "Details": 138,
+      "Jobs": 77
+    },
+    {
+      "Location": 2351,
+      "cat": "Hardwood/Laminate",
+      "Details": 33,
+      "Jobs": 10
+    },
+    {
+      "Location": 2351,
+      "cat": "Tile",
+      "Details": 38,
+      "Jobs": 8
+    },
+    {
+      "Location": 2351,
+      "cat": "Vinyl",
+      "Details": 79,
+      "Jobs": 25
+    },
+    {
+      "Location": 2364,
+      "cat": "Backsplash",
+      "Details": 8,
+      "Jobs": 2
+    },
+    {
+      "Location": 2364,
+      "cat": "Carpet",
+      "Details": 91,
+      "Jobs": 58
+    },
+    {
+      "Location": 2364,
+      "cat": "Hardwood/Laminate",
+      "Details": 20,
+      "Jobs": 11
+    },
+    {
+      "Location": 2364,
+      "cat": "Tile",
+      "Details": 33,
+      "Jobs": 8
+    },
+    {
+      "Location": 2364,
+      "cat": "Vinyl",
+      "Details": 58,
+      "Jobs": 15
+    },
+    {
+      "Location": 2437,
+      "cat": "Backsplash",
+      "Details": 21,
+      "Jobs": 13
+    },
+    {
+      "Location": 2437,
+      "cat": "Carpet",
+      "Details": 186,
+      "Jobs": 96
+    },
+    {
+      "Location": 2437,
+      "cat": "Hardwood/Laminate",
+      "Details": 30,
+      "Jobs": 12
+    },
+    {
+      "Location": 2437,
+      "cat": "Tile",
+      "Details": 50,
+      "Jobs": 12
+    },
+    {
+      "Location": 2437,
+      "cat": "Vinyl",
+      "Details": 91,
+      "Jobs": 41
+    },
+    {
+      "Location": 2472,
+      "cat": "Backsplash",
+      "Details": 23,
+      "Jobs": 6
+    },
+    {
+      "Location": 2472,
+      "cat": "Carpet",
+      "Details": 140,
+      "Jobs": 46
+    },
+    {
+      "Location": 2472,
+      "cat": "Hardwood/Laminate",
+      "Details": 54,
+      "Jobs": 17
+    },
+    {
+      "Location": 2472,
+      "cat": "Tile",
+      "Details": 41,
+      "Jobs": 5
+    },
+    {
+      "Location": 2472,
+      "cat": "Vinyl",
+      "Details": 148,
+      "Jobs": 39
+    },
+    {
+      "Location": 2644,
+      "cat": "Backsplash",
+      "Details": 18,
+      "Jobs": 12
+    },
+    {
+      "Location": 2644,
+      "cat": "Carpet",
+      "Details": 89,
+      "Jobs": 50
+    },
+    {
+      "Location": 2644,
+      "cat": "Hardwood/Laminate",
+      "Details": 23,
+      "Jobs": 10
+    },
+    {
+      "Location": 2644,
+      "cat": "Tile",
+      "Details": 34,
+      "Jobs": 11
+    },
+    {
+      "Location": 2644,
+      "cat": "Vinyl",
+      "Details": 103,
+      "Jobs": 32
+    },
+    {
+      "Location": 2651,
+      "cat": "Backsplash",
+      "Details": 32,
+      "Jobs": 12
+    },
+    {
+      "Location": 2651,
+      "cat": "Carpet",
+      "Details": 348,
+      "Jobs": 183
+    },
+    {
+      "Location": 2651,
+      "cat": "Hardwood/Laminate",
+      "Details": 74,
+      "Jobs": 24
+    },
+    {
+      "Location": 2651,
+      "cat": "Tile",
+      "Details": 73,
+      "Jobs": 10
+    },
+    {
+      "Location": 2651,
+      "cat": "Vinyl",
+      "Details": 112,
+      "Jobs": 29
+    },
+    {
+      "Location": 2652,
+      "cat": "Backsplash",
+      "Details": 9,
+      "Jobs": 3
+    },
+    {
+      "Location": 2652,
+      "cat": "Carpet",
+      "Details": 137,
+      "Jobs": 72
+    },
+    {
+      "Location": 2652,
+      "cat": "Hardwood/Laminate",
+      "Details": 26,
+      "Jobs": 7
+    },
+    {
+      "Location": 2652,
+      "cat": "Tile",
+      "Details": 29,
+      "Jobs": 5
+    },
+    {
+      "Location": 2652,
+      "cat": "Vinyl",
+      "Details": 46,
+      "Jobs": 15
+    },
+    {
+      "Location": 2673,
+      "cat": "Backsplash",
+      "Details": 5,
+      "Jobs": 2
+    },
+    {
+      "Location": 2673,
+      "cat": "Carpet",
+      "Details": 94,
+      "Jobs": 54
+    },
+    {
+      "Location": 2673,
+      "cat": "Hardwood/Laminate",
+      "Details": 34,
+      "Jobs": 12
+    },
+    {
+      "Location": 2673,
+      "cat": "Tile",
+      "Details": 29,
+      "Jobs": 13
+    },
+    {
+      "Location": 2673,
+      "cat": "Vinyl",
+      "Details": 52,
+      "Jobs": 18
+    },
+    {
+      "Location": 2707,
+      "cat": "Backsplash",
+      "Details": 6,
+      "Jobs": 4
+    },
+    {
+      "Location": 2707,
+      "cat": "Carpet",
+      "Details": 31,
+      "Jobs": 12
+    },
+    {
+      "Location": 2707,
+      "cat": "Hardwood/Laminate",
+      "Details": 34,
+      "Jobs": 5
+    },
+    {
+      "Location": 2707,
+      "cat": "Tile",
+      "Details": 47,
+      "Jobs": 5
+    },
+    {
+      "Location": 2707,
+      "cat": "Vinyl",
+      "Details": 56,
+      "Jobs": 8
+    },
+    {
+      "Location": 2904,
+      "cat": "Backsplash",
+      "Details": 4,
+      "Jobs": 1
+    },
+    {
+      "Location": 2904,
+      "cat": "Carpet",
+      "Details": 34,
+      "Jobs": 5
+    },
+    {
+      "Location": 2904,
+      "cat": "Hardwood/Laminate",
+      "Details": 15,
+      "Jobs": 1
+    },
+    {
+      "Location": 2904,
+      "cat": "Tile",
+      "Details": 57,
+      "Jobs": 4
+    },
+    {
+      "Location": 2904,
+      "cat": "Vinyl",
+      "Details": 62,
+      "Jobs": 3
+    },
+    {
+      "Location": 2970,
+      "cat": "Backsplash",
+      "Details": 11,
+      "Jobs": 6
+    },
+    {
+      "Location": 2970,
+      "cat": "Carpet",
+      "Details": 83,
+      "Jobs": 40
+    },
+    {
+      "Location": 2970,
+      "cat": "Hardwood/Laminate",
+      "Details": 29,
+      "Jobs": 9
+    },
+    {
+      "Location": 2970,
+      "cat": "Tile",
+      "Details": 26,
+      "Jobs": 9
+    },
+    {
+      "Location": 2970,
+      "cat": "Vinyl",
+      "Details": 67,
+      "Jobs": 22
+    },
+    {
+      "Location": 3238,
+      "cat": "Backsplash",
+      "Details": 39,
+      "Jobs": 21
+    },
+    {
+      "Location": 3238,
+      "cat": "Carpet",
+      "Details": 157,
+      "Jobs": 77
+    },
+    {
+      "Location": 3238,
+      "cat": "Hardwood/Laminate",
+      "Details": 44,
+      "Jobs": 21
+    },
+    {
+      "Location": 3238,
+      "cat": "Tile",
+      "Details": 37,
+      "Jobs": 13
+    },
+    {
+      "Location": 3238,
+      "cat": "Vinyl",
+      "Details": 137,
+      "Jobs": 52
+    },
+    {
+      "Location": 3315,
+      "cat": "Backsplash",
+      "Details": 5,
+      "Jobs": 0
+    },
+    {
+      "Location": 3315,
+      "cat": "Carpet",
+      "Details": 42,
+      "Jobs": 17
+    },
+    {
+      "Location": 3315,
+      "cat": "Hardwood/Laminate",
+      "Details": 21,
+      "Jobs": 2
+    },
+    {
+      "Location": 3315,
+      "cat": "Tile",
+      "Details": 34,
+      "Jobs": 2
+    },
+    {
+      "Location": 3315,
+      "cat": "Vinyl",
+      "Details": 50,
+      "Jobs": 5
+    },
+    {
+      "Location": 3350,
+      "cat": "Backsplash",
+      "Details": 21,
+      "Jobs": 6
+    },
+    {
+      "Location": 3350,
+      "cat": "Carpet",
+      "Details": 158,
+      "Jobs": 82
+    },
+    {
+      "Location": 3350,
+      "cat": "Hardwood/Laminate",
+      "Details": 44,
+      "Jobs": 18
+    },
+    {
+      "Location": 3350,
+      "cat": "Tile",
+      "Details": 40,
+      "Jobs": 4
+    },
+    {
+      "Location": 3350,
+      "cat": "Vinyl",
+      "Details": 83,
+      "Jobs": 22
+    },
+    {
+      "Location": 3413,
+      "cat": "Backsplash",
+      "Details": 5,
+      "Jobs": 0
+    },
+    {
+      "Location": 3413,
+      "cat": "Carpet",
+      "Details": 20,
+      "Jobs": 3
+    },
+    {
+      "Location": 3413,
+      "cat": "Hardwood/Laminate",
+      "Details": 16,
+      "Jobs": 3
+    },
+    {
+      "Location": 3413,
+      "cat": "Tile",
+      "Details": 33,
+      "Jobs": 1
+    },
+    {
+      "Location": 3413,
+      "cat": "Vinyl",
+      "Details": 46,
+      "Jobs": 8
+    },
+    {
+      "Location": 3445,
+      "cat": "Backsplash",
+      "Details": 24,
+      "Jobs": 7
+    },
+    {
+      "Location": 3445,
+      "cat": "Carpet",
+      "Details": 197,
+      "Jobs": 95
+    },
+    {
+      "Location": 3445,
+      "cat": "Hardwood/Laminate",
+      "Details": 23,
+      "Jobs": 10
+    },
+    {
+      "Location": 3445,
+      "cat": "Tile",
+      "Details": 24,
+      "Jobs": 7
+    },
+    {
+      "Location": 3445,
+      "cat": "Vinyl",
+      "Details": 96,
+      "Jobs": 25
+    }
+  ],
+  "pricing": {
+    "install": {
+      "Carpet": 0.72,
+      "Tile": 3.82,
+      "Vinyl": 2.1,
+      "Hardwood/Laminate": 1.84,
+      "Backsplash": 16.5
+    },
+    "removal": {
+      "Carpet": 0.3,
+      "Tile": 2.15,
+      "Vinyl": 0.96,
+      "Hardwood/Laminate": 0.99,
+      "Backsplash": 4.0
+    },
+    "furniture": {
+      "Carpet": 40,
+      "Tile": 40,
+      "Vinyl": 39,
+      "Hardwood/Laminate": 40,
+      "Backsplash": 0
+    },
+    "ancillary": {
+      "Carpet": 0,
+      "Tile": 0,
+      "Vinyl": 0,
+      "Hardwood/Laminate": 0,
+      "Backsplash": 0
+    },
+    "detail": {
+      "Carpet": 54,
+      "Tile": 54,
+      "Vinyl": 54,
+      "Hardwood/Laminate": 54,
+      "Backsplash": 54
+    }
+  },
+  "labor": {
+    "install": {
+      "Carpet": 0.3889,
+      "Tile": 2.0,
+      "Vinyl": 1.39,
+      "Hardwood/Laminate": 1.39,
+      "Backsplash": 0.0
+    },
+    "removal": {
+      "Carpet": 0.08,
+      "Tile": 1.0,
+      "Vinyl": 0.3,
+      "Hardwood/Laminate": 0.3,
+      "Backsplash": 1.0
+    },
+    "furniture": {
+      "Carpet": 10,
+      "Tile": 10,
+      "Vinyl": 10,
+      "Hardwood/Laminate": 10,
+      "Backsplash": 10
+    },
+    "ancillary": {
+      "Carpet": 0,
+      "Tile": 0,
+      "Vinyl": 0,
+      "Hardwood/Laminate": 0,
+      "Backsplash": 0
+    },
+    "detail": {
+      "Carpet": 30,
+      "Tile": 30,
+      "Vinyl": 30,
+      "Hardwood/Laminate": 30,
+      "Backsplash": 30
+    }
+  },
+  "avgJobSize": {
+    "Carpet": 687.0,
+    "Tile": 419.6,
+    "Vinyl": 587.3,
+    "Hardwood/Laminate": 549.2,
+    "Backsplash": 22.4
+  },
+  "removalPct": {
+    "Carpet": 0.012,
+    "Tile": 0.7048,
+    "Vinyl": 0.4792,
+    "Hardwood/Laminate": 0.5642,
+    "Backsplash": 0.0874
+  },
+  "miscPct": {
+    "Carpet": 0.0188,
+    "Tile": 16.0824,
+    "Vinyl": 0.0695,
+    "Hardwood/Laminate": 1.0073,
+    "Backsplash": 0.2311
+  },
+  "storeRates": {
+    "179": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.25,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.5,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 34.12,
+        "detail": 48.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Backsplash": {
+        "install": 14.9,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 48.0
+      }
+    },
+    "240": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "440": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.25,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.5,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 34.12,
+        "detail": 48.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Backsplash": {
+        "install": 14.9,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 48.0
+      }
+    },
+    "467": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "502": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "503": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "504": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "564": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "569": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.25,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.5,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 34.12,
+        "detail": 48.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Backsplash": {
+        "install": 14.9,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 48.0
+      }
+    },
+    "573": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "582": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "592": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "604": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "613": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "642": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "654": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "670": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "696": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "703": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "704": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "724": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "725": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "740": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "741": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "742": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "754": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "771": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "772": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "783": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "1003": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "1069": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "1079": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "1109": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "1111": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "1113": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "1140": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "1161": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "1190": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "1506": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "1592": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "1598": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "1605": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.26,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.5,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 34.12,
+        "detail": 48.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Backsplash": {
+        "install": 14.9,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 48.0
+      }
+    },
+    "1629": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "1647": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "1652": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.26,
+        "furniture": 35.0,
+        "detail": 59.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.5,
+        "furniture": 35.0,
+        "detail": 59.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 35.0,
+        "detail": 59.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 35.0,
+        "detail": 59.0
+      },
+      "Backsplash": {
+        "install": 14.9,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 59.0
+      }
+    },
+    "1657": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "1681": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "1683": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "1685": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.26,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.5,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 34.12,
+        "detail": 48.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Backsplash": {
+        "install": 14.9,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 48.0
+      }
+    },
+    "1691": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "1699": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "1701": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "1714": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "1720": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "1732": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "1792": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "1820": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "1827": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.26,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.5,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 34.12,
+        "detail": 48.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Backsplash": {
+        "install": 14.9,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 48.0
+      }
+    },
+    "1841": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "1842": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "1843": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "1853": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.26,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.5,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 34.12,
+        "detail": 48.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Backsplash": {
+        "install": 14.9,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 48.0
+      }
+    },
+    "1854": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "1855": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.25,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.5,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 34.12,
+        "detail": 48.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Backsplash": {
+        "install": 14.9,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 48.0
+      }
+    },
+    "1897": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "1911": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "1935": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "1945": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "1962": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "2221": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "2224": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "2238": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "2240": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "2241": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "2253": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "2254": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "2261": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "2282": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "2349": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "2351": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "2360": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "2361": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "2362": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "2363": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.26,
+        "furniture": 35.0,
+        "detail": 59.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.5,
+        "furniture": 35.0,
+        "detail": 59.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 35.0,
+        "detail": 59.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 35.0,
+        "detail": 59.0
+      },
+      "Backsplash": {
+        "install": 14.9,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 59.0
+      }
+    },
+    "2364": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "2365": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.25,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.5,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 34.12,
+        "detail": 48.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Backsplash": {
+        "install": 14.9,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 48.0
+      }
+    },
+    "2437": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "2438": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.26,
+        "furniture": 35.0,
+        "detail": 59.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.5,
+        "furniture": 35.0,
+        "detail": 59.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 35.0,
+        "detail": 59.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 35.0,
+        "detail": 59.0
+      },
+      "Backsplash": {
+        "install": 14.9,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 59.0
+      }
+    },
+    "2457": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "2462": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.25,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.5,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 34.12,
+        "detail": 48.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Backsplash": {
+        "install": 14.9,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 48.0
+      }
+    },
+    "2472": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "2531": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "2577": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.28,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.5,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 34.12,
+        "detail": 48.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Backsplash": {
+        "install": 14.9,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 48.0
+      }
+    },
+    "2639": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "2644": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "2651": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "2652": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "2673": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "2702": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "2707": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "2727": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "2753": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.25,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.5,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 34.12,
+        "detail": 48.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Backsplash": {
+        "install": 14.9,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 48.0
+      }
+    },
+    "2777": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "2904": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "2933": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "2970": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "2984": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.25,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.5,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 34.12,
+        "detail": 48.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Backsplash": {
+        "install": 14.9,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 48.0
+      }
+    },
+    "3069": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "3238": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "3278": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.25,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.5,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 34.12,
+        "detail": 48.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Backsplash": {
+        "install": 14.9,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 48.0
+      }
+    },
+    "3315": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "3350": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "3351": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.26,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.5,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 34.12,
+        "detail": 48.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 35.0,
+        "detail": 48.0
+      },
+      "Backsplash": {
+        "install": 14.9,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 48.0
+      }
+    },
+    "3413": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "3445": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.82,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.1,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.84,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "3453": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    },
+    "3477": {
+      "Carpet": {
+        "install": 0.72,
+        "removal": 0.3,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Tile": {
+        "install": 3.92,
+        "removal": 2.15,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Vinyl": {
+        "install": 2.16,
+        "removal": 0.96,
+        "furniture": 39.0,
+        "detail": 54.0
+      },
+      "Hardwood/Laminate": {
+        "install": 1.89,
+        "removal": 0.99,
+        "furniture": 40.0,
+        "detail": 54.0
+      },
+      "Backsplash": {
+        "install": 16.5,
+        "removal": 4.0,
+        "furniture": 0.0,
+        "detail": 54.0
+      }
+    }
+  },
+  "customSkus": [
+    {
+      "code": "FIS900010",
+      "desc": "REMOVE HAUL BASEBOARDS",
+      "unit": "LFT"
+    },
+    {
+      "code": "FIS900011",
+      "desc": "REMOVE HAUL QUARTER ROUNDS",
+      "unit": "LFT"
+    },
+    {
+      "code": "FIS900012",
+      "desc": "INSTALL NEW QUARTER ROUNDS",
+      "unit": "LFT"
+    },
+    {
+      "code": "FIS900013",
+      "desc": "INSTALL NEW BASEBOARDS",
+      "unit": "LFT"
+    },
+    {
+      "code": "FIS900014",
+      "desc": "INSTALL TACK STRIP (FIS Supplied)",
+      "unit": "LFT"
+    },
+    {
+      "code": "FIS900015",
+      "desc": "INSTALL TACK STRIP (Installer Supplied)",
+      "unit": "LFT"
+    },
+    {
+      "code": "FIS900016",
+      "desc": "SKIM COAT",
+      "unit": "SF"
+    },
+    {
+      "code": "FIS900017",
+      "desc": "GRINDING",
+      "unit": "HR"
+    },
+    {
+      "code": "FIS900018",
+      "desc": "LEVELING",
+      "unit": "BAG"
+    }
+  ],
+  "validation": {
+    "note": "Installer payout rates validated against JAX 2019 actuals (Surge Data-Jobs): carpet/tile/laminate match; vinyl corrected 0.25->1.39 (floating plank); backsplash labor missing (rate sheet $0, actuals ~$243/job).",
+    "asOf": "2019 Jul-Dec (Surge Data-Jobs)",
+    "vinylFix": {
+      "from": 0.25,
+      "to": 1.39,
+      "reason": "0.25 = VCT glue-down (commercial); residential floating plank = 1.39"
+    }
+  },
+  "furnitureRoomsPerJob": {
+    "Carpet": 1.0565,
+    "Tile": 0.5424,
+    "Vinyl": 0.7481,
+    "Hardwood/Laminate": 0.7631,
+    "Backsplash": 0.0
+  }
+}
