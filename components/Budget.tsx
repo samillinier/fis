@@ -133,6 +133,8 @@ export default function Budget() {
     Object.fromEntries(d.stores.map((s: any) => [String(s.store), s.workroom ?? '']))
   )
   const [params, setParams] = useState<Params>(defaultParams)
+  // Pad / materials as a % of revenue (boss: "pad = 7% of total revenue" — pending confirmation)
+  const [padPct, setPadPct] = useState('0')
 
   function computeForStores(storeIds: number[]) {
     const byCat: Record<string, any> = {}
@@ -148,6 +150,7 @@ export default function Budget() {
       detailRevenue: 0,
       revenue: 0,
       payout: 0,
+      pad: 0,
       contribution: 0,
     }
     storeIds.forEach((st) => {
@@ -200,17 +203,20 @@ export default function Budget() {
         t.payout += installPay + removalPay + furniturePay + ancillaryPay + detailPayout
       })
     })
+    const padRate = num(padPct) / 100
     CATEGORIES.forEach((c) => {
       const r = byCat[c]
       r.revenue = r.installIncome + r.removalIncome + r.furnitureIncome + r.ancillaryIncome + r.detailRevenue
-      r.contribution = r.revenue - r.payout
+      r.pad = r.revenue * padRate
+      r.contribution = r.revenue - r.payout - r.pad
     })
     t.revenue = t.installIncome + t.removalIncome + t.furnitureIncome + t.ancillaryIncome + t.detailRevenue
-    t.contribution = t.revenue - t.payout
+    t.pad = t.revenue * padRate
+    t.contribution = t.revenue - t.payout - t.pad
     return { byCat, totals: t }
   }
 
-  const all = useMemo(() => computeForStores(d.stores.map((s: any) => s.store)), [params, assign])
+  const all = useMemo(() => computeForStores(d.stores.map((s: any) => s.store)), [params, assign, padPct])
 
   const workroomRows = useMemo(
     () =>
@@ -236,7 +242,7 @@ export default function Budget() {
           }
         })
         .filter(Boolean),
-    [params, assign]
+    [params, assign, padPct]
   )
 
   // rate summary across all 56 historical stores (read-only, from FY26 RFP)
@@ -408,13 +414,13 @@ export default function Budget() {
       <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-900 mb-1">Workroom × Category breakdown</h2>
         <p className="text-xs text-gray-500 mb-4">
-          Each office broken out by category: revenue minus cost of goods (installer pay) = gross profit, with the %.
+          Each office broken out by category: revenue minus cost of goods (installer pay + pad/materials) = gross profit, with the %.
         </p>
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
               <tr className="border-b border-gray-200 text-xs text-gray-500 uppercase tracking-wide">
-                {['Office / Category', 'Jobs', 'Details', 'Est. sqft', 'Install', 'Removal', 'Furniture', 'Detail', 'Revenue', 'Payout', 'Gross profit', 'GP%'].map((h) => (
+                {['Office / Category', 'Jobs', 'Details', 'Est. sqft', 'Install', 'Removal', 'Furniture', 'Detail', 'Revenue', 'Payout', 'Pad', 'Gross profit', 'GP%'].map((h) => (
                   <th key={h} className="px-3 py-2 text-right first:text-left font-semibold">{h}</th>
                 ))}
               </tr>
@@ -434,6 +440,7 @@ export default function Budget() {
                   <td className="px-3 py-2 text-right font-semibold">{money(r.detailRevenue)}</td>
                   <td className="px-3 py-2 text-right font-semibold">{money(r.revenue)}</td>
                   <td className="px-3 py-2 text-right font-semibold">{money(r.payout)}</td>
+                  <td className="px-3 py-2 text-right font-semibold">{money(r.pad)}</td>
                   <td className="px-3 py-2 text-right font-semibold text-[#6d8a35]">{money(r.contribution)}</td>
                   <td className="px-3 py-2 text-right font-semibold text-[#6d8a35]">{r.margin.toFixed(1)}%</td>
                 </tr>
@@ -449,6 +456,7 @@ export default function Budget() {
                     <td className="px-3 py-2 text-right">{money(cr.detailRevenue)}</td>
                     <td className="px-3 py-2 text-right font-medium">{money(cr.revenue)}</td>
                     <td className="px-3 py-2 text-right">{money(cr.payout)}</td>
+                    <td className="px-3 py-2 text-right">{money(cr.pad)}</td>
                     <td className="px-3 py-2 text-right font-medium text-[#6d8a35]">{money(cr.contribution)}</td>
                     <td className="px-3 py-2 text-right text-[#6d8a35]">{cr.margin.toFixed(1)}%</td>
                   </tr>
@@ -594,6 +602,27 @@ export default function Budget() {
               ))}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+        <div className="flex items-center gap-2 mb-1">
+          <h2 className="text-lg font-semibold text-gray-900">Pad / materials</h2>
+          <StatusBadge status="pending" label="Confirm with boss" />
+        </div>
+        <p className="text-xs text-gray-500 mb-4">
+          Boss said "pad = 7% of total revenue" as a cost. Set it here once confirmed. It's deducted from gross profit
+          (default 0).
+        </p>
+        <div className="flex items-center gap-3">
+          <label className="text-sm text-gray-700 font-medium">Pad (% of revenue)</label>
+          <input
+            type="number"
+            value={padPct}
+            onChange={(e) => setPadPct(e.target.value)}
+            className="w-24 rounded-md border border-gray-300 bg-white px-2 py-1 text-sm text-gray-900 focus:border-[#89ac44] focus:outline-none focus:ring-1 focus:ring-[#89ac44]"
+          />
+          <span className="text-xs text-gray-400">%</span>
         </div>
       </div>
 
