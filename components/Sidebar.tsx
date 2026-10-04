@@ -199,6 +199,18 @@ export default function Sidebar({
               Payment
             </Link>
           )}
+          {canViewAdminPages && (
+            <Link
+              href="/budget"
+              className={`sidebar-nav-button ${
+                isActive('/budget') ? 'sidebar-nav-button--active' : ''
+              }`}
+              onClick={handleLinkClick}
+            >
+              <DollarSign size={18} className="mr-2 flex-shrink-0" />
+              Budget
+            </Link>
+          )}
           {(canViewAdminPages || canViewManagerPages || isAccounting) && (
             <>
               {/* HIDDEN: Finance Hub and Store Overview temporarily disabled */}
@@ -239,16 +251,6 @@ export default function Sidebar({
                   >
                     <FileText size={18} className="mr-2 flex-shrink-0" />
                     Workroom Report
-                  </Link>
-                  <Link
-                    href="/budget"
-                    className={`sidebar-nav-button ${
-                      isActive('/budget') ? 'sidebar-nav-button--active' : ''
-                    }`}
-                    onClick={handleLinkClick}
-                  >
-                    <DollarSign size={18} className="mr-2 flex-shrink-0" />
-                    Budget
                   </Link>
                   {/* HIDDEN: Calculator and Bonus pages temporarily disabled */}
                   {/*
