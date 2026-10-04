@@ -52,8 +52,7 @@
     "Fort Lauderdale",
     "Jacksonville",
     "Melbourne",
-    "Port St. Lucie",
-    "Daytona Beach"
+    "Port St. Lucie"
   ],
   "stores": [
     {
@@ -138,13 +137,13 @@
       "store": 741,
       "name": "LOWE'S OF PORT ORANGE, FL",
       "district": 1249,
-      "workroom": "Daytona Beach"
+      "workroom": "Orlando"
     },
     {
       "store": 742,
       "name": "LOWE'S OF ORMOND BEACH, FL",
       "district": 1249,
-      "workroom": "Daytona Beach"
+      "workroom": "Orlando"
     },
     {
       "store": 754,
@@ -282,7 +281,7 @@
       "store": 2241,
       "name": "LOWE'S OF PALM COAST, FL",
       "district": 1249,
-      "workroom": "Daytona Beach"
+      "workroom": "Orlando"
     },
     {
       "store": 2254,
@@ -2150,14 +2149,14 @@
     }
   },
   "avgJobSize": {
-    "Carpet": 687.0,
+    "Carpet": 570.0,
     "Tile": 419.6,
     "Vinyl": 587.3,
     "Hardwood/Laminate": 549.2,
     "Backsplash": 22.4
   },
   "removalPct": {
-    "Carpet": 0.012,
+    "Carpet": 0.6376,
     "Tile": 0.7048,
     "Vinyl": 0.4792,
     "Hardwood/Laminate": 0.5642,
