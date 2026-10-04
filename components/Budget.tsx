@@ -219,7 +219,21 @@ export default function Budget() {
           const ids = d.stores.filter((s: any) => assign[s.store] === w).map((s: any) => s.store)
           if (ids.length === 0) return null
           const r = computeForStores(ids)
-          return { workroom: w, stores: ids.length, ...r.totals }
+          const cats = CATEGORIES.map((c) => {
+            const row = r.byCat[c]
+            return {
+              cat: c,
+              ...row,
+              margin: row.revenue > 0 ? (row.contribution / row.revenue) * 100 : 0,
+            }
+          })
+          return {
+            workroom: w,
+            stores: ids.length,
+            cats,
+            margin: r.totals.revenue > 0 ? (r.totals.contribution / r.totals.revenue) * 100 : 0,
+            ...r.totals,
+          }
         })
         .filter(Boolean),
     [params, assign]
@@ -392,35 +406,55 @@ export default function Budget() {
       </div>
 
       <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Workroom results</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-1">Workroom × Category breakdown</h2>
+        <p className="text-xs text-gray-500 mb-4">
+          Each office broken out by category: revenue minus cost of goods (installer pay) = gross profit, with the %.
+        </p>
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
               <tr className="border-b border-gray-200 text-xs text-gray-500 uppercase tracking-wide">
-                {['Workroom', 'Stores', 'Details', 'Jobs', 'Est. sqft', 'Install', 'Removal', 'Furniture', 'Ancillary', 'Detail', 'Revenue', 'Payout', 'Contribution'].map((h) => (
+                {['Office / Category', 'Jobs', 'Details', 'Est. sqft', 'Install', 'Removal', 'Furniture', 'Detail', 'Revenue', 'Payout', 'Gross profit', 'GP%'].map((h) => (
                   <th key={h} className="px-3 py-2 text-right first:text-left font-semibold">{h}</th>
                 ))}
               </tr>
             </thead>
-            <tbody>
-              {workroomRows.map((r: any) => (
-                <tr key={r.workroom} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="px-3 py-2 font-medium text-gray-900">{r.workroom}</td>
-                  <td className="px-3 py-2 text-right">{r.stores}</td>
-                  <td className="px-3 py-2 text-right">{nf(r.details)}</td>
-                  <td className="px-3 py-2 text-right">{nf(r.jobs)}</td>
-                  <td className="px-3 py-2 text-right">{nf(r.estSqft)}</td>
-                  <td className="px-3 py-2 text-right">{money(r.installIncome)}</td>
-                  <td className="px-3 py-2 text-right">{money(r.removalIncome)}</td>
-                  <td className="px-3 py-2 text-right">{money(r.furnitureIncome)}</td>
-                  <td className="px-3 py-2 text-right">{money(r.ancillaryIncome)}</td>
-                  <td className="px-3 py-2 text-right">{money(r.detailRevenue)}</td>
+            {workroomRows.map((r: any) => (
+              <tbody key={r.workroom}>
+                <tr className="border-b border-gray-200 bg-gray-50">
+                  <td className="px-3 py-2 font-semibold text-gray-900">
+                    {r.workroom} <span className="font-normal text-gray-400">({r.stores} stores)</span>
+                  </td>
+                  <td className="px-3 py-2 text-right font-semibold">{nf(r.jobs)}</td>
+                  <td className="px-3 py-2 text-right font-semibold">{nf(r.details)}</td>
+                  <td className="px-3 py-2 text-right font-semibold">{nf(r.estSqft)}</td>
+                  <td className="px-3 py-2 text-right font-semibold">{money(r.installIncome)}</td>
+                  <td className="px-3 py-2 text-right font-semibold">{money(r.removalIncome)}</td>
+                  <td className="px-3 py-2 text-right font-semibold">{money(r.furnitureIncome)}</td>
+                  <td className="px-3 py-2 text-right font-semibold">{money(r.detailRevenue)}</td>
                   <td className="px-3 py-2 text-right font-semibold">{money(r.revenue)}</td>
-                  <td className="px-3 py-2 text-right">{money(r.payout)}</td>
+                  <td className="px-3 py-2 text-right font-semibold">{money(r.payout)}</td>
                   <td className="px-3 py-2 text-right font-semibold text-[#6d8a35]">{money(r.contribution)}</td>
+                  <td className="px-3 py-2 text-right font-semibold text-[#6d8a35]">{r.margin.toFixed(1)}%</td>
                 </tr>
-              ))}
-            </tbody>
+                {r.cats.map((cr: any) => (
+                  <tr key={cr.cat} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="px-3 py-2 pl-6 text-gray-700">{cr.cat}</td>
+                    <td className="px-3 py-2 text-right">{nf(cr.jobs)}</td>
+                    <td className="px-3 py-2 text-right">{nf(cr.details)}</td>
+                    <td className="px-3 py-2 text-right">{nf(cr.estSqft)}</td>
+                    <td className="px-3 py-2 text-right">{money(cr.installIncome)}</td>
+                    <td className="px-3 py-2 text-right">{money(cr.removalIncome)}</td>
+                    <td className="px-3 py-2 text-right">{money(cr.furnitureIncome)}</td>
+                    <td className="px-3 py-2 text-right">{money(cr.detailRevenue)}</td>
+                    <td className="px-3 py-2 text-right font-medium">{money(cr.revenue)}</td>
+                    <td className="px-3 py-2 text-right">{money(cr.payout)}</td>
+                    <td className="px-3 py-2 text-right font-medium text-[#6d8a35]">{money(cr.contribution)}</td>
+                    <td className="px-3 py-2 text-right text-[#6d8a35]">{cr.margin.toFixed(1)}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            ))}
           </table>
         </div>
       </div>
@@ -431,7 +465,7 @@ export default function Budget() {
           <table className="min-w-full text-sm">
             <thead>
               <tr className="border-b border-gray-200 text-xs text-gray-500 uppercase tracking-wide">
-                {['Category', 'Jobs', 'Details', 'Est. sqft', 'Install', 'Removal', 'Furniture', 'Ancillary', 'Detail', 'Revenue', 'Payout', 'Contribution'].map((h) => (
+                {['Category', 'Jobs', 'Details', 'Est. sqft', 'Install', 'Removal', 'Furniture', 'Ancillary', 'Detail', 'Revenue', 'Payout', 'Gross profit', 'GP%'].map((h) => (
                   <th key={h} className="px-3 py-2 text-right first:text-left font-semibold">{h}</th>
                 ))}
               </tr>
@@ -439,6 +473,7 @@ export default function Budget() {
             <tbody>
               {CATEGORIES.map((c) => {
                 const r = all.byCat[c]
+                const margin = r.revenue > 0 ? (r.contribution / r.revenue) * 100 : 0
                 return (
                   <tr key={c} className="border-b border-gray-100">
                     <td className="px-3 py-2 font-medium text-gray-900">{c}</td>
@@ -453,6 +488,7 @@ export default function Budget() {
                     <td className="px-3 py-2 text-right font-semibold">{money(r.revenue)}</td>
                     <td className="px-3 py-2 text-right">{money(r.payout)}</td>
                     <td className="px-3 py-2 text-right font-semibold text-[#6d8a35]">{money(r.contribution)}</td>
+                    <td className="px-3 py-2 text-right text-[#6d8a35]">{margin.toFixed(1)}%</td>
                   </tr>
                 )
               })}
