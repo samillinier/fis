@@ -106,7 +106,7 @@
     {
       "store": 670,
       "name": "LOWE'S OF S. ORLANDO, FL",
-      "district": 858,
+      "district": 1297,
       "workroom": "Orlando"
     },
     {
@@ -136,13 +136,13 @@
     {
       "store": 741,
       "name": "LOWE'S OF PORT ORANGE, FL",
-      "district": 1249,
+      "district": 858,
       "workroom": "Orlando"
     },
     {
       "store": 742,
       "name": "LOWE'S OF ORMOND BEACH, FL",
-      "district": 1249,
+      "district": 858,
       "workroom": "Orlando"
     },
     {
@@ -281,7 +281,7 @@
       "store": 2241,
       "name": "LOWE'S OF PALM COAST, FL",
       "district": 1249,
-      "workroom": "Orlando"
+      "workroom": "Jacksonville"
     },
     {
       "store": 2254,
@@ -310,7 +310,7 @@
     {
       "store": 2437,
       "name": "LOWE'S OF CLERMONT, FL",
-      "district": 858,
+      "district": 1297,
       "workroom": "Orlando"
     },
     {
@@ -376,7 +376,7 @@
     {
       "store": 3350,
       "name": "LOWE'S OF LAKE NONA, FL",
-      "district": 858,
+      "district": 1297,
       "workroom": "Orlando"
     },
     {
