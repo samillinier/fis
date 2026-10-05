@@ -69,6 +69,9 @@ function nf(n: number): string {
   if (Math.abs(v) >= 1e3) return (v / 1e3).toFixed(1) + 'K'
   return v.toLocaleString()
 }
+function count(n: number): string {
+  return Math.round(n).toLocaleString()
+}
 function fmtRate(n: number): string {
   if (n === Math.round(n)) return String(Math.round(n))
   return n.toFixed(2)
@@ -287,8 +290,8 @@ export default function Budget() {
 
   const kpis = [
     { icon: Store, label: 'Stores (Region 27)', value: String(d.stores.length), color: 'text-[#6d8a35]' },
-    { icon: FileSpreadsheet, label: 'Details · FY2025', value: nf(all.totals.details), color: 'text-[#6d8a35]' },
-    { icon: Layers, label: 'Jobs · FY2025', value: nf(all.totals.jobs), color: 'text-[#6d8a35]' },
+    { icon: FileSpreadsheet, label: 'Details · FY2025', value: count(all.totals.details), color: 'text-[#6d8a35]' },
+    { icon: Layers, label: 'Jobs · FY2025', value: count(all.totals.jobs), color: 'text-[#6d8a35]' },
     { icon: TrendingUp, label: 'Est. install sqft', value: nf(all.totals.estSqft) + ' sqft', color: 'text-[#6d8a35]' },
     { icon: DollarSign, label: 'Total revenue', value: money(all.totals.revenue), color: 'text-[#89ac44]' },
     { icon: Wallet, label: 'Installer payout', value: money(all.totals.payout), color: 'text-[#b45309]' },
@@ -431,8 +434,8 @@ export default function Budget() {
                   <td className="px-3 py-2 font-semibold text-gray-900">
                     {r.workroom} <span className="font-normal text-gray-400">({r.stores} stores)</span>
                   </td>
-                  <td className="px-3 py-2 text-right font-semibold">{nf(r.jobs)}</td>
-                  <td className="px-3 py-2 text-right font-semibold">{nf(r.details)}</td>
+                  <td className="px-3 py-2 text-right font-semibold">{count(r.jobs)}</td>
+                  <td className="px-3 py-2 text-right font-semibold">{count(r.details)}</td>
                   <td className="px-3 py-2 text-right font-semibold">{nf(r.estSqft)}</td>
                   <td className="px-3 py-2 text-right font-semibold">{money(r.installIncome)}</td>
                   <td className="px-3 py-2 text-right font-semibold">{money(r.removalIncome)}</td>
@@ -447,8 +450,8 @@ export default function Budget() {
                 {r.cats.map((cr: any) => (
                   <tr key={cr.cat} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="px-3 py-2 pl-6 text-gray-700">{cr.cat}</td>
-                    <td className="px-3 py-2 text-right">{nf(cr.jobs)}</td>
-                    <td className="px-3 py-2 text-right">{nf(cr.details)}</td>
+                    <td className="px-3 py-2 text-right">{count(cr.jobs)}</td>
+                    <td className="px-3 py-2 text-right">{count(cr.details)}</td>
                     <td className="px-3 py-2 text-right">{nf(cr.estSqft)}</td>
                     <td className="px-3 py-2 text-right">{money(cr.installIncome)}</td>
                     <td className="px-3 py-2 text-right">{money(cr.removalIncome)}</td>
@@ -485,8 +488,8 @@ export default function Budget() {
                 return (
                   <tr key={c} className="border-b border-gray-100">
                     <td className="px-3 py-2 font-medium text-gray-900">{c}</td>
-                    <td className="px-3 py-2 text-right">{nf(r.jobs)}</td>
-                    <td className="px-3 py-2 text-right">{nf(r.details)}</td>
+                    <td className="px-3 py-2 text-right">{count(r.jobs)}</td>
+                    <td className="px-3 py-2 text-right">{count(r.details)}</td>
                     <td className="px-3 py-2 text-right">{nf(r.estSqft)}</td>
                     <td className="px-3 py-2 text-right">{money(r.installIncome)}</td>
                     <td className="px-3 py-2 text-right">{money(r.removalIncome)}</td>
