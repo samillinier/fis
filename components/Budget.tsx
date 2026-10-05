@@ -133,8 +133,8 @@ export default function Budget() {
     Object.fromEntries(d.stores.map((s: any) => [String(s.store), s.workroom ?? '']))
   )
   const [params, setParams] = useState<Params>(defaultParams)
-  // Pad / materials as a % of revenue (boss: "pad = 7% of total revenue" — pending confirmation)
-  const [padPct, setPadPct] = useState('0')
+  // Pad / material cost as a % of revenue (boss: "pad 7% is material cost" — Danita confirming final %)
+  const [padPct, setPadPct] = useState('7')
 
   function computeForStores(storeIds: number[]) {
     const byCat: Record<string, any> = {}
@@ -607,12 +607,12 @@ export default function Budget() {
 
       <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
         <div className="flex items-center gap-2 mb-1">
-          <h2 className="text-lg font-semibold text-gray-900">Pad / materials</h2>
-          <StatusBadge status="pending" label="Confirm with boss" />
+          <h2 className="text-lg font-semibold text-gray-900">Pad (material cost)</h2>
+          <StatusBadge status="pending" label="Danita confirming" />
         </div>
         <p className="text-xs text-gray-500 mb-4">
-          Boss said "pad = 7% of total revenue" as a cost. Set it here once confirmed. It's deducted from gross profit
-          (default 0).
+          Material cost as a % of revenue. Boss confirmed 7%. Danita will confirm the final number. Deducted from
+          gross profit.
         </p>
         <div className="flex items-center gap-3">
           <label className="text-sm text-gray-700 font-medium">Pad (% of revenue)</label>
