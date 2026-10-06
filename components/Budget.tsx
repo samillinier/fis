@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 import {
   BarChart,
   Bar,
@@ -14,10 +14,23 @@ import {
   Pie,
   Cell,
 } from 'recharts'
-import { DollarSign, Store, FileSpreadsheet, TrendingUp, Wallet, Layers } from 'lucide-react'
+import { DollarSign, Store, FileSpreadsheet, TrendingUp, Wallet, Layers, ChevronDown, ChevronRight } from 'lucide-react'
 import budgetData from '@/lib/budget-data.json'
+import skuData from '@/lib/sku-data.json'
 
 const CATEGORIES = ['Carpet', 'Tile', 'Vinyl', 'Hardwood/Laminate', 'Backsplash'] as const
+
+const SKU_STREAM_ORDER = ['install', 'removal', 'furniture', 'detail', 'pad', 'ancillary', 'adjustment', 'other'] as const
+const SKU_STREAM_LABEL: Record<string, string> = {
+  install: 'Install',
+  removal: 'Removal',
+  furniture: 'Furniture',
+  detail: 'Detail',
+  pad: 'Pad / Materials',
+  ancillary: 'Ancillary',
+  adjustment: 'Adjustments',
+  other: 'Other',
+}
 
 const CAT_COLORS: Record<string, string> = {
   Carpet: '#89ac44',
@@ -47,10 +60,22 @@ type Params = {
   removalLabor: Record<string, string>
   furnitureLabor: Record<string, string>
   ancillaryLabor: Record<string, string>
-  detailPayout: Record<string, string>
 }
 
 const d: any = budgetData
+
+// Detail payout ($/detail) for EXISTING workrooms, from South BID V2.0 "Current Labor" (Assessment pay).
+// These are read-only references — they are not part of the 5 new Florida workrooms in this budget.
+const EXISTING_DETAIL_PAY: Record<string, string> = {
+  Naples: '30',
+  Sarasota: '30',
+  Lodi: '40',
+  Reno: '40',
+  'San Jose': '40',
+  SLO: '40',
+  Utah: '35',
+  'West Virginia': '35',
+}
 
 function num(v: string | number | undefined | null): number {
   if (typeof v === 'number') return isFinite(v) ? v : 0
@@ -76,6 +101,34 @@ function fmtRate(n: number): string {
   if (n === Math.round(n)) return String(Math.round(n))
   return n.toFixed(2)
 }
+// SKU line item with per-SKU grand totals from the SKU report
+type SkuLine = {
+  sku: string
+  desc: string
+  count?: number
+  cost?: number
+  payment?: number
+  margin?: number
+  pct?: number
+}
+// Count values can be fractional (e.g. linear feet), so keep decimals when non-integer.
+function skuCount(n?: number): string {
+  if (n === undefined || n === null || !isFinite(n)) return '—'
+  if (Math.abs(n) >= 1e6) return (n / 1e6).toFixed(2) + 'M'
+  if (Math.abs(n) >= 1e3) return (n / 1e3).toFixed(1) + 'K'
+  return Number.isInteger(n) ? n.toLocaleString() : n.toLocaleString(undefined, { maximumFractionDigits: 1 })
+}
+function skuMoney(n?: number): string {
+  if (n === undefined || n === null || !isFinite(n)) return '—'
+  const v = Math.round(n)
+  if (Math.abs(v) >= 1e6) return '$' + (v / 1e6).toFixed(2) + 'M'
+  if (Math.abs(v) >= 1e3) return '$' + (v / 1e3).toFixed(1) + 'K'
+  return '$' + v.toLocaleString()
+}
+function skuPct(n?: number): string {
+  if (n === undefined || n === null || !isFinite(n)) return '—'
+  return (n * 100).toFixed(3) + '%'
+}
 
 function defaultParams(): Params {
   return {
@@ -90,7 +143,6 @@ function defaultParams(): Params {
     removalLabor: Object.fromEntries(CATEGORIES.map((c) => [c, String(d.labor.removal[c] ?? '')])),
     furnitureLabor: Object.fromEntries(CATEGORIES.map((c) => [c, String(d.labor.furniture[c] ?? '')])),
     ancillaryLabor: Object.fromEntries(CATEGORIES.map((c) => [c, String(d.labor.ancillary?.[c] ?? '')])),
-    detailPayout: Object.fromEntries(CATEGORIES.map((c) => [c, String(d.labor.detail[c] ?? '')])),
   }
 }
 
@@ -115,12 +167,15 @@ function StatusBadge({ status, label }: { status: Status; label: string }) {
   )
 }
 
+// Toggle to hide/show the "Data verification status" section (hidden for now).
+const SHOW_DATA_STATUS = false
+
 const DATA_STATUS: { label: string; detail: string; status: Status }[] = [
   { label: 'FY26 RFP revenue rates', detail: 'Install · removal · furniture · detail, per store', status: 'verified' },
   { label: 'Detail revenue ($54/detail)', detail: 'From FY26 RFP, all categories', status: 'verified' },
   { label: 'Furniture mix (rooms/job)', detail: 'Derived from SKU Sales By Store (South BID)', status: 'verified' },
   { label: 'Installer payout rates', detail: 'South BID V2.0 — Jacksonville labor (proxy for new workrooms)', status: 'verified' },
-  { label: 'Detail payout', detail: 'South BID "Assessment" pay — $30/detail (Jacksonville)', status: 'verified' },
+  { label: 'Detail payout', detail: 'South BID "Assessment" pay — per workroom ($30–$40), new workrooms pending', status: 'pending' },
   { label: 'Ancillary', detail: 'Included as % of sqft × $/sqft — rate & mix still 0, needs boss input', status: 'pending' },
 ]
 
@@ -138,6 +193,16 @@ export default function Budget() {
   const [params, setParams] = useState<Params>(defaultParams)
   // Pad / material cost as a % of revenue (boss: "pad 7% is material cost" — Danita confirming final %)
   const [padPct, setPadPct] = useState('7')
+  // Detail payout ($/detail) per workroom. Source: South BID V2.0 "Current Labor" Assessment pay.
+  // Known branch rates: JAX/Naples/Sarasota $30, Lodi/Reno/San Jose/SLO $40, Utah/WV $35.
+  // The 5 new workrooms default to $30 (Jacksonville proxy) until the boss confirms each.
+  const [detailPay, setDetailPay] = useState<Record<string, string>>(() =>
+    Object.fromEntries(d.workrooms.map((w: string) => [w, '30']))
+  )
+  // Which category rows are expanded (drill-down for install/removal/furniture/detail)
+  const [expandedCat, setExpandedCat] = useState<Record<string, boolean>>({})
+  const toggleCat = (wr: string, cat: string) =>
+    setExpandedCat((p) => ({ ...p, [`${wr}|${cat}`]: !p[`${wr}|${cat}`] }))
 
   function computeForStores(storeIds: number[]) {
     const byCat: Record<string, any> = {}
@@ -182,7 +247,8 @@ export default function Budget() {
         const removalPay = removalSqft * num(params.removalLabor[c])
         const furniturePay = furnitureRooms * num(params.furnitureLabor[c])
         const ancillaryPay = ancillarySqft * num(params.ancillaryLabor[c])
-        const detailPayout = details * num(params.detailPayout[c])
+        const wr = assign[String(st)] ?? ''
+        const detailPayout = details * num(detailPay[wr] ?? '30')
 
         const r = byCat[c]
         r.jobs += jobs
@@ -219,7 +285,28 @@ export default function Budget() {
     return { byCat, totals: t }
   }
 
-  const all = useMemo(() => computeForStores(d.stores.map((s: any) => s.store)), [params, assign, padPct])
+  // SKU association (catalog-level): category -> stream -> list of SKU line items with totals
+  const skuByCat = useMemo(() => {
+    const map: Record<string, Record<string, SkuLine[]>> = {}
+    for (const s of (skuData as any).skus ?? []) {
+      const cat: string = s.category
+      const stream: string = s.stream
+      if (!map[cat]) map[cat] = {}
+      if (!map[cat][stream]) map[cat][stream] = []
+      map[cat][stream].push({
+        sku: s.sku,
+        desc: s.desc,
+        count: s.totalCount,
+        cost: s.totalCost,
+        payment: s.totalPayment,
+        margin: s.margin,
+        pct: s.pct,
+      })
+    }
+    return map
+  }, [])
+
+  const all = useMemo(() => computeForStores(d.stores.map((s: any) => s.store)), [params, assign, padPct, detailPay])
 
   const workroomRows = useMemo(
     () =>
@@ -245,7 +332,7 @@ export default function Budget() {
           }
         })
         .filter(Boolean),
-    [params, assign, padPct]
+    [params, assign, padPct, detailPay]
   )
 
   // rate summary across all 56 historical stores (read-only, from FY26 RFP)
@@ -335,34 +422,36 @@ export default function Budget() {
         ))}
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-900 mb-1">Data verification status</h2>
-        <p className="text-xs text-gray-500 mb-4">
-          Revenue is solid. Contribution is still a draft until the pay side is confirmed.
-        </p>
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-200 text-xs text-gray-500 uppercase tracking-wide">
-                {['Input', 'Source / note', 'Status'].map((h) => (
-                  <th key={h} className="px-3 py-2 text-right first:text-left font-semibold">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {DATA_STATUS.map((s) => (
-                <tr key={s.label} className="border-b border-gray-100">
-                  <td className="px-3 py-2 font-medium text-gray-900">{s.label}</td>
-                  <td className="px-3 py-2 text-gray-600">{s.detail}</td>
-                  <td className="px-3 py-2 text-right">
-                    <StatusBadge status={s.status} label={s.status === 'verified' ? 'Verified' : s.status === 'old' ? 'Old — update' : 'Pending'} />
-                  </td>
+      {SHOW_DATA_STATUS && (
+        <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-900 mb-1">Data verification status</h2>
+          <p className="text-xs text-gray-500 mb-4">
+            Revenue is solid. Contribution is still a draft until the pay side is confirmed.
+          </p>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200 text-xs text-gray-500 uppercase tracking-wide">
+                  {['Input', 'Source / note', 'Status'].map((h) => (
+                    <th key={h} className="px-3 py-2 text-right first:text-left font-semibold">{h}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {DATA_STATUS.map((s) => (
+                  <tr key={s.label} className="border-b border-gray-100">
+                    <td className="px-3 py-2 font-medium text-gray-900">{s.label}</td>
+                    <td className="px-3 py-2 text-gray-600">{s.detail}</td>
+                    <td className="px-3 py-2 text-right">
+                      <StatusBadge status={s.status} label={s.status === 'verified' ? 'Verified' : s.status === 'old' ? 'Old — update' : 'Pending'} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
@@ -423,7 +512,7 @@ export default function Budget() {
           <table className="min-w-full text-sm">
             <thead>
               <tr className="border-b border-gray-200 text-xs text-gray-500 uppercase tracking-wide">
-                {['Office / Category', 'Jobs', 'Details', 'Est. sqft', 'Install', 'Removal', 'Furniture', 'Detail', 'Revenue', 'Payout', 'Pad', 'Gross profit', 'GP%'].map((h) => (
+                {['Office / Category', 'Jobs', 'Details', 'Est. sqft', 'Furniture', 'Detail', 'Revenue', 'Payout', 'Pad', 'Gross profit', 'GP%'].map((h) => (
                   <th key={h} className="px-3 py-2 text-right first:text-left font-semibold">{h}</th>
                 ))}
               </tr>
@@ -437,8 +526,6 @@ export default function Budget() {
                   <td className="px-3 py-2 text-right font-semibold">{count(r.jobs)}</td>
                   <td className="px-3 py-2 text-right font-semibold">{count(r.details)}</td>
                   <td className="px-3 py-2 text-right font-semibold">{nf(r.estSqft)}</td>
-                  <td className="px-3 py-2 text-right font-semibold">{money(r.installIncome)}</td>
-                  <td className="px-3 py-2 text-right font-semibold">{money(r.removalIncome)}</td>
                   <td className="px-3 py-2 text-right font-semibold">{money(r.furnitureIncome)}</td>
                   <td className="px-3 py-2 text-right font-semibold">{money(r.detailRevenue)}</td>
                   <td className="px-3 py-2 text-right font-semibold">{money(r.revenue)}</td>
@@ -447,23 +534,102 @@ export default function Budget() {
                   <td className="px-3 py-2 text-right font-semibold text-[#6d8a35]">{money(r.contribution)}</td>
                   <td className="px-3 py-2 text-right font-semibold text-[#6d8a35]">{r.margin.toFixed(1)}%</td>
                 </tr>
-                {r.cats.map((cr: any) => (
-                  <tr key={cr.cat} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="px-3 py-2 pl-6 text-gray-700">{cr.cat}</td>
-                    <td className="px-3 py-2 text-right">{count(cr.jobs)}</td>
-                    <td className="px-3 py-2 text-right">{count(cr.details)}</td>
-                    <td className="px-3 py-2 text-right">{nf(cr.estSqft)}</td>
-                    <td className="px-3 py-2 text-right">{money(cr.installIncome)}</td>
-                    <td className="px-3 py-2 text-right">{money(cr.removalIncome)}</td>
-                    <td className="px-3 py-2 text-right">{money(cr.furnitureIncome)}</td>
-                    <td className="px-3 py-2 text-right">{money(cr.detailRevenue)}</td>
-                    <td className="px-3 py-2 text-right font-medium">{money(cr.revenue)}</td>
-                    <td className="px-3 py-2 text-right">{money(cr.payout)}</td>
-                    <td className="px-3 py-2 text-right">{money(cr.pad)}</td>
-                    <td className="px-3 py-2 text-right font-medium text-[#6d8a35]">{money(cr.contribution)}</td>
-                    <td className="px-3 py-2 text-right text-[#6d8a35]">{cr.margin.toFixed(1)}%</td>
-                  </tr>
-                ))}
+                {r.cats.map((cr: any) => {
+                  const key = `${r.workroom}|${cr.cat}`
+                  const open = !!expandedCat[key]
+                  return (
+                    <Fragment key={cr.cat}>
+                      <tr
+                        className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
+                        onClick={() => toggleCat(r.workroom, cr.cat)}
+                      >
+                        <td className="px-3 py-2 pl-6 text-gray-700">
+                          <span className="inline-flex items-center gap-1">
+                            {open ? <ChevronDown size={14} className="text-gray-400" /> : <ChevronRight size={14} className="text-gray-400" />}
+                            {cr.cat}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 text-right">{count(cr.jobs)}</td>
+                        <td className="px-3 py-2 text-right">{count(cr.details)}</td>
+                        <td className="px-3 py-2 text-right">{nf(cr.estSqft)}</td>
+                        <td className="px-3 py-2 text-right">{money(cr.furnitureIncome)}</td>
+                        <td className="px-3 py-2 text-right">{money(cr.detailRevenue)}</td>
+                        <td className="px-3 py-2 text-right font-medium">{money(cr.revenue)}</td>
+                        <td className="px-3 py-2 text-right">{money(cr.payout)}</td>
+                        <td className="px-3 py-2 text-right">{money(cr.pad)}</td>
+                        <td className="px-3 py-2 text-right font-medium text-[#6d8a35]">{money(cr.contribution)}</td>
+                        <td className="px-3 py-2 text-right text-[#6d8a35]">{cr.margin.toFixed(1)}%</td>
+                      </tr>
+                      {open && (
+                        <tr className="border-b border-gray-100 bg-[#f7faf3]">
+                          <td colSpan={11} className="px-3 py-2">
+                            <div className="pl-8">
+                              <div className="grid grid-cols-2 sm:grid-cols-2 gap-3">
+                                {[
+                                  { label: 'Install', value: cr.installIncome },
+                                  { label: 'Removal', value: cr.removalIncome },
+                                ].map((s) => (
+                                  <div key={s.label} className="flex flex-col">
+                                    <span className="text-[11px] uppercase tracking-wide text-gray-500">{s.label}</span>
+                                    <span className="text-sm font-semibold text-gray-900">{money(s.value)}</span>
+                                  </div>
+                                ))}
+                              </div>
+                              <div className="mt-3 pt-3 border-t border-gray-200">
+                                <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-2">
+                                  SKUs ({Object.values(skuByCat[cr.cat] ?? {}).reduce((n, a) => n + a.length, 0)})
+                                </div>
+                                <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+                                  {SKU_STREAM_ORDER.map((stream) => {
+                                    const list = skuByCat[cr.cat]?.[stream]
+                                    if (!list || list.length === 0) return null
+                                    return (
+                                      <div key={stream}>
+                                        <div className="text-xs font-semibold text-gray-700 mb-1">
+                                          {SKU_STREAM_LABEL[stream]}{' '}
+                                          <span className="font-normal text-gray-400">({list.length})</span>
+                                        </div>
+                                        <div className="overflow-x-auto">
+                                          <table className="min-w-full text-xs">
+                                            <thead>
+                                              <tr className="text-[10px] uppercase tracking-wide text-gray-400 border-b border-gray-100">
+                                                <th className="text-left font-medium py-1 pr-2">SKU</th>
+                                                <th className="text-right font-medium py-1 px-2">Count</th>
+                                                <th className="text-right font-medium py-1 px-2">Cost</th>
+                                                <th className="text-right font-medium py-1 px-2">Payment</th>
+                                                <th className="text-right font-medium py-1 px-2">Margin</th>
+                                                <th className="text-right font-medium py-1 pl-2">%</th>
+                                              </tr>
+                                            </thead>
+                                            <tbody>
+                                              {list.map((s) => (
+                                                <tr key={s.sku} className="border-b border-gray-50">
+                                                  <td className="py-1 pr-2 text-gray-600 whitespace-nowrap">
+                                                    <span className="text-gray-400">{s.sku}</span>{' '}
+                                                    <span className="text-gray-700">{s.desc}</span>
+                                                  </td>
+                                                  <td className="py-1 px-2 text-right text-gray-600 whitespace-nowrap">{skuCount(s.count)}</td>
+                                                  <td className="py-1 px-2 text-right text-gray-600 whitespace-nowrap">{skuMoney(s.cost)}</td>
+                                                  <td className="py-1 px-2 text-right text-gray-600 whitespace-nowrap">{skuMoney(s.payment)}</td>
+                                                  <td className="py-1 px-2 text-right text-gray-600 whitespace-nowrap">{skuMoney(s.margin)}</td>
+                                                  <td className="py-1 pl-2 text-right text-gray-500 whitespace-nowrap">{skuPct(s.pct)}</td>
+                                                </tr>
+                                              ))}
+                                            </tbody>
+                                          </table>
+                                        </div>
+                                      </div>
+                                    )
+                                  })}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
+                  )
+                })}
               </tbody>
             ))}
           </table>
@@ -580,14 +746,14 @@ export default function Budget() {
           <StatusBadge status="verified" label="Jacksonville proxy" />
         </div>
         <p className="text-xs text-gray-500 mb-4">
-          Pay per SKU from South BID V2.0 (Jacksonville), used as the stand-in for the new workrooms. Detail is
-          $30/detail ("Assessment"). Backsplash install is $0 (no rate in the bid).
+          Pay per SKU from South BID V2.0 (Jacksonville), used as the stand-in for the new workrooms. Backsplash
+          install is $0 (no rate in the bid). Detail pay is set per workroom in the section below.
         </p>
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
               <tr className="border-b border-gray-200 text-xs text-gray-500 uppercase tracking-wide">
-                {['Category', 'Install pay $/sqft', 'Removal pay $/sqft', 'Furniture pay $/room', 'Ancillary pay $/sqft', 'Detail pay $/detail'].map((h) => (
+                {['Category', 'Install pay $/sqft', 'Removal pay $/sqft', 'Furniture pay $/room', 'Ancillary pay $/sqft'].map((h) => (
                   <th key={h} className="px-3 py-2 text-right first:text-left font-semibold">{h}</th>
                 ))}
               </tr>
@@ -600,7 +766,6 @@ export default function Budget() {
                   <td className="px-3 py-2 text-right">{rateField('removalLabor', c)}</td>
                   <td className="px-3 py-2 text-right">{rateField('furnitureLabor', c)}</td>
                   <td className="px-3 py-2 text-right">{rateField('ancillaryLabor', c)}</td>
-                  <td className="px-3 py-2 text-right">{rateField('detailPayout', c)}</td>
                 </tr>
               ))}
             </tbody>
@@ -610,12 +775,51 @@ export default function Budget() {
 
       <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
         <div className="flex items-center gap-2 mb-1">
-          <h2 className="text-lg font-semibold text-gray-900">Pad (material cost)</h2>
-          <StatusBadge status="pending" label="Danita confirming" />
+          <h2 className="text-lg font-semibold text-gray-900">Detail payout by workroom</h2>
         </div>
         <p className="text-xs text-gray-500 mb-4">
-          Material cost as a % of revenue. Boss confirmed 7%. Danita will confirm the final number. Deducted from
-          gross profit.
+          Pay per detail ("Assessment") by workroom. Source: South BID V2.0 Current Labor. The 5 new workrooms are
+          editable and default to $30.
+        </p>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+          {d.workrooms.map((w: string) => (
+            <label key={w} className="flex flex-col gap-1 rounded-md border border-gray-200 p-3">
+              <span className="text-xs font-semibold text-gray-600">{w}</span>
+              <div className="flex items-center gap-1">
+                <span className="text-sm text-gray-500">$</span>
+                <input
+                  type="number"
+                  value={detailPay[w]}
+                  onChange={(e) => setDetailPay((p) => ({ ...p, [w]: e.target.value }))}
+                  className="w-full rounded-md border border-gray-300 bg-white px-2 py-1 text-sm text-gray-900 focus:border-[#89ac44] focus:outline-none focus:ring-1 focus:ring-[#89ac44]"
+                />
+                <span className="text-xs text-gray-400">/detail</span>
+              </div>
+            </label>
+          ))}
+        </div>
+
+        <div className="mt-4 border-t border-gray-100 pt-4">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+            Existing workrooms (reference, not in this budget)
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+            {Object.entries(EXISTING_DETAIL_PAY).map(([w, rate]) => (
+              <div key={w} className="flex flex-col gap-1 rounded-md border border-gray-100 bg-gray-50 p-3">
+                <span className="text-xs font-medium text-gray-500">{w}</span>
+                <span className="text-sm font-semibold text-gray-900">${rate}<span className="text-xs font-normal text-gray-400">/detail</span></span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+        <div className="flex items-center gap-2 mb-1">
+          <h2 className="text-lg font-semibold text-gray-900">Pad (material cost)</h2>
+        </div>
+        <p className="text-xs text-gray-500 mb-4">
+          Material cost as a % of revenue, set at 7%. Deducted from gross profit.
         </p>
         <div className="flex items-center gap-3">
           <label className="text-sm text-gray-700 font-medium">Pad (% of revenue)</label>
