@@ -1,6 +1,6 @@
 {
   "source": {
-    "historical": "6769bf98...xlsx (Historical Data, Region 27, FY2025)",
+    "historical": "6769bf98...xlsx (Historical Data, Region 27, FY2025) \u2014 Jobs field = PROJECTS from new areas bid.xlsx (per store+category). 54 of 56 Region 27 stores; 3413 (N. Miami Beach) and 3445 (St. Johns) excluded \u2014 not present in new areas bid.xlsx.",
     "pricing": "FY26 Flooring RFP Pricing.xlsx (store-level, Region 27)",
     "labor": "South BID V2.0.xlsb / Current Labor (JACKSONVILLE)",
     "avgJobSize": "new areas bid.xlsx UNITS / PROJECTS per category",
@@ -378,18 +378,6 @@
       "name": "LOWE'S OF LAKE NONA, FL",
       "district": 1297,
       "workroom": "Orlando"
-    },
-    {
-      "store": 3413,
-      "name": "LOWE'S OF N. MIAMI BEACH, FL",
-      "district": 1221,
-      "workroom": "Fort Lauderdale"
-    },
-    {
-      "store": 3445,
-      "name": "LOWE'S OF ST. JOHNS, FL",
-      "district": 1249,
-      "workroom": "Jacksonville"
     }
   ],
   "historical": [
@@ -397,181 +385,181 @@
       "Location": 240,
       "cat": "Backsplash",
       "Details": 17,
-      "Jobs": 11
+      "Jobs": 25
     },
     {
       "Location": 240,
       "cat": "Carpet",
       "Details": 201,
-      "Jobs": 115
+      "Jobs": 136
     },
     {
       "Location": 240,
       "cat": "Hardwood/Laminate",
       "Details": 26,
-      "Jobs": 13
+      "Jobs": 83
     },
     {
       "Location": 240,
       "cat": "Tile",
       "Details": 55,
-      "Jobs": 14
+      "Jobs": 25
     },
     {
       "Location": 240,
       "cat": "Vinyl",
       "Details": 118,
-      "Jobs": 46
+      "Jobs": 37
     },
     {
       "Location": 467,
       "cat": "Backsplash",
       "Details": 8,
-      "Jobs": 5
+      "Jobs": 18
     },
     {
       "Location": 467,
       "cat": "Carpet",
       "Details": 132,
-      "Jobs": 78
+      "Jobs": 141
     },
     {
       "Location": 467,
       "cat": "Hardwood/Laminate",
       "Details": 18,
-      "Jobs": 8
+      "Jobs": 25
     },
     {
       "Location": 467,
       "cat": "Tile",
       "Details": 28,
-      "Jobs": 6
+      "Jobs": 26
     },
     {
       "Location": 467,
       "cat": "Vinyl",
       "Details": 79,
-      "Jobs": 23
+      "Jobs": 22
     },
     {
       "Location": 502,
       "cat": "Backsplash",
       "Details": 24,
-      "Jobs": 9
+      "Jobs": 32
     },
     {
       "Location": 502,
       "cat": "Carpet",
       "Details": 252,
-      "Jobs": 135
+      "Jobs": 276
     },
     {
       "Location": 502,
       "cat": "Hardwood/Laminate",
       "Details": 42,
-      "Jobs": 10
+      "Jobs": 94
     },
     {
       "Location": 502,
       "cat": "Tile",
       "Details": 46,
-      "Jobs": 11
+      "Jobs": 37
     },
     {
       "Location": 502,
       "cat": "Vinyl",
       "Details": 89,
-      "Jobs": 23
+      "Jobs": 56
     },
     {
       "Location": 503,
       "cat": "Backsplash",
       "Details": 4,
-      "Jobs": 0
+      "Jobs": 10
     },
     {
       "Location": 503,
       "cat": "Carpet",
       "Details": 88,
-      "Jobs": 31
+      "Jobs": 129
     },
     {
       "Location": 503,
       "cat": "Hardwood/Laminate",
       "Details": 25,
-      "Jobs": 5
+      "Jobs": 83
     },
     {
       "Location": 503,
       "cat": "Tile",
       "Details": 14,
-      "Jobs": 6
+      "Jobs": 17
     },
     {
       "Location": 503,
       "cat": "Vinyl",
       "Details": 54,
-      "Jobs": 18
+      "Jobs": 25
     },
     {
       "Location": 504,
       "cat": "Backsplash",
       "Details": 12,
-      "Jobs": 6
+      "Jobs": 5
     },
     {
       "Location": 504,
       "cat": "Carpet",
       "Details": 206,
-      "Jobs": 110
+      "Jobs": 214
     },
     {
       "Location": 504,
       "cat": "Hardwood/Laminate",
       "Details": 27,
-      "Jobs": 16
+      "Jobs": 24
     },
     {
       "Location": 504,
       "cat": "Tile",
       "Details": 26,
-      "Jobs": 5
+      "Jobs": 23
     },
     {
       "Location": 504,
       "cat": "Vinyl",
       "Details": 86,
-      "Jobs": 28
+      "Jobs": 43
     },
     {
       "Location": 604,
       "cat": "Backsplash",
       "Details": 3,
-      "Jobs": 2
+      "Jobs": 12
     },
     {
       "Location": 604,
       "cat": "Carpet",
       "Details": 97,
-      "Jobs": 54
+      "Jobs": 129
     },
     {
       "Location": 604,
       "cat": "Hardwood/Laminate",
       "Details": 15,
-      "Jobs": 8
+      "Jobs": 48
     },
     {
       "Location": 604,
       "cat": "Tile",
       "Details": 26,
-      "Jobs": 5
+      "Jobs": 28
     },
     {
       "Location": 604,
       "cat": "Vinyl",
       "Details": 54,
-      "Jobs": 20
+      "Jobs": 25
     },
     {
       "Location": 642,
@@ -583,55 +571,55 @@
       "Location": 642,
       "cat": "Carpet",
       "Details": 134,
-      "Jobs": 76
+      "Jobs": 125
     },
     {
       "Location": 642,
       "cat": "Hardwood/Laminate",
       "Details": 27,
-      "Jobs": 10
+      "Jobs": 43
     },
     {
       "Location": 642,
       "cat": "Tile",
       "Details": 32,
-      "Jobs": 2
+      "Jobs": 13
     },
     {
       "Location": 642,
       "cat": "Vinyl",
       "Details": 52,
-      "Jobs": 14
+      "Jobs": 11
     },
     {
       "Location": 654,
       "cat": "Backsplash",
       "Details": 16,
-      "Jobs": 6
+      "Jobs": 11
     },
     {
       "Location": 654,
       "cat": "Carpet",
       "Details": 141,
-      "Jobs": 81
+      "Jobs": 94
     },
     {
       "Location": 654,
       "cat": "Hardwood/Laminate",
       "Details": 31,
-      "Jobs": 15
+      "Jobs": 36
     },
     {
       "Location": 654,
       "cat": "Tile",
       "Details": 61,
-      "Jobs": 15
+      "Jobs": 19
     },
     {
       "Location": 654,
       "cat": "Vinyl",
       "Details": 92,
-      "Jobs": 21
+      "Jobs": 13
     },
     {
       "Location": 670,
@@ -643,949 +631,949 @@
       "Location": 670,
       "cat": "Carpet",
       "Details": 84,
-      "Jobs": 33
+      "Jobs": 73
     },
     {
       "Location": 670,
       "cat": "Hardwood/Laminate",
       "Details": 24,
-      "Jobs": 6
+      "Jobs": 25
     },
     {
       "Location": 670,
       "cat": "Tile",
       "Details": 45,
-      "Jobs": 10
+      "Jobs": 18
     },
     {
       "Location": 670,
       "cat": "Vinyl",
       "Details": 50,
-      "Jobs": 13
+      "Jobs": 14
     },
     {
       "Location": 696,
       "cat": "Backsplash",
       "Details": 11,
-      "Jobs": 1
+      "Jobs": 24
     },
     {
       "Location": 696,
       "cat": "Carpet",
       "Details": 109,
-      "Jobs": 62
+      "Jobs": 96
     },
     {
       "Location": 696,
       "cat": "Hardwood/Laminate",
       "Details": 27,
-      "Jobs": 13
+      "Jobs": 27
     },
     {
       "Location": 696,
       "cat": "Tile",
       "Details": 30,
-      "Jobs": 1
+      "Jobs": 19
     },
     {
       "Location": 696,
       "cat": "Vinyl",
       "Details": 75,
-      "Jobs": 18
+      "Jobs": 26
     },
     {
       "Location": 703,
       "cat": "Backsplash",
       "Details": 9,
-      "Jobs": 4
+      "Jobs": 19
     },
     {
       "Location": 703,
       "cat": "Carpet",
       "Details": 117,
-      "Jobs": 64
+      "Jobs": 118
     },
     {
       "Location": 703,
       "cat": "Hardwood/Laminate",
       "Details": 31,
-      "Jobs": 9
+      "Jobs": 44
     },
     {
       "Location": 703,
       "cat": "Tile",
       "Details": 46,
-      "Jobs": 7
+      "Jobs": 16
     },
     {
       "Location": 703,
       "cat": "Vinyl",
       "Details": 96,
-      "Jobs": 22
+      "Jobs": 34
     },
     {
       "Location": 704,
       "cat": "Backsplash",
       "Details": 9,
-      "Jobs": 1
+      "Jobs": 6
     },
     {
       "Location": 704,
       "cat": "Carpet",
       "Details": 76,
-      "Jobs": 31
+      "Jobs": 71
     },
     {
       "Location": 704,
       "cat": "Hardwood/Laminate",
       "Details": 21,
-      "Jobs": 5
+      "Jobs": 35
     },
     {
       "Location": 704,
       "cat": "Tile",
       "Details": 51,
-      "Jobs": 10
+      "Jobs": 15
     },
     {
       "Location": 704,
       "cat": "Vinyl",
       "Details": 57,
-      "Jobs": 14
+      "Jobs": 10
     },
     {
       "Location": 725,
       "cat": "Backsplash",
       "Details": 1,
-      "Jobs": 0
+      "Jobs": 3
     },
     {
       "Location": 725,
       "cat": "Carpet",
       "Details": 36,
-      "Jobs": 18
+      "Jobs": 65
     },
     {
       "Location": 725,
       "cat": "Hardwood/Laminate",
       "Details": 21,
-      "Jobs": 5
+      "Jobs": 29
     },
     {
       "Location": 725,
       "cat": "Tile",
       "Details": 32,
-      "Jobs": 5
+      "Jobs": 14
     },
     {
       "Location": 725,
       "cat": "Vinyl",
       "Details": 56,
-      "Jobs": 4
+      "Jobs": 2
     },
     {
       "Location": 741,
       "cat": "Backsplash",
       "Details": 9,
-      "Jobs": 5
+      "Jobs": 21
     },
     {
       "Location": 741,
       "cat": "Carpet",
       "Details": 170,
-      "Jobs": 85
+      "Jobs": 147
     },
     {
       "Location": 741,
       "cat": "Hardwood/Laminate",
       "Details": 16,
-      "Jobs": 7
+      "Jobs": 39
     },
     {
       "Location": 741,
       "cat": "Tile",
       "Details": 50,
-      "Jobs": 13
+      "Jobs": 47
     },
     {
       "Location": 741,
       "cat": "Vinyl",
       "Details": 144,
-      "Jobs": 50
+      "Jobs": 44
     },
     {
       "Location": 742,
       "cat": "Backsplash",
       "Details": 28,
-      "Jobs": 8
+      "Jobs": 16
     },
     {
       "Location": 742,
       "cat": "Carpet",
       "Details": 186,
-      "Jobs": 74
+      "Jobs": 132
     },
     {
       "Location": 742,
       "cat": "Hardwood/Laminate",
       "Details": 54,
-      "Jobs": 21
+      "Jobs": 39
     },
     {
       "Location": 742,
       "cat": "Tile",
       "Details": 82,
-      "Jobs": 7
+      "Jobs": 25
     },
     {
       "Location": 742,
       "cat": "Vinyl",
       "Details": 195,
-      "Jobs": 38
+      "Jobs": 25
     },
     {
       "Location": 754,
       "cat": "Backsplash",
       "Details": 9,
-      "Jobs": 3
+      "Jobs": 5
     },
     {
       "Location": 754,
       "cat": "Carpet",
       "Details": 59,
-      "Jobs": 21
+      "Jobs": 39
     },
     {
       "Location": 754,
       "cat": "Hardwood/Laminate",
       "Details": 18,
-      "Jobs": 5
+      "Jobs": 13
     },
     {
       "Location": 754,
       "cat": "Tile",
       "Details": 52,
-      "Jobs": 2
+      "Jobs": 11
     },
     {
       "Location": 754,
       "cat": "Vinyl",
       "Details": 41,
-      "Jobs": 7
+      "Jobs": 12
     },
     {
       "Location": 1069,
       "cat": "Backsplash",
       "Details": 5,
-      "Jobs": 1
+      "Jobs": 4
     },
     {
       "Location": 1069,
       "cat": "Carpet",
       "Details": 94,
-      "Jobs": 59
+      "Jobs": 133
     },
     {
       "Location": 1069,
       "cat": "Hardwood/Laminate",
       "Details": 43,
-      "Jobs": 14
+      "Jobs": 34
     },
     {
       "Location": 1069,
       "cat": "Tile",
       "Details": 57,
-      "Jobs": 15
+      "Jobs": 17
     },
     {
       "Location": 1069,
       "cat": "Vinyl",
       "Details": 81,
-      "Jobs": 27
+      "Jobs": 18
     },
     {
       "Location": 1109,
       "cat": "Backsplash",
       "Details": 7,
-      "Jobs": 3
+      "Jobs": 22
     },
     {
       "Location": 1109,
       "cat": "Carpet",
       "Details": 164,
-      "Jobs": 89
+      "Jobs": 210
     },
     {
       "Location": 1109,
       "cat": "Hardwood/Laminate",
       "Details": 28,
-      "Jobs": 13
+      "Jobs": 79
     },
     {
       "Location": 1109,
       "cat": "Tile",
       "Details": 37,
-      "Jobs": 6
+      "Jobs": 27
     },
     {
       "Location": 1109,
       "cat": "Vinyl",
       "Details": 103,
-      "Jobs": 52
+      "Jobs": 68
     },
     {
       "Location": 1111,
       "cat": "Backsplash",
       "Details": 11,
-      "Jobs": 7
+      "Jobs": 17
     },
     {
       "Location": 1111,
       "cat": "Carpet",
       "Details": 154,
-      "Jobs": 69
+      "Jobs": 191
     },
     {
       "Location": 1111,
       "cat": "Hardwood/Laminate",
       "Details": 39,
-      "Jobs": 8
+      "Jobs": 70
     },
     {
       "Location": 1111,
       "cat": "Tile",
       "Details": 40,
-      "Jobs": 11
+      "Jobs": 16
     },
     {
       "Location": 1111,
       "cat": "Vinyl",
       "Details": 91,
-      "Jobs": 33
+      "Jobs": 20
     },
     {
       "Location": 1113,
       "cat": "Backsplash",
       "Details": 1,
-      "Jobs": 1
+      "Jobs": 5
     },
     {
       "Location": 1113,
       "cat": "Carpet",
       "Details": 43,
-      "Jobs": 11
+      "Jobs": 38
     },
     {
       "Location": 1113,
       "cat": "Hardwood/Laminate",
       "Details": 43,
-      "Jobs": 6
+      "Jobs": 30
     },
     {
       "Location": 1113,
       "cat": "Tile",
       "Details": 58,
-      "Jobs": 5
+      "Jobs": 9
     },
     {
       "Location": 1113,
       "cat": "Vinyl",
       "Details": 57,
-      "Jobs": 16
+      "Jobs": 4
     },
     {
       "Location": 1140,
       "cat": "Backsplash",
       "Details": 11,
-      "Jobs": 5
+      "Jobs": 9
     },
     {
       "Location": 1140,
       "cat": "Carpet",
       "Details": 263,
-      "Jobs": 138
+      "Jobs": 247
     },
     {
       "Location": 1140,
       "cat": "Hardwood/Laminate",
       "Details": 44,
-      "Jobs": 21
+      "Jobs": 75
     },
     {
       "Location": 1140,
       "cat": "Tile",
       "Details": 39,
-      "Jobs": 15
+      "Jobs": 28
     },
     {
       "Location": 1140,
       "cat": "Vinyl",
       "Details": 104,
-      "Jobs": 32
+      "Jobs": 22
     },
     {
       "Location": 1161,
       "cat": "Backsplash",
       "Details": 19,
-      "Jobs": 6
+      "Jobs": 14
     },
     {
       "Location": 1161,
       "cat": "Carpet",
       "Details": 148,
-      "Jobs": 81
+      "Jobs": 201
     },
     {
       "Location": 1161,
       "cat": "Hardwood/Laminate",
       "Details": 58,
-      "Jobs": 7
+      "Jobs": 85
     },
     {
       "Location": 1161,
       "cat": "Tile",
       "Details": 56,
-      "Jobs": 14
+      "Jobs": 40
     },
     {
       "Location": 1161,
       "cat": "Vinyl",
       "Details": 95,
-      "Jobs": 17
+      "Jobs": 28
     },
     {
       "Location": 1506,
       "cat": "Backsplash",
       "Details": 23,
-      "Jobs": 7
+      "Jobs": 27
     },
     {
       "Location": 1506,
       "cat": "Carpet",
       "Details": 204,
-      "Jobs": 117
+      "Jobs": 194
     },
     {
       "Location": 1506,
       "cat": "Hardwood/Laminate",
       "Details": 40,
-      "Jobs": 17
+      "Jobs": 79
     },
     {
       "Location": 1506,
       "cat": "Tile",
       "Details": 49,
-      "Jobs": 15
+      "Jobs": 42
     },
     {
       "Location": 1506,
       "cat": "Vinyl",
       "Details": 164,
-      "Jobs": 68
+      "Jobs": 38
     },
     {
       "Location": 1598,
       "cat": "Backsplash",
       "Details": 12,
-      "Jobs": 7
+      "Jobs": 6
     },
     {
       "Location": 1598,
       "cat": "Carpet",
       "Details": 136,
-      "Jobs": 67
+      "Jobs": 104
     },
     {
       "Location": 1598,
       "cat": "Hardwood/Laminate",
       "Details": 44,
-      "Jobs": 9
+      "Jobs": 43
     },
     {
       "Location": 1598,
       "cat": "Tile",
       "Details": 46,
-      "Jobs": 11
+      "Jobs": 14
     },
     {
       "Location": 1598,
       "cat": "Vinyl",
       "Details": 67,
-      "Jobs": 15
+      "Jobs": 20
     },
     {
       "Location": 1647,
       "cat": "Backsplash",
       "Details": 9,
-      "Jobs": 5
+      "Jobs": 15
     },
     {
       "Location": 1647,
       "cat": "Carpet",
       "Details": 180,
-      "Jobs": 104
+      "Jobs": 223
     },
     {
       "Location": 1647,
       "cat": "Hardwood/Laminate",
       "Details": 20,
-      "Jobs": 5
+      "Jobs": 62
     },
     {
       "Location": 1647,
       "cat": "Tile",
       "Details": 31,
-      "Jobs": 8
+      "Jobs": 35
     },
     {
       "Location": 1647,
       "cat": "Vinyl",
       "Details": 96,
-      "Jobs": 38
+      "Jobs": 62
     },
     {
       "Location": 1657,
       "cat": "Backsplash",
       "Details": 4,
-      "Jobs": 3
+      "Jobs": 15
     },
     {
       "Location": 1657,
       "cat": "Carpet",
       "Details": 143,
-      "Jobs": 68
+      "Jobs": 125
     },
     {
       "Location": 1657,
       "cat": "Hardwood/Laminate",
       "Details": 30,
-      "Jobs": 12
+      "Jobs": 45
     },
     {
       "Location": 1657,
       "cat": "Tile",
       "Details": 33,
-      "Jobs": 8
+      "Jobs": 28
     },
     {
       "Location": 1657,
       "cat": "Vinyl",
       "Details": 63,
-      "Jobs": 15
+      "Jobs": 13
     },
     {
       "Location": 1681,
       "cat": "Backsplash",
       "Details": 7,
-      "Jobs": 0
+      "Jobs": 6
     },
     {
       "Location": 1681,
       "cat": "Carpet",
       "Details": 49,
-      "Jobs": 16
+      "Jobs": 33
     },
     {
       "Location": 1681,
       "cat": "Hardwood/Laminate",
       "Details": 30,
-      "Jobs": 3
+      "Jobs": 15
     },
     {
       "Location": 1681,
       "cat": "Tile",
       "Details": 66,
-      "Jobs": 5
+      "Jobs": 21
     },
     {
       "Location": 1681,
       "cat": "Vinyl",
       "Details": 49,
-      "Jobs": 4
+      "Jobs": 11
     },
     {
       "Location": 1691,
       "cat": "Backsplash",
       "Details": 15,
-      "Jobs": 4
+      "Jobs": 5
     },
     {
       "Location": 1691,
       "cat": "Carpet",
       "Details": 104,
-      "Jobs": 50
+      "Jobs": 103
     },
     {
       "Location": 1691,
       "cat": "Hardwood/Laminate",
       "Details": 41,
-      "Jobs": 10
+      "Jobs": 18
     },
     {
       "Location": 1691,
       "cat": "Tile",
       "Details": 35,
-      "Jobs": 12
+      "Jobs": 9
     },
     {
       "Location": 1691,
       "cat": "Vinyl",
       "Details": 92,
-      "Jobs": 21
+      "Jobs": 14
     },
     {
       "Location": 1699,
       "cat": "Backsplash",
       "Details": 11,
-      "Jobs": 2
+      "Jobs": 20
     },
     {
       "Location": 1699,
       "cat": "Carpet",
       "Details": 133,
-      "Jobs": 69
+      "Jobs": 200
     },
     {
       "Location": 1699,
       "cat": "Hardwood/Laminate",
       "Details": 23,
-      "Jobs": 9
+      "Jobs": 53
     },
     {
       "Location": 1699,
       "cat": "Tile",
       "Details": 43,
-      "Jobs": 7
+      "Jobs": 37
     },
     {
       "Location": 1699,
       "cat": "Vinyl",
       "Details": 80,
-      "Jobs": 28
+      "Jobs": 32
     },
     {
       "Location": 1720,
       "cat": "Backsplash",
       "Details": 15,
-      "Jobs": 8
+      "Jobs": 9
     },
     {
       "Location": 1720,
       "cat": "Carpet",
       "Details": 152,
-      "Jobs": 102
+      "Jobs": 135
     },
     {
       "Location": 1720,
       "cat": "Hardwood/Laminate",
       "Details": 33,
-      "Jobs": 10
+      "Jobs": 32
     },
     {
       "Location": 1720,
       "cat": "Tile",
       "Details": 27,
-      "Jobs": 6
+      "Jobs": 18
     },
     {
       "Location": 1720,
       "cat": "Vinyl",
       "Details": 65,
-      "Jobs": 22
+      "Jobs": 10
     },
     {
       "Location": 1792,
       "cat": "Backsplash",
       "Details": 3,
-      "Jobs": 0
+      "Jobs": 2
     },
     {
       "Location": 1792,
       "cat": "Carpet",
       "Details": 105,
-      "Jobs": 42
+      "Jobs": 98
     },
     {
       "Location": 1792,
       "cat": "Hardwood/Laminate",
       "Details": 14,
-      "Jobs": 2
+      "Jobs": 7
     },
     {
       "Location": 1792,
       "cat": "Tile",
       "Details": 68,
-      "Jobs": 9
+      "Jobs": 12
     },
     {
       "Location": 1792,
       "cat": "Vinyl",
       "Details": 74,
-      "Jobs": 13
+      "Jobs": 3
     },
     {
       "Location": 1820,
       "cat": "Backsplash",
       "Details": 5,
-      "Jobs": 3
+      "Jobs": 5
     },
     {
       "Location": 1820,
       "cat": "Carpet",
       "Details": 57,
-      "Jobs": 26
+      "Jobs": 76
     },
     {
       "Location": 1820,
       "cat": "Hardwood/Laminate",
       "Details": 15,
-      "Jobs": 4
+      "Jobs": 10
     },
     {
       "Location": 1820,
       "cat": "Tile",
       "Details": 17,
-      "Jobs": 1
+      "Jobs": 5
     },
     {
       "Location": 1820,
       "cat": "Vinyl",
       "Details": 44,
-      "Jobs": 16
+      "Jobs": 54
     },
     {
       "Location": 1841,
       "cat": "Backsplash",
       "Details": 4,
-      "Jobs": 1
+      "Jobs": 0
     },
     {
       "Location": 1841,
       "cat": "Carpet",
       "Details": 12,
-      "Jobs": 2
+      "Jobs": 11
     },
     {
       "Location": 1841,
       "cat": "Hardwood/Laminate",
       "Details": 11,
-      "Jobs": 0
+      "Jobs": 6
     },
     {
       "Location": 1841,
       "cat": "Tile",
       "Details": 39,
-      "Jobs": 3
+      "Jobs": 6
     },
     {
       "Location": 1841,
       "cat": "Vinyl",
       "Details": 42,
-      "Jobs": 6
+      "Jobs": 3
     },
     {
       "Location": 1842,
       "cat": "Backsplash",
       "Details": 13,
-      "Jobs": 4
+      "Jobs": 14
     },
     {
       "Location": 1842,
       "cat": "Carpet",
       "Details": 105,
-      "Jobs": 44
+      "Jobs": 157
     },
     {
       "Location": 1842,
       "cat": "Hardwood/Laminate",
       "Details": 25,
-      "Jobs": 10
+      "Jobs": 71
     },
     {
       "Location": 1842,
       "cat": "Tile",
       "Details": 30,
-      "Jobs": 5
+      "Jobs": 20
     },
     {
       "Location": 1842,
       "cat": "Vinyl",
       "Details": 76,
-      "Jobs": 20
+      "Jobs": 25
     },
     {
       "Location": 1897,
       "cat": "Backsplash",
       "Details": 10,
-      "Jobs": 6
+      "Jobs": 9
     },
     {
       "Location": 1897,
       "cat": "Carpet",
       "Details": 103,
-      "Jobs": 52
+      "Jobs": 141
     },
     {
       "Location": 1897,
       "cat": "Hardwood/Laminate",
       "Details": 36,
-      "Jobs": 18
+      "Jobs": 67
     },
     {
       "Location": 1897,
       "cat": "Tile",
       "Details": 33,
-      "Jobs": 18
+      "Jobs": 19
     },
     {
       "Location": 1897,
       "cat": "Vinyl",
       "Details": 85,
-      "Jobs": 24
+      "Jobs": 50
     },
     {
       "Location": 1945,
       "cat": "Backsplash",
       "Details": 9,
-      "Jobs": 3
+      "Jobs": 7
     },
     {
       "Location": 1945,
       "cat": "Carpet",
       "Details": 128,
-      "Jobs": 73
+      "Jobs": 138
     },
     {
       "Location": 1945,
       "cat": "Hardwood/Laminate",
       "Details": 26,
-      "Jobs": 11
+      "Jobs": 46
     },
     {
       "Location": 1945,
       "cat": "Tile",
       "Details": 36,
-      "Jobs": 18
+      "Jobs": 40
     },
     {
       "Location": 1945,
       "cat": "Vinyl",
       "Details": 90,
-      "Jobs": 39
+      "Jobs": 60
     },
     {
       "Location": 1962,
       "cat": "Backsplash",
       "Details": 12,
-      "Jobs": 7
+      "Jobs": 3
     },
     {
       "Location": 1962,
       "cat": "Carpet",
       "Details": 63,
-      "Jobs": 27
+      "Jobs": 68
     },
     {
       "Location": 1962,
       "cat": "Hardwood/Laminate",
       "Details": 24,
-      "Jobs": 3
+      "Jobs": 29
     },
     {
       "Location": 1962,
       "cat": "Tile",
       "Details": 33,
-      "Jobs": 5
+      "Jobs": 7
     },
     {
       "Location": 1962,
       "cat": "Vinyl",
       "Details": 63,
-      "Jobs": 10
+      "Jobs": 7
     },
     {
       "Location": 2241,
       "cat": "Backsplash",
       "Details": 29,
-      "Jobs": 14
+      "Jobs": 13
     },
     {
       "Location": 2241,
       "cat": "Carpet",
       "Details": 135,
-      "Jobs": 65
+      "Jobs": 195
     },
     {
       "Location": 2241,
       "cat": "Hardwood/Laminate",
       "Details": 30,
-      "Jobs": 12
+      "Jobs": 68
     },
     {
       "Location": 2241,
       "cat": "Tile",
       "Details": 46,
-      "Jobs": 15
+      "Jobs": 33
     },
     {
       "Location": 2241,
       "cat": "Vinyl",
       "Details": 143,
-      "Jobs": 47
+      "Jobs": 42
     },
     {
       "Location": 2254,
       "cat": "Backsplash",
       "Details": 4,
-      "Jobs": 0
+      "Jobs": 3
     },
     {
       "Location": 2254,
       "cat": "Carpet",
       "Details": 10,
-      "Jobs": 0
+      "Jobs": 5
     },
     {
       "Location": 2254,
       "cat": "Hardwood/Laminate",
       "Details": 8,
-      "Jobs": 0
+      "Jobs": 7
     },
     {
       "Location": 2254,
       "cat": "Tile",
       "Details": 47,
-      "Jobs": 4
+      "Jobs": 3
     },
     {
       "Location": 2254,
       "cat": "Vinyl",
       "Details": 36,
-      "Jobs": 3
+      "Jobs": 0
     },
     {
       "Location": 2349,
       "cat": "Backsplash",
       "Details": 21,
-      "Jobs": 9
+      "Jobs": 13
     },
     {
       "Location": 2349,
       "cat": "Carpet",
       "Details": 145,
-      "Jobs": 86
+      "Jobs": 125
     },
     {
       "Location": 2349,
       "cat": "Hardwood/Laminate",
       "Details": 27,
-      "Jobs": 12
+      "Jobs": 77
     },
     {
       "Location": 2349,
       "cat": "Tile",
       "Details": 46,
-      "Jobs": 10
+      "Jobs": 28
     },
     {
       "Location": 2349,
@@ -1597,175 +1585,175 @@
       "Location": 2351,
       "cat": "Backsplash",
       "Details": 13,
-      "Jobs": 8
+      "Jobs": 23
     },
     {
       "Location": 2351,
       "cat": "Carpet",
       "Details": 138,
-      "Jobs": 77
+      "Jobs": 174
     },
     {
       "Location": 2351,
       "cat": "Hardwood/Laminate",
       "Details": 33,
-      "Jobs": 10
+      "Jobs": 60
     },
     {
       "Location": 2351,
       "cat": "Tile",
       "Details": 38,
-      "Jobs": 8
+      "Jobs": 28
     },
     {
       "Location": 2351,
       "cat": "Vinyl",
       "Details": 79,
-      "Jobs": 25
+      "Jobs": 39
     },
     {
       "Location": 2364,
       "cat": "Backsplash",
       "Details": 8,
-      "Jobs": 2
+      "Jobs": 4
     },
     {
       "Location": 2364,
       "cat": "Carpet",
       "Details": 91,
-      "Jobs": 58
+      "Jobs": 68
     },
     {
       "Location": 2364,
       "cat": "Hardwood/Laminate",
       "Details": 20,
-      "Jobs": 11
+      "Jobs": 17
     },
     {
       "Location": 2364,
       "cat": "Tile",
       "Details": 33,
-      "Jobs": 8
+      "Jobs": 13
     },
     {
       "Location": 2364,
       "cat": "Vinyl",
       "Details": 58,
-      "Jobs": 15
+      "Jobs": 18
     },
     {
       "Location": 2437,
       "cat": "Backsplash",
       "Details": 21,
-      "Jobs": 13
+      "Jobs": 20
     },
     {
       "Location": 2437,
       "cat": "Carpet",
       "Details": 186,
-      "Jobs": 96
+      "Jobs": 145
     },
     {
       "Location": 2437,
       "cat": "Hardwood/Laminate",
       "Details": 30,
-      "Jobs": 12
+      "Jobs": 87
     },
     {
       "Location": 2437,
       "cat": "Tile",
       "Details": 50,
-      "Jobs": 12
+      "Jobs": 23
     },
     {
       "Location": 2437,
       "cat": "Vinyl",
       "Details": 91,
-      "Jobs": 41
+      "Jobs": 24
     },
     {
       "Location": 2472,
       "cat": "Backsplash",
       "Details": 23,
-      "Jobs": 6
+      "Jobs": 16
     },
     {
       "Location": 2472,
       "cat": "Carpet",
       "Details": 140,
-      "Jobs": 46
+      "Jobs": 167
     },
     {
       "Location": 2472,
       "cat": "Hardwood/Laminate",
       "Details": 54,
-      "Jobs": 17
+      "Jobs": 38
     },
     {
       "Location": 2472,
       "cat": "Tile",
       "Details": 41,
-      "Jobs": 5
+      "Jobs": 20
     },
     {
       "Location": 2472,
       "cat": "Vinyl",
       "Details": 148,
-      "Jobs": 39
+      "Jobs": 27
     },
     {
       "Location": 2644,
       "cat": "Backsplash",
       "Details": 18,
-      "Jobs": 12
+      "Jobs": 15
     },
     {
       "Location": 2644,
       "cat": "Carpet",
       "Details": 89,
-      "Jobs": 50
+      "Jobs": 75
     },
     {
       "Location": 2644,
       "cat": "Hardwood/Laminate",
       "Details": 23,
-      "Jobs": 10
+      "Jobs": 32
     },
     {
       "Location": 2644,
       "cat": "Tile",
       "Details": 34,
-      "Jobs": 11
+      "Jobs": 24
     },
     {
       "Location": 2644,
       "cat": "Vinyl",
       "Details": 103,
-      "Jobs": 32
+      "Jobs": 27
     },
     {
       "Location": 2651,
       "cat": "Backsplash",
       "Details": 32,
-      "Jobs": 12
+      "Jobs": 25
     },
     {
       "Location": 2651,
       "cat": "Carpet",
       "Details": 348,
-      "Jobs": 183
+      "Jobs": 298
     },
     {
       "Location": 2651,
       "cat": "Hardwood/Laminate",
       "Details": 74,
-      "Jobs": 24
+      "Jobs": 120
     },
     {
       "Location": 2651,
       "cat": "Tile",
       "Details": 73,
-      "Jobs": 10
+      "Jobs": 37
     },
     {
       "Location": 2651,
@@ -1777,49 +1765,49 @@
       "Location": 2652,
       "cat": "Backsplash",
       "Details": 9,
-      "Jobs": 3
+      "Jobs": 5
     },
     {
       "Location": 2652,
       "cat": "Carpet",
       "Details": 137,
-      "Jobs": 72
+      "Jobs": 140
     },
     {
       "Location": 2652,
       "cat": "Hardwood/Laminate",
       "Details": 26,
-      "Jobs": 7
+      "Jobs": 31
     },
     {
       "Location": 2652,
       "cat": "Tile",
       "Details": 29,
-      "Jobs": 5
+      "Jobs": 17
     },
     {
       "Location": 2652,
       "cat": "Vinyl",
       "Details": 46,
-      "Jobs": 15
+      "Jobs": 16
     },
     {
       "Location": 2673,
       "cat": "Backsplash",
       "Details": 5,
-      "Jobs": 2
+      "Jobs": 6
     },
     {
       "Location": 2673,
       "cat": "Carpet",
       "Details": 94,
-      "Jobs": 54
+      "Jobs": 102
     },
     {
       "Location": 2673,
       "cat": "Hardwood/Laminate",
       "Details": 34,
-      "Jobs": 12
+      "Jobs": 24
     },
     {
       "Location": 2673,
@@ -1831,247 +1819,187 @@
       "Location": 2673,
       "cat": "Vinyl",
       "Details": 52,
-      "Jobs": 18
+      "Jobs": 6
     },
     {
       "Location": 2707,
       "cat": "Backsplash",
       "Details": 6,
-      "Jobs": 4
+      "Jobs": 3
     },
     {
       "Location": 2707,
       "cat": "Carpet",
       "Details": 31,
-      "Jobs": 12
+      "Jobs": 21
     },
     {
       "Location": 2707,
       "cat": "Hardwood/Laminate",
       "Details": 34,
-      "Jobs": 5
+      "Jobs": 12
     },
     {
       "Location": 2707,
       "cat": "Tile",
       "Details": 47,
-      "Jobs": 5
+      "Jobs": 7
     },
     {
       "Location": 2707,
       "cat": "Vinyl",
       "Details": 56,
-      "Jobs": 8
+      "Jobs": 2
     },
     {
       "Location": 2904,
       "cat": "Backsplash",
       "Details": 4,
-      "Jobs": 1
+      "Jobs": 5
     },
     {
       "Location": 2904,
       "cat": "Carpet",
       "Details": 34,
-      "Jobs": 5
+      "Jobs": 15
     },
     {
       "Location": 2904,
       "cat": "Hardwood/Laminate",
       "Details": 15,
-      "Jobs": 1
+      "Jobs": 9
     },
     {
       "Location": 2904,
       "cat": "Tile",
       "Details": 57,
-      "Jobs": 4
+      "Jobs": 3
     },
     {
       "Location": 2904,
       "cat": "Vinyl",
       "Details": 62,
-      "Jobs": 3
+      "Jobs": 10
     },
     {
       "Location": 2970,
       "cat": "Backsplash",
       "Details": 11,
-      "Jobs": 6
+      "Jobs": 15
     },
     {
       "Location": 2970,
       "cat": "Carpet",
       "Details": 83,
-      "Jobs": 40
+      "Jobs": 106
     },
     {
       "Location": 2970,
       "cat": "Hardwood/Laminate",
       "Details": 29,
-      "Jobs": 9
+      "Jobs": 24
     },
     {
       "Location": 2970,
       "cat": "Tile",
       "Details": 26,
-      "Jobs": 9
+      "Jobs": 20
     },
     {
       "Location": 2970,
       "cat": "Vinyl",
       "Details": 67,
-      "Jobs": 22
+      "Jobs": 35
     },
     {
       "Location": 3238,
       "cat": "Backsplash",
       "Details": 39,
-      "Jobs": 21
+      "Jobs": 33
     },
     {
       "Location": 3238,
       "cat": "Carpet",
       "Details": 157,
-      "Jobs": 77
+      "Jobs": 172
     },
     {
       "Location": 3238,
       "cat": "Hardwood/Laminate",
       "Details": 44,
-      "Jobs": 21
+      "Jobs": 97
     },
     {
       "Location": 3238,
       "cat": "Tile",
       "Details": 37,
-      "Jobs": 13
+      "Jobs": 22
     },
     {
       "Location": 3238,
       "cat": "Vinyl",
       "Details": 137,
-      "Jobs": 52
+      "Jobs": 56
     },
     {
       "Location": 3315,
       "cat": "Backsplash",
       "Details": 5,
-      "Jobs": 0
+      "Jobs": 3
     },
     {
       "Location": 3315,
       "cat": "Carpet",
       "Details": 42,
-      "Jobs": 17
+      "Jobs": 36
     },
     {
       "Location": 3315,
       "cat": "Hardwood/Laminate",
       "Details": 21,
-      "Jobs": 2
+      "Jobs": 16
     },
     {
       "Location": 3315,
       "cat": "Tile",
       "Details": 34,
-      "Jobs": 2
+      "Jobs": 8
     },
     {
       "Location": 3315,
       "cat": "Vinyl",
       "Details": 50,
-      "Jobs": 5
+      "Jobs": 2
     },
     {
       "Location": 3350,
       "cat": "Backsplash",
       "Details": 21,
-      "Jobs": 6
+      "Jobs": 23
     },
     {
       "Location": 3350,
       "cat": "Carpet",
       "Details": 158,
-      "Jobs": 82
+      "Jobs": 97
     },
     {
       "Location": 3350,
       "cat": "Hardwood/Laminate",
       "Details": 44,
-      "Jobs": 18
+      "Jobs": 42
     },
     {
       "Location": 3350,
       "cat": "Tile",
       "Details": 40,
-      "Jobs": 4
+      "Jobs": 14
     },
     {
       "Location": 3350,
       "cat": "Vinyl",
       "Details": 83,
-      "Jobs": 22
-    },
-    {
-      "Location": 3413,
-      "cat": "Backsplash",
-      "Details": 5,
-      "Jobs": 0
-    },
-    {
-      "Location": 3413,
-      "cat": "Carpet",
-      "Details": 20,
-      "Jobs": 3
-    },
-    {
-      "Location": 3413,
-      "cat": "Hardwood/Laminate",
-      "Details": 16,
-      "Jobs": 3
-    },
-    {
-      "Location": 3413,
-      "cat": "Tile",
-      "Details": 33,
-      "Jobs": 1
-    },
-    {
-      "Location": 3413,
-      "cat": "Vinyl",
-      "Details": 46,
-      "Jobs": 8
-    },
-    {
-      "Location": 3445,
-      "cat": "Backsplash",
-      "Details": 24,
-      "Jobs": 7
-    },
-    {
-      "Location": 3445,
-      "cat": "Carpet",
-      "Details": 197,
-      "Jobs": 95
-    },
-    {
-      "Location": 3445,
-      "cat": "Hardwood/Laminate",
-      "Details": 23,
-      "Jobs": 10
-    },
-    {
-      "Location": 3445,
-      "cat": "Tile",
-      "Details": 24,
-      "Jobs": 7
-    },
-    {
-      "Location": 3445,
-      "cat": "Vinyl",
-      "Details": 96,
-      "Jobs": 25
+      "Jobs": 16
     }
   ],
   "pricing": {
@@ -2149,18 +2077,18 @@
     }
   },
   "avgJobSize": {
-    "Carpet": 570.0,
-    "Tile": 419.6,
-    "Vinyl": 587.3,
-    "Hardwood/Laminate": 549.2,
+    "Carpet": 620.2,
+    "Tile": 428.4,
+    "Vinyl": 585.2,
+    "Hardwood/Laminate": 545.9,
     "Backsplash": 22.4
   },
   "removalPct": {
-    "Carpet": 0.6376,
-    "Tile": 0.7048,
-    "Vinyl": 0.4792,
-    "Hardwood/Laminate": 0.5642,
-    "Backsplash": 0.0874
+    "Carpet": 0.28,
+    "Tile": 0.337,
+    "Vinyl": 0.066,
+    "Hardwood/Laminate": 0.114,
+    "Backsplash": 0.004
   },
   "miscPct": {
     "Carpet": 0.0188,

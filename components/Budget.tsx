@@ -125,9 +125,10 @@ function skuMoney(n?: number): string {
   if (Math.abs(v) >= 1e3) return '$' + (v / 1e3).toFixed(1) + 'K'
   return '$' + v.toLocaleString()
 }
-function skuPct(n?: number): string {
-  if (n === undefined || n === null || !isFinite(n)) return '—'
-  return (n * 100).toFixed(3) + '%'
+function skuMarginPct(margin?: number, cost?: number): string {
+  if (margin === undefined || margin === null || !isFinite(margin)) return '—'
+  if (!cost || !isFinite(cost)) return '—'
+  return ((margin / cost) * 100).toFixed(1) + '%'
 }
 
 function defaultParams(): Params {
@@ -564,21 +565,9 @@ export default function Budget() {
                         <tr className="border-b border-gray-100 bg-[#f7faf3]">
                           <td colSpan={11} className="px-3 py-2">
                             <div className="pl-8">
-                              <div className="grid grid-cols-2 sm:grid-cols-2 gap-3">
-                                {[
-                                  { label: 'Install', value: cr.installIncome },
-                                  { label: 'Removal', value: cr.removalIncome },
-                                ].map((s) => (
-                                  <div key={s.label} className="flex flex-col">
-                                    <span className="text-[11px] uppercase tracking-wide text-gray-500">{s.label}</span>
-                                    <span className="text-sm font-semibold text-gray-900">{money(s.value)}</span>
-                                  </div>
-                                ))}
+                              <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-2">
+                                SKUs ({Object.values(skuByCat[cr.cat] ?? {}).reduce((n, a) => n + a.length, 0)})
                               </div>
-                              <div className="mt-3 pt-3 border-t border-gray-200">
-                                <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-2">
-                                  SKUs ({Object.values(skuByCat[cr.cat] ?? {}).reduce((n, a) => n + a.length, 0)})
-                                </div>
                                 <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
                                   {SKU_STREAM_ORDER.map((stream) => {
                                     const list = skuByCat[cr.cat]?.[stream]
@@ -598,7 +587,7 @@ export default function Budget() {
                                                 <th className="text-right font-medium py-1 px-2">Cost</th>
                                                 <th className="text-right font-medium py-1 px-2">Payment</th>
                                                 <th className="text-right font-medium py-1 px-2">Margin</th>
-                                                <th className="text-right font-medium py-1 pl-2">%</th>
+                                                <th className="text-right font-medium py-1 pl-2">Margin %</th>
                                               </tr>
                                             </thead>
                                             <tbody>
@@ -612,7 +601,7 @@ export default function Budget() {
                                                   <td className="py-1 px-2 text-right text-gray-600 whitespace-nowrap">{skuMoney(s.cost)}</td>
                                                   <td className="py-1 px-2 text-right text-gray-600 whitespace-nowrap">{skuMoney(s.payment)}</td>
                                                   <td className="py-1 px-2 text-right text-gray-600 whitespace-nowrap">{skuMoney(s.margin)}</td>
-                                                  <td className="py-1 pl-2 text-right text-gray-500 whitespace-nowrap">{skuPct(s.pct)}</td>
+                                                  <td className="py-1 pl-2 text-right text-gray-500 whitespace-nowrap">{skuMarginPct(s.margin, s.cost)}</td>
                                                 </tr>
                                               ))}
                                             </tbody>
@@ -623,7 +612,6 @@ export default function Budget() {
                                   })}
                                 </div>
                               </div>
-                            </div>
                           </td>
                         </tr>
                       )}
