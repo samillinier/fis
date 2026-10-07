@@ -1,6 +1,6 @@
 {
-  "source": "SKUSoldByLineItem.xlsx",
-  "note": "Catalog-level SKU->category x stream association + per-SKU grand totals (FY2026-dominant).",
+  "source": "budget 2/SKUSoldByLineItem (3).xlsx",
+  "note": "Catalog-level SKU->category x stream association + per-SKU grand totals from SKU Report by SKU Count. File-wide grand total excluded (was double-counted on last SKU).",
   "categories": [
     "Carpet",
     "Tile",
@@ -19,52 +19,64 @@
   ],
   "skus": [
     {
+      "sku": "0001",
+      "desc": "Additional Pay - Internal",
+      "category": "Other",
+      "stream": "other",
+      "general": "Additional Pay - Internal",
+      "totalCount": 45.0,
+      "totalCost": 45.0,
+      "totalPayment": 45.0,
+      "margin": 0.0,
+      "pct": 1.03488681411867e-05
+    },
+    {
       "sku": "0004",
       "desc": "Adjustment Pass Through",
       "category": "Other",
       "stream": "adjustment",
       "general": "Adjustment Pass Through",
-      "totalCount": 4640.23,
-      "totalCost": 22693.03,
+      "totalCount": 7554.23,
+      "totalCost": 7590.41,
       "totalPayment": 0.0,
-      "margin": 22693.03,
-      "pct": 0.00149482828097989
+      "margin": 7590.41,
+      "pct": 0.00173728289284882
     },
     {
       "sku": "1029709",
       "desc": "RAPID INSTALL",
       "category": "Other",
       "stream": "install",
-      "general": "LA-02-RAPID INSTALL",
-      "totalCount": 36.0,
-      "totalCost": 0.36,
+      "general": "OC-02-RAPID INSTALL",
+      "totalCount": 46.0,
+      "totalCost": 100.45,
       "totalPayment": 0.0,
-      "margin": 0.36,
-      "pct": 1.15972307655603e-05
+      "margin": 100.45,
+      "pct": 1.05788429887687e-05
     },
     {
       "sku": "104730",
       "desc": "BASIC LABOR TILE INSTALL",
       "category": "Tile",
       "stream": "install",
-      "general": "SA-01-BASIC LABOR TILE INSTALL",
-      "totalCount": 76349.0,
-      "totalCost": 306931.04,
-      "totalPayment": 137712.0,
-      "margin": 169219.04,
-      "pct": 0.0245954714366601
+      "general": "LA-01-BASIC LABOR TILE INSTALL",
+      "totalCount": 101648.0,
+      "totalCost": 440355.08,
+      "totalPayment": 177568.8,
+      "margin": 262786.28,
+      "pct": 0.0233764833070078
     },
     {
       "sku": "1051453",
       "desc": "BASIC LABOR GLUED DOWN LVP",
       "category": "Vinyl",
       "stream": "install",
-      "general": "PC-01-BASIC LABOR GLUED DOWN LVP",
-      "totalCount": 2258.0,
-      "totalCost": 5061.22,
+      "general": "LA-01-BASIC LABOR GLUED DOWN LVP",
+      "totalCount": 2364.0,
+      "totalCost": 5276.4,
       "totalPayment": 1653.6,
-      "margin": 3407.62,
-      "pct": 0.000727404085239865
+      "margin": 3622.8,
+      "pct": 0.000543660539683677
     },
     {
       "sku": "1059133",
@@ -76,19 +88,19 @@
       "totalCost": -300.0,
       "totalPayment": 0.0,
       "margin": -300.0,
-      "pct": -3.22145299043342e-07
+      "pct": -2.29974847581928e-07
     },
     {
       "sku": "1060634",
       "desc": "UNFORESEEN - FLOOR LEVELING",
       "category": "Other",
       "stream": "install",
-      "general": "SA-01-UNFORESEEN - FLOOR LEVELING",
-      "totalCount": 1756.5,
-      "totalCost": 2642.0,
-      "totalPayment": 426.4,
-      "margin": 2215.6,
-      "pct": 0.000565848217769629
+      "general": "GA-01-UNFORESEEN - FLOOR LEVELING",
+      "totalCount": 4360.5,
+      "totalCost": 5246.0,
+      "totalPayment": 1403.2,
+      "margin": 3842.8,
+      "pct": 0.001002805322881
     },
     {
       "sku": "1067623",
@@ -96,107 +108,107 @@
       "category": "Hardwood/Laminate",
       "stream": "ancillary",
       "general": "TA-02-LOCAL ACCESS FEE LAMINATE",
-      "totalCount": 2330.0,
-      "totalCost": 2097.0,
-      "totalPayment": 820.35,
-      "margin": 1276.65,
-      "pct": 0.000750598546770986
+      "totalCount": 4016.0,
+      "totalCost": 3614.4,
+      "totalPayment": 1305.9,
+      "margin": 2308.5,
+      "pct": 0.000923578987889021
     },
     {
       "sku": "1067666",
       "desc": "LOCAL ACCESS FEE TILE",
       "category": "Tile",
       "stream": "ancillary",
-      "general": "TA-02-LOCAL ACCESS FEE TILE",
-      "totalCount": 1008.0,
-      "totalCost": 977.76,
-      "totalPayment": 211.5,
-      "margin": 766.26,
-      "pct": 0.000324722461435688
+      "general": "NA-01-LOCAL ACCESS FEE TILE",
+      "totalCount": 1599.0,
+      "totalCost": 1551.03,
+      "totalPayment": 476.1,
+      "margin": 1074.93,
+      "pct": 0.000367729781283502
     },
     {
       "sku": "1067685",
       "desc": "LOCAL ACCESS FEE HARDWOOD",
       "category": "Hardwood/Laminate",
       "stream": "ancillary",
-      "general": "NA-01-LOCAL ACCESS FEE HARDWOOD",
-      "totalCount": 372.0,
-      "totalCost": 334.8,
-      "totalPayment": 167.4,
-      "margin": 167.4,
-      "pct": 0.000119838051244123
+      "general": "TA-02-LOCAL ACCESS FEE HARDWOOD",
+      "totalCount": 541.0,
+      "totalCost": 486.9,
+      "totalPayment": 243.45,
+      "margin": 243.45,
+      "pct": 0.000124416392541823
     },
     {
       "sku": "1076371",
       "desc": "INSTALL WALL BASE TILE",
       "category": "Tile",
       "stream": "install",
-      "general": "NA-01-INSTALL WALL BASE TILE",
-      "totalCount": 3091.0,
-      "totalCost": 3236.55,
-      "totalPayment": 1095.6,
-      "margin": 2140.95,
-      "pct": 0.000995751119342969
+      "general": "TA-02-INSTALL WALL BASE TILE",
+      "totalCount": 3881.0,
+      "totalCost": 4070.61,
+      "totalPayment": 1321.8,
+      "margin": 2748.81,
+      "pct": 0.000892532383465461
     },
     {
       "sku": "1076372",
       "desc": "INSTALL WALL BASE CARPET",
       "category": "Carpet",
       "stream": "install",
-      "general": "TA-02-INSTALL WALL BASE CARPET",
-      "totalCount": 2167.0,
-      "totalCost": 2415.04,
-      "totalPayment": 1079.4,
-      "margin": 1335.64,
-      "pct": 0.000698088863026921
+      "general": "OC-01-INSTALL WALL BASE CARPET",
+      "totalCount": 2234.0,
+      "totalCost": 2485.39,
+      "totalPayment": 1117.2,
+      "margin": 1368.19,
+      "pct": 0.000513763809498026
     },
     {
       "sku": "1076374",
-      "desc": "INSTALL WALL BASE LAM",
+      "desc": "Net Adjustment INSTALL WALL BASE LAM",
       "category": "Hardwood/Laminate",
-      "stream": "install",
-      "general": "DO-02-INSTALL WALL BASE LAM",
-      "totalCount": 1453.0,
-      "totalCost": 1500.32,
-      "totalPayment": 716.4,
-      "margin": 783.92,
-      "pct": 0.000468077119509975
+      "stream": "adjustment",
+      "general": "PC-01-INSTALL WALL BASE LAM",
+      "totalCount": 3357.0,
+      "totalCost": 3570.07,
+      "totalPayment": 1122.6,
+      "margin": 2447.47,
+      "pct": 0.000772025563332531
     },
     {
       "sku": "1076375",
-      "desc": "-INSTALL WALL BASE HW",
+      "desc": "INSTALL WALL BASE HW",
       "category": "Hardwood/Laminate",
       "stream": "install",
-      "general": "TA-01--INSTALL WALL BASE HW",
-      "totalCount": 55.0,
-      "totalCost": 57.75,
+      "general": "AL-01-INSTALL WALL BASE HW",
+      "totalCount": 643.0,
+      "totalCost": 685.15,
       "totalPayment": 0.0,
-      "margin": 57.75,
-      "pct": 1.77179914473838e-05
+      "margin": 685.15,
+      "pct": 0.000147873826995179
     },
     {
       "sku": "1076376",
       "desc": "INSTALL WALL BASE VINYL",
       "category": "Vinyl",
       "stream": "install",
-      "general": "OC-01-INSTALL WALL BASE VINYL",
-      "totalCount": 11595.0,
-      "totalCost": 12211.8,
-      "totalPayment": 4842.0,
-      "margin": 7369.8,
-      "pct": 0.00373527474240755
+      "general": "LA-01-INSTALL WALL BASE VINYL",
+      "totalCount": 15864.0,
+      "totalCost": 16694.25,
+      "totalPayment": 6708.6,
+      "margin": 9985.65000000001,
+      "pct": 0.0036483209820397
     },
     {
       "sku": "1097476",
       "desc": "XL FORMAT ADD ON",
       "category": "Tile",
       "stream": "ancillary",
-      "general": "NA-01-XL FORMAT ADD ON",
-      "totalCount": 25719.0,
-      "totalCost": 14518.5,
-      "totalPayment": 5713.5,
-      "margin": 8805.0,
-      "pct": 0.0082852549460957
+      "general": "TA-01--XL FORMAT ADD ON",
+      "totalCount": 38568.0,
+      "totalCost": 21796.05,
+      "totalPayment": 8117.7,
+      "margin": 13678.35,
+      "pct": 0.00886966992153978
     },
     {
       "sku": "1099055",
@@ -204,35 +216,35 @@
       "category": "Backsplash",
       "stream": "install",
       "general": "SA-01-CUSTOM WORK BACKSPLASH - MRV",
-      "totalCount": 2484.0,
-      "totalCost": 1901.06,
-      "totalPayment": 757.3,
-      "margin": 1143.76,
-      "pct": 0.00080020892282366
+      "totalCount": 3967.0,
+      "totalCost": 2998.48,
+      "totalPayment": 1023.4,
+      "margin": 1975.08,
+      "pct": 0.000912310220357507
     },
     {
       "sku": "1099056",
       "desc": "CUSTOM WORK CARPET- MRV",
       "category": "Carpet",
       "stream": "install",
-      "general": "LA-01-CUSTOM WORK CARPET- MRV",
-      "totalCount": 21627.4,
-      "totalCost": 23857.5758,
-      "totalPayment": 6940.7,
-      "margin": 16916.8758,
-      "pct": 0.00696716524052997
+      "general": "NA-01-CUSTOM WORK CARPET- MRV",
+      "totalCount": 32943.4,
+      "totalCost": 32500.7758,
+      "totalPayment": 8925.52,
+      "margin": 23575.2558,
+      "pct": 0.00757615339383047
     },
     {
       "sku": "1099057",
       "desc": "CUSTOM WORK TILE - MRV",
       "category": "Tile",
       "stream": "install",
-      "general": "OC-02-CUSTOM WORK TILE - MRV",
-      "totalCount": 5040.58,
-      "totalCost": 8828.2,
-      "totalPayment": 1395.9,
-      "margin": 7432.3,
-      "pct": 0.00162379915145189
+      "general": "SA-01-CUSTOM WORK TILE - MRV",
+      "totalCount": 9861.58,
+      "totalCost": 12395.74,
+      "totalPayment": 1916.3,
+      "margin": 10479.44,
+      "pct": 0.00226791535741699
     },
     {
       "sku": "1099058",
@@ -240,35 +252,35 @@
       "category": "Hardwood/Laminate",
       "stream": "install",
       "general": "GA-01-CUSTOM WORK WOOD - MRV",
-      "totalCount": 3760.0,
-      "totalCost": 2632.0,
-      "totalPayment": 1381.75,
-      "margin": 1250.25,
-      "pct": 0.00121126632440296
+      "totalCount": 4215.0,
+      "totalCost": 2950.5,
+      "totalPayment": 1458.55,
+      "margin": 1491.95,
+      "pct": 0.000969343982557825
     },
     {
       "sku": "1099059",
       "desc": "CUSTOM WORK LAM - MRV",
       "category": "Hardwood/Laminate",
       "stream": "install",
-      "general": "SA-02-CUSTOM WORK LAM - MRV",
-      "totalCount": 2915.86,
-      "totalCost": 2321.972,
-      "totalPayment": 894.1,
-      "margin": 1427.872,
-      "pct": 0.000939330591668518
+      "general": "GA-01-CUSTOM WORK LAM - MRV",
+      "totalCount": 6459.86,
+      "totalCost": 4802.772,
+      "totalPayment": 1041.25,
+      "margin": 3761.522,
+      "pct": 0.00148560531890059
     },
     {
       "sku": "1099060",
       "desc": "CUSTOM WORK VINYL - MRV",
       "category": "Vinyl",
       "stream": "install",
-      "general": "LA-01-CUSTOM WORK VINYL - MRV",
-      "totalCount": 27438.28,
-      "totalCost": 20768.996,
-      "totalPayment": 9121.85,
-      "margin": 11647.146,
-      "pct": 0.00883911291583494
+      "general": "OC-01-CUSTOM WORK VINYL - MRV",
+      "totalCount": 46720.56,
+      "totalCost": 34266.5919999999,
+      "totalPayment": 10515.8,
+      "margin": 23750.792,
+      "pct": 0.0107445536649423
     },
     {
       "sku": "1100805",
@@ -276,107 +288,107 @@
       "category": "Vinyl",
       "stream": "ancillary",
       "general": "NA-01-LOCAL ACCESS FEE VINYL",
-      "totalCount": 5226.0,
-      "totalCost": 4703.4,
-      "totalPayment": 1927.35,
-      "margin": 2776.05,
-      "pct": 0.0016835313328005
+      "totalCount": 7675.0,
+      "totalCost": 6907.5,
+      "totalPayment": 2529.45,
+      "margin": 4378.05,
+      "pct": 0.00176505695519129
     },
     {
       "sku": "1100806",
       "desc": "LOCAL ACCESS FEE CARPET",
       "category": "Carpet",
       "stream": "ancillary",
-      "general": "TA-02-LOCAL ACCESS FEE CARPET",
-      "totalCount": 16092.0,
-      "totalCost": 15609.24,
-      "totalPayment": 6422.4,
-      "margin": 9186.84,
-      "pct": 0.00518396215220545
+      "general": "NA-01-LOCAL ACCESS FEE CARPET",
+      "totalCount": 23354.0,
+      "totalCost": 23111.22,
+      "totalPayment": 8365.95,
+      "margin": 14745.27,
+      "pct": 0.00537083259042834
     },
     {
       "sku": "1100807",
       "desc": "LOCAL ACCESS FEE BACKSPLASH",
       "category": "Backsplash",
       "stream": "ancillary",
-      "general": "TA-01--LOCAL ACCESS FEE BACKSPLASH",
-      "totalCount": 610.0,
-      "totalCost": 591.7,
-      "totalPayment": 274.5,
-      "margin": 317.2,
-      "pct": 0.000196508632416438
+      "general": "SA-01-LOCAL ACCESS FEE BACKSPLASH",
+      "totalCount": 1725.0,
+      "totalCost": 1673.25,
+      "totalPayment": 374.85,
+      "margin": 1298.4,
+      "pct": 0.000396706612078825
     },
     {
       "sku": "1101360",
       "desc": "OVERSIZED FURNITURE",
       "category": "Other",
       "stream": "furniture",
-      "general": "LA-01-OVERSIZED FURNITURE",
-      "totalCount": 96.4,
-      "totalCost": 7720.0,
-      "totalPayment": 2495.0,
-      "margin": 5225.0,
-      "pct": 3.10548068277781e-05
+      "general": "SA-01-OVERSIZED FURNITURE",
+      "totalCount": 145.4,
+      "totalCost": 11395.0,
+      "totalPayment": 3635.0,
+      "margin": 7760.0,
+      "pct": 3.34383428384123e-05
     },
     {
       "sku": "1101361",
       "desc": "OVERSIZED FURNITURE-LAM",
       "category": "Hardwood/Laminate",
       "stream": "furniture",
-      "general": "SA-01-OVERSIZED FURNITURE-LAM",
-      "totalCount": 231.0,
-      "totalCost": 17325.0,
-      "totalPayment": 5860.0,
-      "margin": 11465.0,
-      "pct": 7.44155640790119e-05
+      "general": "GA-01-OVERSIZED FURNITURE-LAM",
+      "totalCount": 365.0,
+      "totalCost": 27375.0,
+      "totalPayment": 8815.0,
+      "margin": 18560.0,
+      "pct": 8.39408193674036e-05
     },
     {
       "sku": "1101362",
       "desc": "OVERSIZED FURNITURE- WOOD",
       "category": "Hardwood/Laminate",
       "stream": "furniture",
-      "general": "OC-01-OVERSIZED FURNITURE- WOOD",
-      "totalCount": 23.0,
-      "totalCost": 1725.0,
-      "totalPayment": 580.0,
-      "margin": 1145.0,
-      "pct": 7.40934187799686e-06
+      "general": "GA-01-OVERSIZED FURNITURE- WOOD",
+      "totalCount": 50.0,
+      "totalCost": 3750.0,
+      "totalPayment": 775.0,
+      "margin": 2975.0,
+      "pct": 1.14987423790964e-05
     },
     {
       "sku": "1101363",
       "desc": "OVERSIZED FURNITURE",
       "category": "Other",
       "stream": "furniture",
-      "general": "GA-01-OVERSIZED FURNITURE",
-      "totalCount": 725.0,
-      "totalCost": 54375.0,
-      "totalPayment": 19010.0,
-      "margin": 35365.0,
-      "pct": 0.000233555341806423
+      "general": "OC-01-OVERSIZED FURNITURE",
+      "totalCount": 1080.0,
+      "totalCost": 81000.0,
+      "totalPayment": 26165.0,
+      "margin": 54835.0,
+      "pct": 0.000248372835388482
     },
     {
       "sku": "111630",
       "desc": "DETAIL CARPET",
       "category": "Carpet",
       "stream": "detail",
-      "general": "OC-01-DETAIL CARPET",
-      "totalCount": 2594.0,
-      "totalCost": 135025.0,
-      "totalPayment": 1351.0,
-      "margin": 133674.0,
-      "pct": 0.000835644905718428
+      "general": "LA-01-DETAIL CARPET",
+      "totalCount": 4385.0,
+      "totalCost": 228371.0,
+      "totalPayment": 1589.0,
+      "margin": 226782.0,
+      "pct": 0.00100843970664675
     },
     {
       "sku": "111676",
       "desc": "DETAIL TILE FLOORING",
       "category": "Tile",
       "stream": "detail",
-      "general": "AL-01-DETAIL TILE FLOORING",
-      "totalCount": 625.0,
-      "totalCost": 32691.0,
+      "general": "GA-01-DETAIL TILE FLOORING",
+      "totalCount": 1081.0,
+      "totalCost": 56561.0,
       "totalPayment": 0.0,
-      "margin": 32691.0,
-      "pct": 0.000201340811902088
+      "margin": 56561.0,
+      "pct": 0.000248602810236064
     },
     {
       "sku": "111719",
@@ -384,35 +396,35 @@
       "category": "Hardwood/Laminate",
       "stream": "detail",
       "general": "LA-01-DETAIL LAMINATE",
-      "totalCount": 596.0,
-      "totalCost": 30882.0,
+      "totalCount": 984.0,
+      "totalCost": 50967.0,
       "totalPayment": 0.0,
-      "margin": 30882.0,
-      "pct": 0.000191998598229832
+      "margin": 50967.0,
+      "pct": 0.000226295250020617
     },
     {
       "sku": "111731",
       "desc": "DETAIL VINYL",
       "category": "Vinyl",
       "stream": "detail",
-      "general": "NA-01-DETAIL VINYL",
-      "totalCount": 2069.0,
-      "totalCost": 107103.0,
+      "general": "SA-01-DETAIL VINYL",
+      "totalCount": 3324.0,
+      "totalCost": 172258.0,
       "totalPayment": 0.0,
-      "margin": 107103.0,
-      "pct": 0.000666518623720674
+      "margin": 172258.0,
+      "pct": 0.000764436393362327
     },
     {
       "sku": "1119487",
       "desc": "SEAL THE PERIMETER",
       "category": "Other",
       "stream": "ancillary",
-      "general": "TL-01-SEAL THE PERIMETER",
-      "totalCount": 798.0,
-      "totalCost": 7.98,
+      "general": "GA-01-SEAL THE PERIMETER",
+      "totalCount": 12997.0,
+      "totalCost": 129.97,
       "totalPayment": 0.0,
-      "margin": 7.98,
-      "pct": 0.000257071948636587
+      "margin": 129.97,
+      "pct": 0.00298898309402231
     },
     {
       "sku": "1119488",
@@ -420,143 +432,155 @@
       "category": "Other",
       "stream": "ancillary",
       "general": "OC-01-SEAL THE PERIMETER",
-      "totalCount": 553.0,
-      "totalCost": 5.53,
+      "totalCount": 31933.0,
+      "totalCost": 319.33,
       "totalPayment": 0.0,
-      "margin": 5.53,
-      "pct": 0.000178146350370968
+      "margin": 319.33,
+      "pct": 0.00734378680783369
     },
     {
       "sku": "1119489",
       "desc": "REMOVAL GLUED CARPET",
       "category": "Carpet",
       "stream": "removal",
-      "general": "OC-01-REMOVAL GLUED CARPET",
-      "totalCount": 990.0,
-      "totalCost": 198.0,
-      "totalPayment": 27.0,
-      "margin": 171.0,
-      "pct": 0.000318923846052908
+      "general": "DO-01-REMOVAL GLUED CARPET",
+      "totalCount": 1388.0,
+      "totalCost": 277.6,
+      "totalPayment": 41.55,
+      "margin": 236.05,
+      "pct": 0.000319205088443715
+    },
+    {
+      "sku": "1222811",
+      "desc": "10% OFF TILE",
+      "category": "Tile",
+      "stream": "other",
+      "general": "GA-01-10% OFF TILE",
+      "totalCount": 1.0,
+      "totalCost": 0.01,
+      "totalPayment": 0.0,
+      "margin": 0.01,
+      "pct": 2.29974847581928e-07
     },
     {
       "sku": "1236482",
       "desc": "STOCK - REMOVAL OF CARPET",
       "category": "Carpet",
       "stream": "removal",
-      "general": "DO-01-STOCK - REMOVAL OF CARPET",
-      "totalCount": 48328.0,
-      "totalCost": 13036.39,
+      "general": "DO-02-STOCK - REMOVAL OF CARPET",
+      "totalCount": 68532.0,
+      "totalCost": 18356.73,
       "totalPayment": 0.0,
-      "margin": 13036.39,
-      "pct": 0.0155686380121666
+      "margin": 18356.73,
+      "pct": 0.0157606362544847
     },
     {
       "sku": "1236485",
       "desc": "STOCK - BASIC STEP",
       "category": "Other",
       "stream": "install",
-      "general": "NA-01-STOCK - BASIC STEP",
-      "totalCount": 321.0,
-      "totalCost": 2738.26,
-      "totalPayment": 1297.2,
-      "margin": 1441.06,
-      "pct": 0.000103408640992913
+      "general": "TA-01--STOCK - BASIC STEP",
+      "totalCount": 448.0,
+      "totalCost": 3834.22,
+      "totalPayment": 1546.3,
+      "margin": 2287.92,
+      "pct": 0.000103028731716704
     },
     {
       "sku": "1236787",
       "desc": "STOCK - ADVANCED STEP",
       "category": "Other",
       "stream": "install",
-      "general": "NA-01-STOCK - ADVANCED STEP",
-      "totalCount": 58.0,
-      "totalCost": 730.9,
-      "totalPayment": 247.0,
-      "margin": 483.9,
-      "pct": 1.86844273445138e-05
+      "general": "GA-01-STOCK - ADVANCED STEP",
+      "totalCount": 88.0,
+      "totalCost": 1120.65,
+      "totalPayment": 331.5,
+      "margin": 789.15,
+      "pct": 2.02377865872096e-05
     },
     {
       "sku": "1236788",
       "desc": "STOCK - FURNITURE MOVE",
       "category": "Other",
       "stream": "furniture",
-      "general": "LA-02-STOCK - FURNITURE MOVE",
-      "totalCount": 21.0,
-      "totalCost": 765.0,
+      "general": "LA-01-STOCK - FURNITURE MOVE",
+      "totalCount": 35.0,
+      "totalCost": 1300.0,
       "totalPayment": 0.0,
-      "margin": 765.0,
-      "pct": 6.76505127991017e-06
+      "margin": 1300.0,
+      "pct": 8.04911966536746e-06
     },
     {
       "sku": "1237223",
       "desc": "BOXED STEP - COMPLEX",
       "category": "Other",
       "stream": "install",
-      "general": "LA-02-BOXED STEP - COMPLEX",
-      "totalCount": 196.0,
-      "totalCost": 19056.0,
-      "totalPayment": 4375.0,
-      "margin": 14681.0,
-      "pct": 6.3140478612495e-05
+      "general": "TA-02-BOXED STEP - COMPLEX",
+      "totalCount": 213.0,
+      "totalCost": 20756.0,
+      "totalPayment": 6125.0,
+      "margin": 14631.0,
+      "pct": 4.89846425349506e-05
     },
     {
       "sku": "1237224",
       "desc": "BOXED STEP - COMPLEX",
       "category": "Other",
       "stream": "install",
-      "general": "LA-01-BOXED STEP - COMPLEX",
-      "totalCount": 78.0,
-      "totalCost": 7800.0,
-      "totalPayment": 1680.0,
-      "margin": 6120.0,
-      "pct": 2.51273333253806e-05
+      "general": "AL-01-BOXED STEP - COMPLEX",
+      "totalCount": 120.0,
+      "totalCost": 12000.0,
+      "totalPayment": 2485.0,
+      "margin": 9515.0,
+      "pct": 2.75969817098313e-05
     },
     {
       "sku": "1237229",
       "desc": "OPEN STEP/ LANDING - COMPLEX",
       "category": "Other",
       "stream": "install",
-      "general": "LA-01-OPEN STEP/ LANDING - COMPLEX",
-      "totalCount": 5.0,
-      "totalCost": 400.0,
-      "totalPayment": 175.0,
-      "margin": 225.0,
-      "pct": 1.61072649521671e-06
+      "general": "AL-01-OPEN STEP/ LANDING - COMPLEX",
+      "totalCount": 8.0,
+      "totalCost": 640.0,
+      "totalPayment": 280.0,
+      "margin": 360.0,
+      "pct": 1.83979878065542e-06
     },
     {
       "sku": "1237230",
       "desc": "BOXED STEP - STAIR SYSTEM",
       "category": "Other",
       "stream": "install",
-      "general": "NA-01-BOXED STEP - STAIR SYSTEM",
-      "totalCount": 48.0,
-      "totalCost": 1664.0,
-      "totalPayment": 1440.0,
-      "margin": 224.0,
-      "pct": 1.54629743540804e-05
+      "general": "SA-01-BOXED STEP - STAIR SYSTEM",
+      "totalCount": 111.0,
+      "totalCost": 4820.0,
+      "totalPayment": 2475.0,
+      "margin": 2345.0,
+      "pct": 2.5527208081594e-05
     },
     {
       "sku": "1237383",
       "desc": "OPEN STEP/ LANDING - STAIR SYSTEM",
       "category": "Other",
       "stream": "install",
-      "general": "NA-01-OPEN STEP/ LANDING - STAIR SYSTEM",
-      "totalCount": 3.0,
-      "totalCost": 104.0,
+      "general": "SA-01-OPEN STEP/ LANDING - STAIR SYSTEM",
+      "totalCount": 4.0,
+      "totalCost": 174.0,
       "totalPayment": 90.0,
-      "margin": 14.0,
-      "pct": 9.66435897130025e-07
+      "margin": 84.0,
+      "pct": 9.1989939032771e-07
     },
     {
       "sku": "1243934",
       "desc": "BASIC HYBRID RESILIENT",
       "category": "Vinyl",
       "stream": "install",
-      "general": "OC-01-BASIC HYBRID RESILIENT",
-      "totalCount": 4500.0,
-      "totalCost": 8948.2,
+      "general": "LA-01-BASIC HYBRID RESILIENT",
+      "totalCount": 4501.0,
+      "totalCost": 10416.55,
       "totalPayment": 6300.0,
-      "margin": 2648.2,
-      "pct": 0.00144965384569504
+      "margin": 4116.55,
+      "pct": 0.00103511678896626
     },
     {
       "sku": "140315",
@@ -568,19 +592,19 @@
       "totalCost": 42.9,
       "totalPayment": 249.0,
       "margin": -206.1,
-      "pct": 0.000267380598205974
+      "pct": 0.000190879123493
     },
     {
       "sku": "141721",
       "desc": "APPLY GROUT SEALANT",
       "category": "Other",
       "stream": "ancillary",
-      "general": "TA-01--APPLY GROUT SEALANT",
-      "totalCount": 10245.0,
-      "totalCost": 6010.85,
-      "totalPayment": 1374.2,
-      "margin": 4636.65,
-      "pct": 0.00330037858869903
+      "general": "TA-02-APPLY GROUT SEALANT",
+      "totalCount": 17990.0,
+      "totalCost": 10774.43,
+      "totalPayment": 1753.4,
+      "margin": 9021.03,
+      "pct": 0.00413724750799888
     },
     {
       "sku": "143967",
@@ -592,19 +616,19 @@
       "totalCost": 258.44,
       "totalPayment": 440.5,
       "margin": -182.06,
-      "pct": 0.000239998247787289
+      "pct": 0.000171331261448536
     },
     {
       "sku": "144833",
       "desc": "REMOVE HAUL GLUE DOWN CARPET",
       "category": "Carpet",
       "stream": "removal",
-      "general": "TA-02-REMOVE HAUL GLUE DOWN CARPET",
-      "totalCount": 5527.0,
-      "totalCost": 1188.78,
-      "totalPayment": 388.85,
-      "margin": 799.93,
-      "pct": 0.00178049706781255
+      "general": "LA-01-REMOVE HAUL GLUE DOWN CARPET",
+      "totalCount": 6633.0,
+      "totalCost": 1432.1,
+      "totalPayment": 501.6,
+      "margin": 930.5,
+      "pct": 0.00152542316401093
     },
     {
       "sku": "145235",
@@ -616,67 +640,67 @@
       "totalCost": 38.72,
       "totalPayment": 17.6,
       "margin": 21.12,
-      "pct": 0.000113395145263256
+      "pct": 8.09511463488385e-05
     },
     {
       "sku": "148631",
       "desc": "REMOVAL OF FLOATING FLOORS",
       "category": "Other",
       "stream": "removal",
-      "general": "DO-01-REMOVAL OF FLOATING FLOORS",
-      "totalCount": 8721.0,
-      "totalCost": 8579.57,
+      "general": "TA-02-REMOVAL OF FLOATING FLOORS",
+      "totalCount": 12782.0,
+      "totalCost": 12579.12,
       "totalPayment": 112.5,
-      "margin": 8467.07,
-      "pct": 0.00280942915295698
+      "margin": 12466.62,
+      "pct": 0.0029395385017922
     },
     {
       "sku": "152674",
       "desc": "REMOVAL OF FLOATING FLOORS",
       "category": "Other",
       "stream": "removal",
-      "general": "NA-01-REMOVAL OF FLOATING FLOORS",
-      "totalCount": 6136.0,
-      "totalCost": 3452.04,
-      "totalPayment": 2041.8,
-      "margin": 1410.24,
-      "pct": 0.00197668355492994
+      "general": "OC-02-REMOVAL OF FLOATING FLOORS",
+      "totalCount": 11825.0,
+      "totalCost": 6638.57,
+      "totalPayment": 3117.3,
+      "margin": 3521.27,
+      "pct": 0.00271945257265629
     },
     {
       "sku": "154381",
       "desc": "ADDITIONAL MILEAGE CARPET",
       "category": "Carpet",
       "stream": "ancillary",
-      "general": "PC-01-ADDITIONAL MILEAGE CARPET",
-      "totalCount": 6602.35,
-      "totalCost": 10248.375,
-      "totalPayment": 7180.35,
-      "margin": 3068.025,
-      "pct": 0.00212691601513881
+      "general": "NA-01-ADDITIONAL MILEAGE CARPET",
+      "totalCount": 8429.35,
+      "totalCost": 13188.375,
+      "totalPayment": 8285.35,
+      "margin": 4903.025,
+      "pct": 0.00193853848146472
     },
     {
       "sku": "154569",
       "desc": "ADDITIONAL MILEAGE TILE",
       "category": "Tile",
       "stream": "ancillary",
-      "general": "DO-01-ADDITIONAL MILEAGE TILE",
-      "totalCount": 696.0,
-      "totalCost": 490.0,
-      "totalPayment": 667.0,
-      "margin": -177.0,
-      "pct": 0.000224213128134166
+      "general": "PC-01-ADDITIONAL MILEAGE TILE",
+      "totalCount": 823.0,
+      "totalCost": 807.5,
+      "totalPayment": 684.0,
+      "margin": 123.5,
+      "pct": 0.000189269299559926
     },
     {
       "sku": "154592",
       "desc": "ADDITIONAL MILEAGE VINYL",
       "category": "Vinyl",
       "stream": "ancillary",
-      "general": "TL-01-ADDITIONAL MILEAGE VINYL",
-      "totalCount": 1532.0,
-      "totalCost": 3830.0,
-      "totalPayment": 1146.0,
-      "margin": 2684.0,
-      "pct": 0.000493526598134399
+      "general": "DO-01-ADDITIONAL MILEAGE VINYL",
+      "totalCount": 2522.0,
+      "totalCost": 6305.0,
+      "totalPayment": 1421.0,
+      "margin": 4884.0,
+      "pct": 0.000579996565601621
     },
     {
       "sku": "155161",
@@ -684,47 +708,47 @@
       "category": "Other",
       "stream": "removal",
       "general": "LA-01-REMOVAL OF ANCHORED FLOORING",
-      "totalCount": 1146.0,
-      "totalCost": 2243.18,
-      "totalPayment": 1146.0,
-      "margin": 1097.18,
-      "pct": 0.000369178512703669
+      "totalCount": 1492.0,
+      "totalCost": 2987.08,
+      "totalPayment": 1492.0,
+      "margin": 1495.08,
+      "pct": 0.000343122472592236
     },
     {
       "sku": "16385",
-      "desc": "SMALL JOB UPCHARGE TILE",
+      "desc": "-SMALL JOB UPCHARGE TILE",
       "category": "Tile",
       "stream": "ancillary",
       "general": "GA-01-SMALL JOB UPCHARGE TILE",
-      "totalCount": 3.0,
-      "totalCost": 308.9,
+      "totalCount": 7.0,
+      "totalCost": 627.76,
       "totalPayment": 0.0,
-      "margin": 308.9,
-      "pct": 9.66435897130025e-07
+      "margin": 627.76,
+      "pct": 1.60982393307349e-06
     },
     {
       "sku": "16396",
       "desc": "SMALL JOB UPCHARGE LAM AND CORK",
       "category": "Hardwood/Laminate",
       "stream": "ancillary",
-      "general": "SA-01-SMALL JOB UPCHARGE LAM AND CORK",
-      "totalCount": 4.0,
-      "totalCost": 681.07,
+      "general": "NA-01-SMALL JOB UPCHARGE LAM AND CORK",
+      "totalCount": 5.0,
+      "totalCost": 710.66,
       "totalPayment": 0.0,
-      "margin": 681.07,
-      "pct": 1.28858119617337e-06
+      "margin": 710.66,
+      "pct": 1.14987423790964e-06
     },
     {
       "sku": "163973",
       "desc": "BASIC LABOR GLUE SHEET VINYL",
       "category": "Vinyl",
       "stream": "install",
-      "general": "LA-01-BASIC LABOR GLUE SHEET VINYL",
-      "totalCount": 9796.0,
-      "totalCost": 10971.52,
-      "totalPayment": 3277.8,
-      "margin": 7693.72,
-      "pct": 0.00315573534942857
+      "general": "DO-02-BASIC LABOR GLUE SHEET VINYL",
+      "totalCount": 14742.0,
+      "totalCost": 17395.84,
+      "totalPayment": 3647.4,
+      "margin": 13748.44,
+      "pct": 0.00339028920305278
     },
     {
       "sku": "163978",
@@ -736,43 +760,55 @@
       "totalCost": 100.0048,
       "totalPayment": 53.4,
       "margin": 46.6048,
-      "pct": 2.876435375158e-05
+      "pct": 2.05344541405903e-05
     },
     {
       "sku": "163979",
       "desc": "REMOVE AND REPLACE TOILET VINYL",
       "category": "Vinyl",
       "stream": "removal",
-      "general": "LA-01-REMOVE AND REPLACE TOILET VINYL",
-      "totalCount": 67.0,
-      "totalCost": 2900.96,
-      "totalPayment": 840.0,
-      "margin": 2060.96,
-      "pct": 2.15837350359039e-05
+      "general": "SA-01-REMOVE AND REPLACE TOILET VINYL",
+      "totalCount": 107.0,
+      "totalCost": 4449.24,
+      "totalPayment": 1260.0,
+      "margin": 3189.24,
+      "pct": 2.46073086912662e-05
     },
     {
       "sku": "163981",
       "desc": "EMBOSSING LEVELING VINYL",
       "category": "Vinyl",
       "stream": "install",
-      "general": "LA-01-EMBOSSING LEVELING VINYL",
-      "totalCount": 7764.0,
-      "totalCost": 5304.13,
-      "totalPayment": 2122.8,
-      "margin": 3181.33,
-      "pct": 0.0025011361017725
+      "general": "DO-02-EMBOSSING LEVELING VINYL",
+      "totalCount": 11407.0,
+      "totalCost": 7778.9,
+      "totalPayment": 2307.6,
+      "margin": 5471.3,
+      "pct": 0.00262332308636705
+    },
+    {
+      "sku": "163982",
+      "desc": "RECONNECT ICEMAKER VINYL",
+      "category": "Vinyl",
+      "stream": "other",
+      "general": "GA-01-RECONNECT ICEMAKER VINYL",
+      "totalCount": 1.0,
+      "totalCost": 15.13,
+      "totalPayment": 0.0,
+      "margin": 15.13,
+      "pct": 2.29974847581928e-07
     },
     {
       "sku": "163987",
       "desc": "TRIP CHARGE VINYL",
       "category": "Vinyl",
       "stream": "ancillary",
-      "general": "SA-01-TRIP CHARGE VINYL",
-      "totalCount": 198.0,
-      "totalCost": 9770.0,
-      "totalPayment": 4825.0,
-      "margin": 4945.0,
-      "pct": 6.37847692105816e-05
+      "general": "LA-01-TRIP CHARGE VINYL",
+      "totalCount": 206.0,
+      "totalCost": 10270.0,
+      "totalPayment": 4925.0,
+      "margin": 5345.0,
+      "pct": 4.73748186018771e-05
     },
     {
       "sku": "166175",
@@ -784,19 +820,19 @@
       "totalCost": 0.0,
       "totalPayment": 495.0,
       "margin": -495.0,
-      "pct": 0.000318923846052908
+      "pct": 0.000227675099106108
     },
     {
       "sku": "167763",
       "desc": "BASIC BOX/FRENCH CAP/HOLLYWOOD",
       "category": "Hardwood/Laminate",
       "stream": "install",
-      "general": "LA-02-BASIC BOX/FRENCH CAP/HOLLYWOOD",
-      "totalCount": 2432.0,
-      "totalCost": 21818.64,
-      "totalPayment": 11716.21,
-      "margin": 10102.43,
-      "pct": 0.000783457367273407
+      "general": "LA-01-BASIC BOX/FRENCH CAP/HOLLYWOOD",
+      "totalCount": 3507.0,
+      "totalCost": 32033.82,
+      "totalPayment": 15473.92,
+      "margin": 16559.9,
+      "pct": 0.00080652179046982
     },
     {
       "sku": "174252",
@@ -808,43 +844,55 @@
       "totalCost": 4280.63,
       "totalPayment": 2296.25,
       "margin": 1984.38,
-      "pct": 0.000643646307488596
+      "pct": 0.000459489745468691
     },
     {
       "sku": "174579",
       "desc": "REMOVE HAUL GLUE DOWN SHEET VINYL",
       "category": "Vinyl",
       "stream": "removal",
-      "general": "TA-02-REMOVE HAUL GLUE DOWN SHEET VINYL",
-      "totalCount": 814.0,
-      "totalCost": 1750.1,
-      "totalPayment": 814.0,
-      "margin": 936.1,
-      "pct": 0.00026222627342128
+      "general": "PC-01-REMOVE HAUL GLUE DOWN SHEET VINYL",
+      "totalCount": 1166.0,
+      "totalCost": 2361.99,
+      "totalPayment": 1166.0,
+      "margin": 1195.99,
+      "pct": 0.000268150672280528
     },
     {
       "sku": "176387",
       "desc": "DETAIL TILE WALL OR BACKSPLSH",
       "category": "Backsplash",
       "stream": "detail",
-      "general": "GA-01-DETAIL TILE WALL OR BACKSPLSH",
-      "totalCount": 270.0,
-      "totalCost": 14082.0,
+      "general": "SA-01-DETAIL TILE WALL OR BACKSPLSH",
+      "totalCount": 469.0,
+      "totalCost": 24480.0,
       "totalPayment": 0.0,
-      "margin": 14082.0,
-      "pct": 8.69792307417022e-05
+      "margin": 24480.0,
+      "pct": 0.000107858203515924
     },
     {
       "sku": "17740",
       "desc": "SMALL JOB UPCHARGE VINYL",
       "category": "Vinyl",
       "stream": "ancillary",
-      "general": "LA-02-SMALL JOB UPCHARGE VINYL",
-      "totalCount": 9.0,
-      "totalCost": 1280.0,
+      "general": "AL-01-SMALL JOB UPCHARGE VINYL",
+      "totalCount": 15.0,
+      "totalCost": 2152.21,
       "totalPayment": 0.0,
-      "margin": 1280.0,
-      "pct": 2.89930769139007e-06
+      "margin": 2152.21,
+      "pct": 3.44962271372891e-06
+    },
+    {
+      "sku": "188204",
+      "desc": "BASIC LABOR HARDWOOD NAIL DOWN",
+      "category": "Hardwood/Laminate",
+      "stream": "install",
+      "general": "GA-01-BASIC LABOR HARDWOOD NAIL DOWN",
+      "totalCount": 1435.0,
+      "totalCost": 3738.39,
+      "totalPayment": 1436.75,
+      "margin": 2301.64,
+      "pct": 0.000330013906280066
     },
     {
       "sku": "188208",
@@ -852,47 +900,59 @@
       "category": "Hardwood/Laminate",
       "stream": "install",
       "general": "LA-01-BASIC LABOR HARDWOOD GLUE DOWN",
-      "totalCount": 2529.0,
-      "totalCost": 6679.31,
-      "totalPayment": 2265.9,
-      "margin": 4413.41,
-      "pct": 0.000814705461280611
+      "totalCount": 2641.0,
+      "totalCost": 10871.59,
+      "totalPayment": 3708.9,
+      "margin": 7162.69,
+      "pct": 0.000607363572463871
+    },
+    {
+      "sku": "19114",
+      "desc": "SMALL JOB UPCHARGE CARPET",
+      "category": "Carpet",
+      "stream": "ancillary",
+      "general": "AL-01-SMALL JOB UPCHARGE CARPET",
+      "totalCount": 1.0,
+      "totalCost": 0.01,
+      "totalPayment": 0.0,
+      "margin": 0.01,
+      "pct": 2.29974847581928e-07
     },
     {
       "sku": "199363",
       "desc": "REMOVE HAUL GLUE DOWN SHEET VINYL",
       "category": "Vinyl",
       "stream": "removal",
-      "general": "NA-01-REMOVE HAUL GLUE DOWN SHEET VINYL",
-      "totalCount": 2672.0,
-      "totalCost": 5681.59,
-      "totalPayment": 1881.0,
-      "margin": 3800.59,
-      "pct": 0.000860772239043809
+      "general": "GA-01-REMOVE HAUL GLUE DOWN SHEET VINYL",
+      "totalCount": 3498.0,
+      "totalCost": 7441.74,
+      "totalPayment": 2350.0,
+      "margin": 5091.74,
+      "pct": 0.000804452016841583
     },
     {
       "sku": "199406",
       "desc": "REMOVAL OF TACK STRIPPED CARPET",
       "category": "Carpet",
       "stream": "removal",
-      "general": "TA-02-REMOVAL OF TACK STRIPPED CARPET",
-      "totalCount": 54951.0,
-      "totalCost": 11040.43,
-      "totalPayment": 2404.94,
-      "margin": 8635.49,
-      "pct": 0.0177022063277307
+      "general": "GA-01-REMOVAL OF TACK STRIPPED CARPET",
+      "totalCount": 88204.0,
+      "totalCost": 17702.14,
+      "totalPayment": 3908.08,
+      "margin": 13794.06,
+      "pct": 0.0202847014561163
     },
     {
       "sku": "199568",
       "desc": "REMOVAL OF FLOATING FLOORS",
       "category": "Other",
       "stream": "removal",
-      "general": "TA-01--REMOVAL OF FLOATING FLOORS",
-      "totalCount": 12122.0,
-      "totalCost": 11948.72,
-      "totalPayment": 3339.4,
-      "margin": 8609.32,
-      "pct": 0.00390504531500339
+      "general": "GA-01-REMOVAL OF FLOATING FLOORS",
+      "totalCount": 24390.0,
+      "totalCost": 23581.61,
+      "totalPayment": 5574.1,
+      "margin": 18007.51,
+      "pct": 0.00560908653252321
     },
     {
       "sku": "199589",
@@ -900,59 +960,59 @@
       "category": "Other",
       "stream": "removal",
       "general": "OC-01-REMOVAL OF ANCHORED FLOORS",
-      "totalCount": 2847.0,
-      "totalCost": 6121.05,
-      "totalPayment": 4480.0,
-      "margin": 1641.05,
-      "pct": 0.000917147666376394
+      "totalCount": 3389.0,
+      "totalCost": 7286.35,
+      "totalPayment": 5022.0,
+      "margin": 2264.35,
+      "pct": 0.000779384758455152
     },
     {
       "sku": "199682",
       "desc": "REMOVE HAUL TILE OR STONE",
       "category": "Tile",
       "stream": "removal",
-      "general": "SA-01-REMOVE HAUL TILE OR STONE",
-      "totalCount": 5598.0,
-      "totalCost": 12035.7,
-      "totalPayment": 9236.25,
-      "margin": 2799.45,
-      "pct": 0.00180336938404463
+      "general": "GA-01-REMOVE HAUL TILE OR STONE",
+      "totalCount": 7887.0,
+      "totalCost": 17079.6,
+      "totalPayment": 12094.25,
+      "margin": 4985.35,
+      "pct": 0.00181381162287866
     },
     {
       "sku": "199704",
       "desc": "REMOVE HAUL GLUE DOWN SHEET VINYL",
       "category": "Vinyl",
       "stream": "removal",
-      "general": "GA-01-REMOVE HAUL GLUE DOWN SHEET VINYL",
-      "totalCount": 326.0,
-      "totalCost": 700.9,
-      "totalPayment": 139.0,
-      "margin": 561.9,
-      "pct": 0.000105019367488129
+      "general": "OC-02-REMOVE HAUL GLUE DOWN SHEET VINYL",
+      "totalCount": 1127.0,
+      "totalCost": 2423.05,
+      "totalPayment": 359.0,
+      "margin": 2064.05,
+      "pct": 0.000259181653224832
     },
     {
       "sku": "199735",
       "desc": "REMOVAL OF TACK STRIPPED CARPET",
       "category": "Carpet",
       "stream": "removal",
-      "general": "GA-01-REMOVAL OF TACK STRIPPED CARPET",
-      "totalCount": 191766.0,
-      "totalCost": 40023.77,
-      "totalPayment": 9026.68,
-      "margin": 30997.09,
-      "pct": 0.0617765154163454
+      "general": "OC-01-REMOVAL OF TACK STRIPPED CARPET",
+      "totalCount": 272322.0,
+      "totalCost": 56836.43,
+      "totalPayment": 13018.01,
+      "margin": 43818.42,
+      "pct": 0.0626272104432057
     },
     {
       "sku": "199739",
       "desc": "REMOVAL OF FLOATING FLOORS",
       "category": "Other",
       "stream": "removal",
-      "general": "NA-01-REMOVAL OF FLOATING FLOORS",
-      "totalCount": 56536.0,
-      "totalCost": 53527.57,
-      "totalPayment": 15421.1,
-      "margin": 38106.47,
-      "pct": 0.0182128066267144
+      "general": "OC-01-REMOVAL OF FLOATING FLOORS",
+      "totalCount": 74291.0,
+      "totalCost": 70524.88,
+      "totalPayment": 18685.7,
+      "margin": 51839.18,
+      "pct": 0.017085061401709
     },
     {
       "sku": "199743",
@@ -960,47 +1020,47 @@
       "category": "Hardwood/Laminate",
       "stream": "removal",
       "general": "DO-02-REMOVE HAUL LAMINATE",
-      "totalCount": -2383.0,
-      "totalCost": -2144.7,
+      "totalCount": 0.0,
+      "totalCost": 0.0,
       "totalPayment": 0.0,
-      "margin": -2144.7,
-      "pct": -0.000767672247620283
+      "margin": 0.0,
+      "pct": 0.0
     },
     {
       "sku": "199745",
       "desc": "REMOVAL OF ANCHORED FLOORS",
       "category": "Other",
       "stream": "removal",
-      "general": "DO-01-REMOVAL OF ANCHORED FLOORS",
-      "totalCount": 13350.0,
-      "totalCost": 25220.7,
-      "totalPayment": 13293.65,
-      "margin": 11927.05,
-      "pct": 0.00430063974222861
+      "general": "AL-01-REMOVAL OF ANCHORED FLOORS",
+      "totalCount": 17483.0,
+      "totalCost": 33414.69,
+      "totalPayment": 15586.25,
+      "margin": 17828.44,
+      "pct": 0.00402065026027484
     },
     {
       "sku": "199922",
       "desc": "REMOVE HAUL TILE OR STONE",
       "category": "Tile",
       "stream": "removal",
-      "general": "GA-01-REMOVE HAUL TILE OR STONE",
-      "totalCount": 20632.0,
-      "totalCost": 43955.21,
-      "totalPayment": 26502.5,
-      "margin": 17452.71,
-      "pct": 0.00664650180986222
+      "general": "AL-01-REMOVE HAUL TILE OR STONE",
+      "totalCount": 31182.0,
+      "totalCost": 68731.73,
+      "totalPayment": 34313.5,
+      "margin": 34418.23,
+      "pct": 0.00717107569729966
     },
     {
       "sku": "200345",
       "desc": "REMOVE HAUL GLUE DOWN SHEET VINYL",
       "category": "Vinyl",
       "stream": "removal",
-      "general": "OC-01-REMOVE HAUL GLUE DOWN SHEET VINYL",
-      "totalCount": 7665.0,
-      "totalCost": 15585.13,
-      "totalPayment": 6359.0,
-      "margin": 9226.13,
-      "pct": 0.00246924371716721
+      "general": "AL-01-REMOVE HAUL GLUE DOWN SHEET VINYL",
+      "totalCount": 9474.0,
+      "totalCost": 19535.9,
+      "totalPayment": 7227.0,
+      "margin": 12308.9,
+      "pct": 0.00217878170599118
     },
     {
       "sku": "227345",
@@ -1008,23 +1068,23 @@
       "category": "Hardwood/Laminate",
       "stream": "ancillary",
       "general": "DO-02-TRIP CHARGE LAM AND CORK",
-      "totalCount": 47.0,
-      "totalCost": 2350.0,
-      "totalPayment": 1025.0,
-      "margin": 1325.0,
-      "pct": 1.51408290550371e-05
+      "totalCount": 50.0,
+      "totalCost": 2500.0,
+      "totalPayment": 1100.0,
+      "margin": 1400.0,
+      "pct": 1.14987423790964e-05
     },
     {
       "sku": "227600",
       "desc": "REMOVE REPLACE TOILET TILE INSTAL",
       "category": "Tile",
       "stream": "removal",
-      "general": "NA-01-REMOVE REPLACE TOILET TILE INSTAL",
-      "totalCount": 21.0,
-      "totalCost": 866.0,
-      "totalPayment": 315.0,
-      "margin": 551.0,
-      "pct": 6.76505127991017e-06
+      "general": "SA-01-REMOVE REPLACE TOILET TILE INSTAL",
+      "totalCount": 40.0,
+      "totalCost": 1621.0,
+      "totalPayment": 480.0,
+      "margin": 1141.0,
+      "pct": 9.1989939032771e-06
     },
     {
       "sku": "227603",
@@ -1036,19 +1096,19 @@
       "totalCost": 2100.0,
       "totalPayment": 900.0,
       "margin": 1200.0,
-      "pct": 1.2241521363647e-05
+      "pct": 8.73904420811325e-06
     },
     {
       "sku": "227604",
       "desc": "INSTALL QTR TILE",
       "category": "Tile",
       "stream": "install",
-      "general": "SA-01-INSTALL QTR TILE",
-      "totalCount": 13097.25,
-      "totalCost": 13153.24,
-      "totalPayment": 4123.5,
-      "margin": 9029.74,
-      "pct": 0.00421921751789541
+      "general": "TA-01--INSTALL QTR TILE",
+      "totalCount": 20265.25,
+      "totalCost": 20371.26,
+      "totalPayment": 5460.05,
+      "margin": 14911.21,
+      "pct": 0.00466049777995966
     },
     {
       "sku": "227605",
@@ -1056,47 +1116,47 @@
       "category": "Tile",
       "stream": "ancillary",
       "general": "TA-01--PROJECT MINIMUM CHARGE TILE",
-      "totalCount": 3.0,
+      "totalCount": 5.0,
       "totalCost": 600.0,
-      "totalPayment": 345.0,
-      "margin": 255.0,
-      "pct": 9.66435897130025e-07
+      "totalPayment": 575.0,
+      "margin": 25.0,
+      "pct": 1.14987423790964e-06
     },
     {
       "sku": "227609",
       "desc": "REMOVE REPLACE TOILET LAM CORK",
       "category": "Hardwood/Laminate",
       "stream": "removal",
-      "general": "DO-02-REMOVE REPLACE TOILET LAM CORK",
-      "totalCount": 12.0,
-      "totalCost": 496.0,
-      "totalPayment": 135.0,
-      "margin": 361.0,
-      "pct": 3.8657435885201e-06
+      "general": "SA-01-REMOVE REPLACE TOILET LAM CORK",
+      "totalCount": 18.0,
+      "totalCost": 744.0,
+      "totalPayment": 195.0,
+      "margin": 549.0,
+      "pct": 4.1395472564747e-06
     },
     {
       "sku": "227612",
       "desc": "TRIP CHARGE HWOOD",
       "category": "Hardwood/Laminate",
       "stream": "ancillary",
-      "general": "SA-02-TRIP CHARGE HWOOD",
-      "totalCount": 10.0,
-      "totalCost": 485.0,
-      "totalPayment": 250.0,
-      "margin": 235.0,
-      "pct": 3.22145299043342e-06
+      "general": "OC-01-TRIP CHARGE HWOOD",
+      "totalCount": 11.0,
+      "totalCost": 535.0,
+      "totalPayment": 275.0,
+      "margin": 260.0,
+      "pct": 2.5297233234012e-06
     },
     {
       "sku": "227613",
       "desc": "INSTALL QTR LAM AND CORK",
       "category": "Hardwood/Laminate",
       "stream": "install",
-      "general": "SA-01-INSTALL QTR LAM AND CORK",
-      "totalCount": 29859.09,
-      "totalCost": 31247.03,
-      "totalPayment": 7065.4,
-      "margin": 24181.63,
-      "pct": 0.00961896547721205
+      "general": "GA-01-INSTALL QTR LAM AND CORK",
+      "totalCount": 48870.09,
+      "totalCost": 50387.58,
+      "totalPayment": 10782.2,
+      "margin": 39605.38,
+      "pct": 0.0112388914990651
     },
     {
       "sku": "227614",
@@ -1108,19 +1168,19 @@
       "totalCost": 300.0,
       "totalPayment": 115.0,
       "margin": 185.0,
-      "pct": 3.22145299043342e-07
+      "pct": 2.29974847581928e-07
     },
     {
       "sku": "227636",
       "desc": "INSTALL QTR HWOOD",
       "category": "Hardwood/Laminate",
       "stream": "install",
-      "general": "SA-02-INSTALL QTR HWOOD",
-      "totalCount": 2221.0,
-      "totalCost": 2231.23,
-      "totalPayment": 617.2,
-      "margin": 1614.03,
-      "pct": 0.000715484709175262
+      "general": "GA-01-INSTALL QTR HWOOD",
+      "totalCount": 5392.0,
+      "totalCost": 5425.33,
+      "totalPayment": 900.15,
+      "margin": 4525.18,
+      "pct": 0.00124002437816175
     },
     {
       "sku": "227637",
@@ -1128,59 +1188,59 @@
       "category": "Hardwood/Laminate",
       "stream": "ancillary",
       "general": "NA-01-PROJECT MINIMUM CHARGE HWOOD",
-      "totalCount": -1.0,
+      "totalCount": 0.0,
       "totalCost": 0.0,
-      "totalPayment": -115.0,
-      "margin": 115.0,
-      "pct": -3.22145299043342e-07
+      "totalPayment": 0.0,
+      "margin": 0.0,
+      "pct": 0.0
     },
     {
       "sku": "227645",
       "desc": "BASIC LABOR CARPET NO GLUE",
       "category": "Carpet",
       "stream": "install",
-      "general": "OC-02-BASIC LABOR CARPET NO GLUE",
-      "totalCount": 779788.49,
-      "totalCost": 545948.8328,
-      "totalPayment": 360031.97,
-      "margin": 185916.8628,
-      "pct": 0.251205196301606
+      "general": "DO-01-BASIC LABOR CARPET NO GLUE",
+      "totalCount": 1069252.49,
+      "totalCost": 752976.432800001,
+      "totalPayment": 458052.85,
+      "margin": 294923.5828,
+      "pct": 0.245901178414346
     },
     {
       "sku": "227646",
       "desc": "INSTALL QTR VINYL INSTALL",
       "category": "Vinyl",
       "stream": "install",
-      "general": "LA-01-INSTALL QTR VINYL INSTALL",
-      "totalCount": 115422.0,
-      "totalCost": 112408.52,
-      "totalPayment": 30383.85,
-      "margin": 82024.67,
-      "pct": 0.0371826547061806
+      "general": "OC-01-INSTALL QTR VINYL INSTALL",
+      "totalCount": 162041.0,
+      "totalCost": 157793.400000001,
+      "totalPayment": 39394.1,
+      "margin": 118399.3,
+      "pct": 0.0372653542770231
     },
     {
       "sku": "227647",
       "desc": "PROJECT MIN CHARGE VINYL INSTALL",
       "category": "Vinyl",
       "stream": "install",
-      "general": "OC-01-PROJECT MIN CHARGE VINYL INSTALL",
-      "totalCount": 2.0,
-      "totalCost": 600.0,
-      "totalPayment": 345.0,
-      "margin": 255.0,
-      "pct": 6.44290598086683e-07
+      "general": "NA-01-PROJECT MIN CHARGE VINYL INSTALL",
+      "totalCount": 3.0,
+      "totalCost": 900.0,
+      "totalPayment": 460.0,
+      "margin": 440.0,
+      "pct": 6.89924542745783e-07
     },
     {
       "sku": "227804",
       "desc": "ADDITIONAL MILEAGE FEE HWOOD",
       "category": "Hardwood/Laminate",
       "stream": "ancillary",
-      "general": "GA-01-ADDITIONAL MILEAGE FEE HWOOD",
-      "totalCount": 568.0,
-      "totalCost": 1420.0,
-      "totalPayment": 365.365,
-      "margin": 1054.635,
-      "pct": 0.000182978529856618
+      "general": "PC-02-ADDITIONAL MILEAGE FEE HWOOD",
+      "totalCount": 735.0,
+      "totalCost": 1837.5,
+      "totalPayment": 406.406,
+      "margin": 1431.094,
+      "pct": 0.000169031512972717
     },
     {
       "sku": "228211",
@@ -1199,72 +1259,72 @@
       "desc": "TRIP CHARGE CARPET",
       "category": "Carpet",
       "stream": "ancillary",
-      "general": "LA-01-TRIP CHARGE CARPET",
-      "totalCount": 135.0,
-      "totalCost": 6685.0,
+      "general": "DO-02-TRIP CHARGE CARPET",
+      "totalCount": 139.0,
+      "totalCost": 6885.0,
       "totalPayment": 3250.0,
-      "margin": 3435.0,
-      "pct": 4.34896153708511e-05
+      "margin": 3635.0,
+      "pct": 3.19665038138879e-05
     },
     {
       "sku": "228214",
       "desc": "PROJECT MINIMUM CHARGE CARPET",
       "category": "Carpet",
       "stream": "ancillary",
-      "general": "TA-01--PROJECT MINIMUM CHARGE CARPET",
-      "totalCount": 17.0,
-      "totalCost": 300.03,
-      "totalPayment": 1260.0,
-      "margin": -959.97,
-      "pct": 5.47647008373681e-06
+      "general": "PC-01-PROJECT MINIMUM CHARGE CARPET",
+      "totalCount": 27.0,
+      "totalCost": 300.08,
+      "totalPayment": 2250.0,
+      "margin": -1949.92,
+      "pct": 6.20932088471204e-06
     },
     {
       "sku": "253313",
       "desc": "OVERSIZED FURNITURE",
       "category": "Other",
       "stream": "furniture",
-      "general": "OC-02-OVERSIZED FURNITURE",
-      "totalCount": 1261.0,
-      "totalCost": 94950.0,
-      "totalPayment": 34580.0,
-      "margin": 60370.0,
-      "pct": 0.000406225222093654
+      "general": "NA-01-OVERSIZED FURNITURE",
+      "totalCount": 1745.0,
+      "totalCost": 131250.0,
+      "totalPayment": 45070.0,
+      "margin": 86180.0,
+      "pct": 0.000401306109030464
     },
     {
       "sku": "275601",
       "desc": "INSTALL PLYWOOD UNDERLAYMENT LVP",
       "category": "Vinyl",
       "stream": "install",
-      "general": "LA-01-INSTALL PLYWOOD UNDERLAYMENT LVP",
-      "totalCount": 2112.0,
-      "totalCost": 2015.36,
-      "totalPayment": 594.45,
-      "margin": 1420.91,
-      "pct": 0.000680370871579537
+      "general": "DO-02-INSTALL PLYWOOD UNDERLAYMENT LVP",
+      "totalCount": 3936.0,
+      "totalCost": 3759.68,
+      "totalPayment": 795.15,
+      "margin": 2964.53,
+      "pct": 0.000905181000082467
     },
     {
       "sku": "275602",
       "desc": "INSTALL BACKERBOARD TILE",
       "category": "Tile",
       "stream": "install",
-      "general": "GA-01-INSTALL BACKERBOARD TILE",
-      "totalCount": 625.0,
-      "totalCost": 435.0,
-      "totalPayment": 228.6,
-      "margin": 206.4,
-      "pct": 0.000201340811902088
+      "general": "DO-01-INSTALL BACKERBOARD TILE",
+      "totalCount": 3220.0,
+      "totalCost": 2565.0,
+      "totalPayment": 758.7,
+      "margin": 1806.3,
+      "pct": 0.000740519009213807
     },
     {
       "sku": "282843",
       "desc": "MOBILE HOME UPCHARGE CARPET",
       "category": "Carpet",
       "stream": "ancillary",
-      "general": "LA-01-MOBILE HOME UPCHARGE CARPET",
-      "totalCount": 56414.0,
-      "totalCost": 3384.84,
-      "totalPayment": 284.4,
-      "margin": 3100.44,
-      "pct": 0.0181735049002311
+      "general": "AL-01-MOBILE HOME UPCHARGE CARPET",
+      "totalCount": 73466.0,
+      "totalCost": 4407.96,
+      "totalPayment": 480.06,
+      "margin": 3927.9,
+      "pct": 0.0168953321524539
     },
     {
       "sku": "282844",
@@ -1272,71 +1332,71 @@
       "category": "Carpet",
       "stream": "install",
       "general": "TA-02-BASIC LABOR CARPET GLUE DOWN",
-      "totalCount": 11026.0,
-      "totalCost": 6964.66,
-      "totalPayment": 5511.35,
-      "margin": 1453.31,
-      "pct": 0.00355197406725188
+      "totalCount": 14890.0,
+      "totalCost": 9531.58,
+      "totalPayment": 7143.1,
+      "margin": 2388.48,
+      "pct": 0.0034243254804949
     },
     {
       "sku": "320470",
       "desc": "BASIC LABOR STOCK CARPET",
       "category": "Carpet",
       "stream": "install",
-      "general": "LA-02-BASIC LABOR STOCK CARPET",
-      "totalCount": 85590.0,
-      "totalCost": 59119.26,
-      "totalPayment": 36975.77,
-      "margin": 22143.49,
-      "pct": 0.0275724161451196
+      "general": "LA-01-BASIC LABOR STOCK CARPET",
+      "totalCount": 125361.0,
+      "totalCost": 86326.8,
+      "totalPayment": 48582.85,
+      "margin": 37743.95,
+      "pct": 0.028829876867718
     },
     {
       "sku": "343402",
       "desc": "REMOVE AND REPLACE APPLIANCE TILE",
       "category": "Tile",
       "stream": "removal",
-      "general": "NA-01-REMOVE AND REPLACE APPLIANCE TILE",
-      "totalCount": 111.0,
-      "totalCost": 2775.0,
-      "totalPayment": 940.0,
-      "margin": 1835.0,
-      "pct": 3.57581281938109e-05
+      "general": "TA-02-REMOVE AND REPLACE APPLIANCE TILE",
+      "totalCount": 187.0,
+      "totalCost": 4675.0,
+      "totalPayment": 1340.0,
+      "margin": 3335.0,
+      "pct": 4.30052964978204e-05
     },
     {
       "sku": "343405",
       "desc": "REMOVE AND REPLACE APPLIANCE LAM",
       "category": "Hardwood/Laminate",
       "stream": "removal",
-      "general": "TA-02-REMOVE AND REPLACE APPLIANCE LAM",
-      "totalCount": 105.0,
-      "totalCost": 2625.0,
-      "totalPayment": 890.0,
-      "margin": 1735.0,
-      "pct": 3.38252563995509e-05
+      "general": "SA-02-REMOVE AND REPLACE APPLIANCE LAM",
+      "totalCount": 139.0,
+      "totalCost": 3475.0,
+      "totalPayment": 1080.0,
+      "margin": 2395.0,
+      "pct": 3.19665038138879e-05
     },
     {
       "sku": "343409",
       "desc": "REMOVE REPLACE APPLIANCE VINYL",
       "category": "Vinyl",
       "stream": "removal",
-      "general": "GA-01-REMOVE REPLACE APPLIANCE VINYL",
-      "totalCount": 539.0,
-      "totalCost": 13475.0,
-      "totalPayment": 4630.0,
-      "margin": 8845.0,
-      "pct": 0.000173636316184361
+      "general": "OC-01-REMOVE REPLACE APPLIANCE VINYL",
+      "totalCount": 800.0,
+      "totalCost": 20000.0,
+      "totalPayment": 5720.0,
+      "margin": 14280.0,
+      "pct": 0.000183979878065542
     },
     {
       "sku": "343412",
       "desc": "REMOVE AND REPLACE APPLIANCE HW",
       "category": "Hardwood/Laminate",
       "stream": "removal",
-      "general": "OC-01-REMOVE AND REPLACE APPLIANCE HW",
-      "totalCount": 4.0,
-      "totalCost": 100.0,
+      "general": "OC-02-REMOVE AND REPLACE APPLIANCE HW",
+      "totalCount": 7.0,
+      "totalCost": 175.0,
       "totalPayment": 20.0,
-      "margin": 80.0,
-      "pct": 1.28858119617337e-06
+      "margin": 155.0,
+      "pct": 1.60982393307349e-06
     },
     {
       "sku": "405361",
@@ -1344,47 +1404,47 @@
       "category": "Tile",
       "stream": "removal",
       "general": "TA-01--REMOVE HAUL TILE OR STONE",
-      "totalCount": 11962.81,
-      "totalCost": 26620.9215,
-      "totalPayment": 13951.25,
-      "margin": 12669.6715,
-      "pct": 0.00385376300484868
+      "totalCount": 21667.81,
+      "totalCost": 48873.4715,
+      "totalPayment": 19088.75,
+      "margin": 29784.7215,
+      "pct": 0.00498305130218417
     },
     {
       "sku": "405362",
       "desc": "REMOVE HAUL CARPET AND PAD NO GLU",
       "category": "Carpet",
       "stream": "removal",
-      "general": "NA-01-REMOVE HAUL CARPET AND PAD NO GLU",
-      "totalCount": 22462.0,
-      "totalCost": 4927.48,
-      "totalPayment": 1043.02,
-      "margin": 3884.46,
-      "pct": 0.00723602770711154
+      "general": "SA-01-REMOVE HAUL CARPET AND PAD NO GLU",
+      "totalCount": 33043.0,
+      "totalCost": 7252.95,
+      "totalPayment": 1554.56,
+      "margin": 5698.39,
+      "pct": 0.00759905888864963
     },
     {
       "sku": "405363",
       "desc": "REMOVAL OF ANCORED FLOORING",
       "category": "Other",
       "stream": "removal",
-      "general": "LA-02-REMOVAL OF ANCORED FLOORING",
-      "totalCount": 8482.0,
-      "totalCost": 17253.54,
-      "totalPayment": 8076.0,
-      "margin": 9177.54,
-      "pct": 0.00273243642648562
+      "general": "SA-01-REMOVAL OF ANCORED FLOORING",
+      "totalCount": 9301.0,
+      "totalCost": 19014.39,
+      "totalPayment": 9446.0,
+      "margin": 9568.39,
+      "pct": 0.00213899605735951
     },
     {
       "sku": "419901",
       "desc": "REMOVE HAUL CARPET AND PAD NO GLU",
       "category": "Carpet",
       "stream": "removal",
-      "general": "OC-02-REMOVE HAUL CARPET AND PAD NO GLU",
-      "totalCount": 469278.0,
-      "totalCost": 132426.65,
+      "general": "NA-01-REMOVE HAUL CARPET AND PAD NO GLU",
+      "totalCount": 636438.0,
+      "totalCost": 179626.73,
       "totalPayment": 11.4,
-      "margin": 132415.25,
-      "pct": 0.151175701644461
+      "margin": 179615.33,
+      "pct": 0.146364732045347
     },
     {
       "sku": "475345",
@@ -1392,35 +1452,35 @@
       "category": "Tile",
       "stream": "removal",
       "general": "SA-01-REMOVE HAUL TILE",
-      "totalCount": 288.0,
-      "totalCost": 1152.0,
-      "totalPayment": 222.0,
-      "margin": 930.0,
-      "pct": 9.27778461244824e-05
+      "totalCount": 555.0,
+      "totalCost": 2220.0,
+      "totalPayment": 345.0,
+      "margin": 1875.0,
+      "pct": 0.00012763604040797
     },
     {
       "sku": "475356",
       "desc": "LABOR TILE BACKSPLASH STRAIGHT",
       "category": "Backsplash",
       "stream": "install",
-      "general": "LA-01-LABOR TILE BACKSPLASH STRAIGHT",
-      "totalCount": 2971.0,
-      "totalCost": 46507.42,
-      "totalPayment": 20621.0,
-      "margin": 25886.42,
-      "pct": 0.000957093683457768
+      "general": "OC-02-LABOR TILE BACKSPLASH STRAIGHT",
+      "totalCount": 4004.0,
+      "totalCost": 68260.18,
+      "totalPayment": 29674.5,
+      "margin": 38585.68,
+      "pct": 0.000920819289718038
     },
     {
       "sku": "475358",
       "desc": "LABOR STONE BACKSPLASH STRAIGHT",
       "category": "Backsplash",
       "stream": "install",
-      "general": "OC-01-LABOR STONE BACKSPLASH STRAIGHT",
-      "totalCount": 250.0,
-      "totalCost": 3696.55,
+      "general": "SA-01-LABOR STONE BACKSPLASH STRAIGHT",
+      "totalCount": 320.0,
+      "totalCost": 5423.05,
       "totalPayment": 1427.0,
-      "margin": 2269.55,
-      "pct": 8.05363247608354e-05
+      "margin": 3996.05,
+      "pct": 7.35919512262168e-05
     },
     {
       "sku": "475359",
@@ -1428,11 +1488,11 @@
       "category": "Backsplash",
       "stream": "install",
       "general": "SA-01-LABOR GLASS BACKSPLASH STRAIGHT",
-      "totalCount": 228.0,
-      "totalCost": 3876.0,
+      "totalCount": 230.0,
+      "totalCost": 5090.0,
       "totalPayment": 1330.0,
-      "margin": 2546.0,
-      "pct": 7.34491281818819e-05
+      "margin": 3760.0,
+      "pct": 5.28942149438433e-05
     },
     {
       "sku": "475360",
@@ -1444,31 +1504,31 @@
       "totalCost": 77.05,
       "totalPayment": 8.05,
       "margin": 69.0,
-      "pct": 7.40934187799686e-06
+      "pct": 5.28942149438433e-06
     },
     {
       "sku": "475365",
       "desc": "APPLY GROUT SEALANT",
       "category": "Other",
       "stream": "ancillary",
-      "general": "LA-01-APPLY GROUT SEALANT",
-      "totalCount": 1037.0,
-      "totalCost": 620.38,
-      "totalPayment": 131.0,
-      "margin": 489.38,
-      "pct": 0.000334064675107945
+      "general": "OC-02-APPLY GROUT SEALANT",
+      "totalCount": 1482.0,
+      "totalCost": 887.61,
+      "totalPayment": 158.2,
+      "margin": 729.41,
+      "pct": 0.000340822724116417
     },
     {
       "sku": "475371",
       "desc": "PROJECT MINIMUM CHARGE BACKSPLASH",
       "category": "Backsplash",
       "stream": "ancillary",
-      "general": "NA-01-PROJECT MINIMUM CHARGE BACKSPLASH",
-      "totalCount": 4.0,
-      "totalCost": 1200.0,
-      "totalPayment": 745.0,
-      "margin": 455.0,
-      "pct": 1.28858119617337e-06
+      "general": "SA-02-PROJECT MINIMUM CHARGE BACKSPLASH",
+      "totalCount": 6.0,
+      "totalCost": 1500.0,
+      "totalPayment": 1165.0,
+      "margin": 335.0,
+      "pct": 1.37984908549157e-06
     },
     {
       "sku": "475372",
@@ -1476,11 +1536,11 @@
       "category": "Backsplash",
       "stream": "ancillary",
       "general": "OC-01-SMALL JOB UPCHARGE BACKSPLASH",
-      "totalCount": 5.0,
-      "totalCost": 388.36,
+      "totalCount": 13.0,
+      "totalCost": 921.06,
       "totalPayment": 0.0,
-      "margin": 388.36,
-      "pct": 1.61072649521671e-06
+      "margin": 921.06,
+      "pct": 2.98967301856506e-06
     },
     {
       "sku": "476923",
@@ -1488,23 +1548,23 @@
       "category": "Backsplash",
       "stream": "ancillary",
       "general": "LA-01-ADDITIONAL MILEAGE BACKSPLASH",
-      "totalCount": 200.0,
-      "totalCost": 500.0,
-      "totalPayment": 183.0,
-      "margin": 317.0,
-      "pct": 6.44290598086683e-05
+      "totalCount": 283.0,
+      "totalCost": 707.5,
+      "totalPayment": 177.0,
+      "margin": 530.5,
+      "pct": 6.50828818656855e-05
     },
     {
       "sku": "503016",
       "desc": "PAD L AND P 6-LBS 171537 LFT",
       "category": "Carpet",
       "stream": "pad",
-      "general": "PAD L AND P 6-LBS 171537 LFT",
-      "totalCount": 6146.0,
-      "totalCost": 7181.13,
+      "general": "LA-01-PAD L AND P 6-LBS 171537 LFT",
+      "totalCount": 7709.0,
+      "totalCost": 10550.41,
       "totalPayment": 0.0,
-      "margin": 7181.13,
-      "pct": 0.00197990500792038
+      "margin": 10550.41,
+      "pct": 0.00177287610000908
     },
     {
       "sku": "503017",
@@ -1512,11 +1572,11 @@
       "category": "Carpet",
       "stream": "pad",
       "general": "PAD L AND P ODOR BAN II 17122 LFT",
-      "totalCount": 11440.0,
-      "totalCost": 21780.12,
+      "totalCount": 14216.0,
+      "totalCost": 29412.03,
       "totalPayment": 0.0,
-      "margin": 21780.12,
-      "pct": 0.00368534222105583
+      "margin": 29412.03,
+      "pct": 0.00326932243322468
     },
     {
       "sku": "503018",
@@ -1524,11 +1584,11 @@
       "category": "Carpet",
       "stream": "pad",
       "general": "PAD L AND P SM SELECT 43199 LFT",
-      "totalCount": 19001.0,
-      "totalCost": 41002.21,
+      "totalCount": 23094.0,
+      "totalCost": 58649.2,
       "totalPayment": 0.0,
-      "margin": 41002.21,
-      "pct": 0.00612108282712253
+      "margin": 58649.2,
+      "pct": 0.00531103913005703
     },
     {
       "sku": "503019",
@@ -1536,95 +1596,119 @@
       "category": "Carpet",
       "stream": "pad",
       "general": "PAD L AND P SM ELITE FOAM LFT",
-      "totalCount": 73793.0,
-      "totalCost": 234850.82,
+      "totalCount": 83431.0,
+      "totalCost": 313491.47,
       "totalPayment": 0.0,
-      "margin": 234850.82,
-      "pct": 0.0237720680523053
+      "margin": 313491.47,
+      "pct": 0.0191870315086078
     },
     {
       "sku": "503233",
       "desc": "ADVANCED BIRDCAGE/WEDGE/PIE/SPIRA",
       "category": "Carpet",
       "stream": "install",
-      "general": "LA-02-ADVANCED BIRDCAGE/WEDGE/PIE/SPIRA",
-      "totalCount": 410.0,
-      "totalCost": 5319.15,
-      "totalPayment": 2086.5,
-      "margin": 3232.65,
-      "pct": 0.00013207957260777
+      "general": "NA-01-ADVANCED BIRDCAGE/WEDGE/PIE/SPIRA",
+      "totalCount": 598.0,
+      "totalCost": 7735.4,
+      "totalPayment": 2938.0,
+      "margin": 4797.4,
+      "pct": 0.000137524958853993
+    },
+    {
+      "sku": "503235",
+      "desc": "INSTALL TRANSITIONS CARPET",
+      "category": "Carpet",
+      "stream": "install",
+      "general": "TA-02-INSTALL TRANSITIONS CARPET",
+      "totalCount": 26.0,
+      "totalCost": 27.0,
+      "totalPayment": 0.0,
+      "margin": 27.0,
+      "pct": 5.97934603713012e-06
     },
     {
       "sku": "503239",
       "desc": "MOVE FURNITURE CARPET PER ROOM",
       "category": "Carpet",
       "stream": "furniture",
-      "general": "LA-02-MOVE FURNITURE CARPET PER ROOM",
-      "totalCount": 149.0,
-      "totalCost": 5645.0,
+      "general": "NA-01-MOVE FURNITURE CARPET PER ROOM",
+      "totalCount": 205.0,
+      "totalCost": 7770.0,
       "totalPayment": 0.0,
-      "margin": 5645.0,
-      "pct": 4.79996495574579e-05
+      "margin": 7770.0,
+      "pct": 4.71448437542951e-05
     },
     {
       "sku": "503247",
       "desc": "BASIC LABOR LAM",
       "category": "Hardwood/Laminate",
       "stream": "install",
-      "general": "TA-02-BASIC LABOR LAM",
-      "totalCount": 104953.0,
-      "totalCost": 201368.49,
-      "totalPayment": 107069.58,
-      "margin": 94298.9099999999,
-      "pct": 0.0338101155704958
+      "general": "GA-01-BASIC LABOR LAM",
+      "totalCount": 147733.0,
+      "totalCost": 321603.23,
+      "totalPayment": 151397.92,
+      "margin": 170205.31,
+      "pct": 0.0339748741578209
     },
     {
       "sku": "503249",
       "desc": "INSTALL TRANSITIONS LAM AND CORK",
       "category": "Hardwood/Laminate",
       "stream": "install",
-      "general": "TL-01-INSTALL TRANSITIONS LAM AND CORK",
-      "totalCount": 63.0,
-      "totalCost": 0.63,
+      "general": "GA-01-INSTALL TRANSITIONS LAM AND CORK",
+      "totalCount": 1543.0,
+      "totalCost": 15.43,
       "totalPayment": 0.0,
-      "margin": 0.63,
-      "pct": 2.02951538397305e-05
+      "margin": 15.43,
+      "pct": 0.000354851189818914
     },
     {
       "sku": "503252",
       "desc": "MOVE FURNITURE LAM CORK PER ROOM",
       "category": "Hardwood/Laminate",
       "stream": "furniture",
-      "general": "DO-02-MOVE FURNITURE LAM CORK PER ROOM",
-      "totalCount": 27.0,
-      "totalCost": 1005.0,
-      "totalPayment": 315.0,
-      "margin": 690.0,
-      "pct": 8.69792307417022e-06
+      "general": "SA-02-MOVE FURNITURE LAM CORK PER ROOM",
+      "totalCount": 47.0,
+      "totalCost": 1750.0,
+      "totalPayment": 525.0,
+      "margin": 1225.0,
+      "pct": 1.08088178363506e-05
+    },
+    {
+      "sku": "503264",
+      "desc": "INSTALL TRANSITIONS HWOOD",
+      "category": "Hardwood/Laminate",
+      "stream": "install",
+      "general": "GA-01-INSTALL TRANSITIONS HWOOD",
+      "totalCount": 323.0,
+      "totalCost": 3.23,
+      "totalPayment": 0.0,
+      "margin": 3.23,
+      "pct": 7.42818757689626e-05
     },
     {
       "sku": "503266",
-      "desc": "-MOVE FURNITURE HARDWOOD PER ROOM",
+      "desc": "MOVE FURNITURE HARDWOOD PER ROOM",
       "category": "Hardwood/Laminate",
       "stream": "furniture",
-      "general": "TA-01--MOVE FURNITURE HARDWOOD PER ROOM",
-      "totalCount": 1.0,
-      "totalCost": 40.0,
-      "totalPayment": 0.0,
-      "margin": 40.0,
-      "pct": 3.22145299043342e-07
+      "general": "OC-02-MOVE FURNITURE HARDWOOD PER ROOM",
+      "totalCount": 7.0,
+      "totalCost": 265.0,
+      "totalPayment": 15.0,
+      "margin": 250.0,
+      "pct": 1.60982393307349e-06
     },
     {
       "sku": "503270",
       "desc": "BASIC LABOR FLOATING LVP/LVT",
       "category": "Vinyl",
       "stream": "install",
-      "general": "AL-01-BASIC LABOR FLOATING LVP/LVT",
-      "totalCount": 421809.0,
-      "totalCost": 874850.421,
-      "totalPayment": 437924.1,
-      "margin": 436926.321,
-      "pct": 0.135883786444173
+      "general": "OC-01-BASIC LABOR FLOATING LVP/LVT",
+      "totalCount": 550702.0,
+      "totalCost": 1234276.651,
+      "totalPayment": 566406.22,
+      "margin": 667870.431,
+      "pct": 0.126647608513063
     },
     {
       "sku": "503271",
@@ -1632,95 +1716,107 @@
       "category": "Vinyl",
       "stream": "install",
       "general": "OC-01-INSTALL TRANSITIONS VINYL INSTALL",
-      "totalCount": 62.0,
-      "totalCost": 0.62,
+      "totalCount": 3322.0,
+      "totalCost": 33.22,
       "totalPayment": 0.0,
-      "margin": 0.62,
-      "pct": 1.99730085406872e-05
+      "margin": 33.22,
+      "pct": 0.000763976443667163
     },
     {
       "sku": "503273",
       "desc": "MOVE FURNITURE VINYL PER ROOM",
       "category": "Vinyl",
       "stream": "furniture",
-      "general": "AL-01-MOVE FURNITURE VINYL PER ROOM",
-      "totalCount": 222.0,
-      "totalCost": 8128.15999999999,
-      "totalPayment": 2850.0,
-      "margin": 5278.15999999999,
-      "pct": 7.15162563876218e-05
+      "general": "OC-01-MOVE FURNITURE VINYL PER ROOM",
+      "totalCount": 301.0,
+      "totalCost": 11021.48,
+      "totalPayment": 3405.0,
+      "margin": 7616.47999999999,
+      "pct": 6.92224291221602e-05
     },
     {
       "sku": "503276",
       "desc": "MOVE FURNITURE TILE PER ROOM",
       "category": "Tile",
       "stream": "furniture",
-      "general": "NA-01-MOVE FURNITURE TILE PER ROOM",
-      "totalCount": 38.0,
-      "totalCost": 1455.0,
-      "totalPayment": 375.0,
-      "margin": 1080.0,
-      "pct": 1.2241521363647e-05
+      "general": "AL-01-MOVE FURNITURE TILE PER ROOM",
+      "totalCount": 53.0,
+      "totalCost": 2035.0,
+      "totalPayment": 540.0,
+      "margin": 1495.0,
+      "pct": 1.21886669218422e-05
+    },
+    {
+      "sku": "503277",
+      "desc": "INSTALL TRANSITIONS TILE",
+      "category": "Tile",
+      "stream": "install",
+      "general": "NA-01-INSTALL TRANSITIONS TILE",
+      "totalCount": 219.0,
+      "totalCost": 227.7,
+      "totalPayment": 0.0,
+      "margin": 227.7,
+      "pct": 5.03644916204421e-05
     },
     {
       "sku": "586846",
       "desc": "TRIP CHARGE BACKSPLASH",
       "category": "Backsplash",
       "stream": "ancillary",
-      "general": "LA-02-TRIP CHARGE BACKSPLASH",
-      "totalCount": 30.0,
-      "totalCost": 1600.0,
-      "totalPayment": 725.0,
-      "margin": 875.0,
-      "pct": 9.66435897130025e-06
+      "general": "TA-02-TRIP CHARGE BACKSPLASH",
+      "totalCount": 31.0,
+      "totalCost": 1650.0,
+      "totalPayment": 750.0,
+      "margin": 900.0,
+      "pct": 7.12922027503975e-06
     },
     {
       "sku": "6554489",
       "desc": "ACCLIMATION & HANDLING",
       "category": "Other",
       "stream": "ancillary",
-      "general": "SA-01-ACCLIMATION & HANDLING",
-      "totalCount": 152.0,
-      "totalCost": 22800.0,
-      "totalPayment": 13300.0,
-      "margin": 9500.0,
-      "pct": 4.89660854545879e-05
+      "general": "TA-01--ACCLIMATION & HANDLING",
+      "totalCount": 210.0,
+      "totalCost": 31500.0,
+      "totalPayment": 15800.0,
+      "margin": 15700.0,
+      "pct": 4.82947179922048e-05
     },
     {
       "sku": "6554712",
       "desc": "ACCLIMATION & HANDLING",
       "category": "Other",
       "stream": "ancillary",
-      "general": "LA-01-ACCLIMATION & HANDLING",
-      "totalCount": 633.0,
-      "totalCost": 94950.0,
-      "totalPayment": 28250.0,
-      "margin": 66700.0,
-      "pct": 0.000203917974294435
+      "general": "OC-01-ACCLIMATION & HANDLING",
+      "totalCount": 877.0,
+      "totalCost": 131550.0,
+      "totalPayment": 35600.0,
+      "margin": 95950.0,
+      "pct": 0.00020168794132935
     },
     {
       "sku": "6554888",
       "desc": "ACCLIMATION & HANDLING",
       "category": "Other",
       "stream": "ancillary",
-      "general": "SA-02-ACCLIMATION & HANDLING",
-      "totalCount": 19.0,
-      "totalCost": 2850.0,
-      "totalPayment": 1200.0,
-      "margin": 1650.0,
-      "pct": 6.12076068182349e-06
+      "general": "GA-01-ACCLIMATION & HANDLING",
+      "totalCount": 33.0,
+      "totalCost": 4950.0,
+      "totalPayment": 1650.0,
+      "margin": 3300.0,
+      "pct": 7.58916997020361e-06
     },
     {
       "sku": "6559178",
       "desc": "ACCLIMATION & HANDLING",
       "category": "Other",
       "stream": "ancillary",
-      "general": "TA-02-ACCLIMATION & HANDLING",
-      "totalCount": 177.0,
-      "totalCost": 26550.0,
-      "totalPayment": 12050.0,
-      "margin": 14500.0,
-      "pct": 5.70197179306715e-05
+      "general": "GA-01-ACCLIMATION & HANDLING",
+      "totalCount": 253.0,
+      "totalCost": 37950.0,
+      "totalPayment": 15400.0,
+      "margin": 22550.0,
+      "pct": 5.81836364382277e-05
     },
     {
       "sku": "6768454",
@@ -1732,7 +1828,7 @@
       "totalCost": 40.95,
       "totalPayment": 0.0,
       "margin": 40.95,
-      "pct": 6.76505127991017e-06
+      "pct": 4.82947179922048e-06
     },
     {
       "sku": "6768458",
@@ -1744,19 +1840,19 @@
       "totalCost": 260.35,
       "totalPayment": 0.0,
       "margin": 260.35,
-      "pct": 4.09124529785044e-05
+      "pct": 2.92068056429048e-05
     },
     {
       "sku": "724006",
       "desc": "BASIC LABOR HWD LOCKING",
       "category": "Hardwood/Laminate",
       "stream": "install",
-      "general": "SA-02-BASIC LABOR HWD LOCKING",
-      "totalCount": 6658.0,
-      "totalCost": 13486.53,
-      "totalPayment": 6244.62,
-      "margin": 7241.91,
-      "pct": 0.00214484340103057
+      "general": "GA-01-BASIC LABOR HWD LOCKING",
+      "totalCount": 11986.0,
+      "totalCost": 28442.78,
+      "totalPayment": 7343.34,
+      "margin": 21099.44,
+      "pct": 0.00275647852311698
     },
     {
       "sku": "728120",
@@ -1764,71 +1860,83 @@
       "category": "Carpet",
       "stream": "pad",
       "general": "PAD L/P SM MEMORY FOAM",
-      "totalCount": 21816.0,
-      "totalCost": 48436.6,
+      "totalCount": 26847.0,
+      "totalCost": 73784.23,
       "totalPayment": 0.0,
-      "margin": 48436.6,
-      "pct": 0.00702792184392954
+      "margin": 73784.23,
+      "pct": 0.00617413473303201
     },
     {
       "sku": "7395568",
       "desc": "OPEN STEP/LANDING - COMPLEX",
       "category": "Other",
       "stream": "install",
-      "general": "PC-01-OPEN STEP/LANDING - COMPLEX",
-      "totalCount": 9.0,
-      "totalCost": 720.0,
+      "general": "AL-01-OPEN STEP/LANDING - COMPLEX",
+      "totalCount": 27.0,
+      "totalCost": 2160.0,
       "totalPayment": 240.0,
-      "margin": 480.0,
-      "pct": 2.89930769139007e-06
+      "margin": 1920.0,
+      "pct": 6.20932088471204e-06
     },
     {
       "sku": "7395569",
       "desc": "BOXED STEP - STAIR SYSTEM",
       "category": "Other",
       "stream": "install",
-      "general": "LA-01-BOXED STEP - STAIR SYSTEM",
-      "totalCount": 352.0,
-      "totalCost": 12567.0,
-      "totalPayment": 8880.0,
-      "margin": 3687.0,
-      "pct": 0.000113395145263256
+      "general": "TL-01-BOXED STEP - STAIR SYSTEM",
+      "totalCount": 408.0,
+      "totalCost": 14591.0,
+      "totalPayment": 10110.0,
+      "margin": 4481.0,
+      "pct": 9.38297378134264e-05
     },
     {
       "sku": "7395570",
       "desc": "OPEN STEP/LANDING - STAIR SYSTEM",
       "category": "Other",
       "stream": "install",
-      "general": "LA-01-OPEN STEP/LANDING - STAIR SYSTEM",
-      "totalCount": 17.0,
-      "totalCost": 608.0,
-      "totalPayment": 390.0,
-      "margin": 218.0,
-      "pct": 5.47647008373681e-06
+      "general": "TL-01-OPEN STEP/LANDING - STAIR SYSTEM",
+      "totalCount": 21.0,
+      "totalCost": 760.0,
+      "totalPayment": 480.0,
+      "margin": 280.0,
+      "pct": 4.82947179922048e-06
     },
     {
       "sku": "7395571",
       "desc": "BOXED STEP - COMPLEX",
       "category": "Other",
       "stream": "install",
-      "general": "TL-01-BOXED STEP - COMPLEX",
-      "totalCount": 17.0,
-      "totalCost": 1700.0,
-      "totalPayment": 680.0,
-      "margin": 1020.0,
-      "pct": 5.47647008373681e-06
+      "general": "NA-01-BOXED STEP - COMPLEX",
+      "totalCount": 47.0,
+      "totalCost": 4700.0,
+      "totalPayment": 1360.0,
+      "margin": 3340.0,
+      "pct": 1.08088178363506e-05
     },
     {
       "sku": "7395572",
       "desc": "OPEN STEP/LANDING - COMPLEX",
       "category": "Other",
       "stream": "install",
-      "general": "TL-01-OPEN STEP/LANDING - COMPLEX",
-      "totalCount": 1.0,
-      "totalCost": 80.0,
-      "totalPayment": 40.0,
-      "margin": 40.0,
-      "pct": 3.22145299043342e-07
+      "general": "NA-01-OPEN STEP/LANDING - COMPLEX",
+      "totalCount": 3.0,
+      "totalCost": 240.0,
+      "totalPayment": 80.0,
+      "margin": 160.0,
+      "pct": 6.89924542745783e-07
+    },
+    {
+      "sku": "7430518",
+      "desc": "ADDITIONAL WORK STAIRS - HWD",
+      "category": "Hardwood/Laminate",
+      "stream": "install",
+      "general": "NA-01-ADDITIONAL WORK STAIRS - HWD",
+      "totalCount": 287.0,
+      "totalCost": 258.3,
+      "totalPayment": 0.0,
+      "margin": 258.3,
+      "pct": 6.60027812560132e-05
     },
     {
       "sku": "7498982",
@@ -1840,55 +1948,55 @@
       "totalCost": 1037.0,
       "totalPayment": 510.0,
       "margin": 527.0,
-      "pct": 5.47647008373681e-06
+      "pct": 3.90957240889277e-06
     },
     {
       "sku": "7547029",
       "desc": "MOVING OF MAJOR APPLIANCE",
       "category": "Other",
       "stream": "furniture",
-      "general": "NA-01-MOVING OF MAJOR APPLIANCE",
-      "totalCount": 98.0,
-      "totalCost": 2425.0,
-      "totalPayment": 820.0,
-      "margin": 1605.0,
-      "pct": 3.15702393062475e-05
+      "general": "SA-01-MOVING OF MAJOR APPLIANCE",
+      "totalCount": 133.0,
+      "totalCost": 3300.0,
+      "totalPayment": 1000.0,
+      "margin": 2300.0,
+      "pct": 3.05866547283964e-05
     },
     {
       "sku": "808996",
       "desc": "LARGE FORMAT ADD ON",
       "category": "Tile",
       "stream": "ancillary",
-      "general": "SA-01-LARGE FORMAT ADD ON",
-      "totalCount": 32809.0,
-      "totalCost": 11483.15,
-      "totalPayment": 5811.4,
-      "margin": 5671.75,
-      "pct": 0.010569265116313
+      "general": "TA-02-LARGE FORMAT ADD ON",
+      "totalCount": 46367.0,
+      "totalCost": 16228.45,
+      "totalPayment": 6896.8,
+      "margin": 9331.65,
+      "pct": 0.0106632437578312
     },
     {
       "sku": "8254569",
       "desc": "Advanced Subfloor Prep",
       "category": "Other",
       "stream": "install",
-      "general": "SA-02-Advanced Subfloor Prep",
-      "totalCount": 16843.3,
-      "totalCost": 40205.52,
-      "totalPayment": 16416.4,
-      "margin": 23789.12,
-      "pct": 0.00542598991537671
+      "general": "TL-01-Advanced Subfloor Prep",
+      "totalCount": 20710.3,
+      "totalCost": 49486.32,
+      "totalPayment": 19631.7,
+      "margin": 29854.62,
+      "pct": 0.00476284808587599
     },
     {
       "sku": "8254572",
       "desc": "Advanced Subfloor Prep",
       "category": "Other",
       "stream": "install",
-      "general": "GA-01-Advanced Subfloor Prep",
-      "totalCount": 7934.5,
-      "totalCost": 19042.8,
-      "totalPayment": 9365.4,
-      "margin": 9677.4,
-      "pct": 0.00255606187525939
+      "general": "TA-01-Advanced Subfloor Prep",
+      "totalCount": 9210.5,
+      "totalCost": 22105.2,
+      "totalPayment": 10277.3,
+      "margin": 11827.9,
+      "pct": 0.00211818333365334
     },
     {
       "sku": "8254581",
@@ -1900,67 +2008,67 @@
       "totalCost": 52.5,
       "totalPayment": 15.0,
       "margin": 37.5,
-      "pct": 9.66435897130025e-06
+      "pct": 6.89924542745783e-06
     },
     {
       "sku": "8254582",
       "desc": "Net Adjustment Removal of Existing Base",
       "category": "Other",
       "stream": "adjustment",
-      "general": "OC-01-Removal of Existing Base",
-      "totalCount": 6517.0,
-      "totalCost": 6142.0,
-      "totalPayment": 1495.8,
-      "margin": 4646.2,
-      "pct": 0.00209942091386546
+      "general": "TA-02-Removal of Existing Base",
+      "totalCount": 9739.0,
+      "totalCost": 9739.0,
+      "totalPayment": 2126.7,
+      "margin": 7612.3,
+      "pct": 0.00223972504060039
     },
     {
       "sku": "8254585",
       "desc": "Removal of Existing Base",
       "category": "Other",
       "stream": "removal",
-      "general": "NA-01 Removal of Existing Base",
-      "totalCount": 3367.0,
-      "totalCost": 3367.0,
-      "totalPayment": 623.4,
-      "margin": 2743.6,
-      "pct": 0.00108466322187893
+      "general": "SA-01-Removal of Existing Base",
+      "totalCount": 3803.0,
+      "totalCost": 3803.0,
+      "totalPayment": 746.7,
+      "margin": 3056.3,
+      "pct": 0.00087459434535407
     },
     {
       "sku": "8254586",
       "desc": "Re-Install Existing Base",
       "category": "Other",
       "stream": "install",
-      "general": "Net Adjustment Re-Install Existing Base",
-      "totalCount": 1153.0,
-      "totalCost": 1268.3,
-      "totalPayment": 558.0,
-      "margin": 710.3,
-      "pct": 0.000371433529796973
+      "general": "SA-01-Re-Install Existing Base",
+      "totalCount": 2024.0,
+      "totalCost": 2226.4,
+      "totalPayment": 838.2,
+      "margin": 1388.2,
+      "pct": 0.000465469091505821
     },
     {
       "sku": "8254589",
       "desc": "Re-Install Existing Base",
       "category": "Other",
       "stream": "install",
-      "general": "OC-01-Re-Install Existing Base",
-      "totalCount": 227.0,
-      "totalCost": 249.7,
-      "totalPayment": 136.2,
-      "margin": 113.5,
-      "pct": 7.31269828828385e-05
+      "general": "SA-01-Re-Install Existing Base",
+      "totalCount": 278.0,
+      "totalCost": 305.3,
+      "totalPayment": 163.8,
+      "margin": 141.5,
+      "pct": 6.39330076277759e-05
     },
     {
       "sku": "8254590",
       "desc": "Net Adjustment Undercut Cabinet/ Fireplace",
       "category": "Other",
       "stream": "adjustment",
-      "general": "DO-01-Undercut Cabinet/ Fireplace",
-      "totalCount": 614.0,
-      "totalCost": 13486.0,
-      "totalPayment": 3075.0,
-      "margin": 10411.0,
-      "pct": 0.000197797213612612
+      "general": "GA-01-Undercut Cabinet/ Fireplace",
+      "totalCount": 683.0,
+      "totalCost": 15026.0,
+      "totalPayment": 3450.0,
+      "margin": 11576.0,
+      "pct": 0.000157072820898457
     },
     {
       "sku": "8254593",
@@ -1968,11 +2076,11 @@
       "category": "Other",
       "stream": "ancillary",
       "general": "TA-01-Undercut Cabinet/ Fireplace",
-      "totalCount": 187.0,
-      "totalCost": 4114.0,
-      "totalPayment": 1072.5,
-      "margin": 3041.5,
-      "pct": 6.02411709211049e-05
+      "totalCount": 233.0,
+      "totalCost": 5126.0,
+      "totalPayment": 1117.5,
+      "margin": 4008.5,
+      "pct": 5.35841394865891e-05
     },
     {
       "sku": "8266513",
@@ -1980,11 +2088,11 @@
       "category": "Other",
       "stream": "adjustment",
       "general": "Net Adjustment Removal of Moulding/ QTR",
-      "totalCount": 20748.0,
-      "totalCost": 20373.0,
-      "totalPayment": 2970.75,
-      "margin": 17402.25,
-      "pct": 0.00668387066455125
+      "totalCount": 26377.0,
+      "totalCost": 26377.0,
+      "totalPayment": 3691.75,
+      "margin": 22685.25,
+      "pct": 0.0060660465546685
     },
     {
       "sku": "8266516",
@@ -1992,11 +2100,11 @@
       "category": "Other",
       "stream": "removal",
       "general": "Net Adjustment Removal of Moulding/ QTR",
-      "totalCount": 4292.0,
-      "totalCost": 4292.0,
-      "totalPayment": 801.75,
-      "margin": 3490.25,
-      "pct": 0.00138264762349402
+      "totalCount": 6255.0,
+      "totalCost": 6255.0,
+      "totalPayment": 957.75,
+      "margin": 5297.25,
+      "pct": 0.00143849267162496
     },
     {
       "sku": "894543",
@@ -2008,19 +2116,31 @@
       "totalCost": 0.41,
       "totalPayment": 0.0,
       "margin": 0.41,
-      "pct": 3.22145299043342e-07
+      "pct": 2.29974847581928e-07
+    },
+    {
+      "sku": "900957",
+      "desc": "LPR - FLOORING SITE ASSESSMENT",
+      "category": "Other",
+      "stream": "other",
+      "general": "DO-01-LPR - FLOORING SITE ASSESSMENT",
+      "totalCount": 1.0,
+      "totalCost": 75.0,
+      "totalPayment": 0.0,
+      "margin": 75.0,
+      "pct": 2.29974847581928e-07
     },
     {
       "sku": "902958",
       "desc": "REMOVAL OF FLOATING FLOORS",
       "category": "Other",
       "stream": "removal",
-      "general": "SA-01-REMOVAL OF FLOATING FLOORS",
-      "totalCount": 285.0,
-      "totalCost": 274.23,
+      "general": "GA-01-REMOVAL OF FLOATING FLOORS",
+      "totalCount": 4100.0,
+      "totalCost": 4051.08,
       "totalPayment": 85.5,
-      "margin": 188.73,
-      "pct": 9.18114102273524e-05
+      "margin": 3965.58,
+      "pct": 0.000942896875085903
     },
     {
       "sku": "902961",
@@ -2028,35 +2148,35 @@
       "category": "Other",
       "stream": "removal",
       "general": "SA-01-REMOVAL OF ANCHORED FLOORS",
-      "totalCount": 1192.0,
-      "totalCost": 2562.8,
+      "totalCount": 1502.0,
+      "totalCost": 3229.3,
       "totalPayment": 1280.5,
-      "margin": 1282.3,
-      "pct": 0.000383997196459663
+      "margin": 1948.8,
+      "pct": 0.000345422221068055
     },
     {
       "sku": "918567",
       "desc": "ELECTRIAL CUTOUTS",
       "category": "Other",
       "stream": "install",
-      "general": "LA-01-ELECTRIAL CUTOUTS",
-      "totalCount": 554.0,
-      "totalCost": 3324.0,
-      "totalPayment": 1413.0,
-      "margin": 1911.0,
-      "pct": 0.000178468495670011
+      "general": "SA-01-ELECTRIAL CUTOUTS",
+      "totalCount": 813.0,
+      "totalCost": 4878.0,
+      "totalPayment": 1884.0,
+      "margin": 2994.0,
+      "pct": 0.000186969551084107
     },
     {
       "sku": "919044",
       "desc": "RMV HAUL OF CARPET HWD",
       "category": "Carpet",
       "stream": "removal",
-      "general": "SA-02-RMV HAUL OF CARPET HWD",
-      "totalCount": 6500.0,
-      "totalCost": 1423.12,
-      "totalPayment": 258.69,
-      "margin": 1164.43,
-      "pct": 0.00209394444378172
+      "general": "TA-01--RMV HAUL OF CARPET HWD",
+      "totalCount": 11422.0,
+      "totalCost": 2505.96,
+      "totalPayment": 424.76,
+      "margin": 2081.2,
+      "pct": 0.00262677270908078
     }
   ],
   "byCategory": {
@@ -2067,7 +2187,8 @@
         "227645",
         "282844",
         "320470",
-        "503233"
+        "503233",
+        "503235"
       ],
       "removal": [
         "1119489",
@@ -2096,6 +2217,7 @@
       "ancillary": [
         "1100806",
         "154381",
+        "19114",
         "228211",
         "228213",
         "228214",
@@ -2111,7 +2233,8 @@
         "1099057",
         "227604",
         "275602",
-        "475360"
+        "475360",
+        "503277"
       ],
       "removal": [
         "166175",
@@ -2141,7 +2264,9 @@
         "808996"
       ],
       "adjustment": [],
-      "other": []
+      "other": [
+        "1222811"
+      ]
     },
     "Vinyl": {
       "install": [
@@ -2184,21 +2309,25 @@
         "6768458",
         "894543"
       ],
-      "other": []
+      "other": [
+        "163982"
+      ]
     },
     "Hardwood/Laminate": {
       "install": [
-        "1076374",
         "1076375",
         "1099058",
         "1099059",
         "167763",
+        "188204",
         "188208",
         "227613",
         "227636",
         "503247",
         "503249",
-        "724006"
+        "503264",
+        "724006",
+        "7430518"
       ],
       "removal": [
         "199743",
@@ -2227,6 +2356,7 @@
         "227804"
       ],
       "adjustment": [
+        "1076374",
         "6768454"
       ],
       "other": []
@@ -2319,7 +2449,10 @@
         "8254590",
         "8266513"
       ],
-      "other": []
+      "other": [
+        "0001",
+        "900957"
+      ]
     }
   }
 }

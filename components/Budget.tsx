@@ -513,7 +513,7 @@ export default function Budget() {
           <table className="min-w-full text-sm">
             <thead>
               <tr className="border-b border-gray-200 text-xs text-gray-500 uppercase tracking-wide">
-                {['Office / Category', 'Jobs', 'Details', 'Est. sqft', 'Furniture', 'Detail', 'Revenue', 'Payout', 'Pad', 'Gross profit', 'GP%'].map((h) => (
+                {['Office / Category', 'Jobs', 'Details', 'Est. sqft', 'Detail', 'Revenue', 'Payout', 'Pad', 'Gross profit', 'GP%'].map((h) => (
                   <th key={h} className="px-3 py-2 text-right first:text-left font-semibold">{h}</th>
                 ))}
               </tr>
@@ -527,7 +527,6 @@ export default function Budget() {
                   <td className="px-3 py-2 text-right font-semibold">{count(r.jobs)}</td>
                   <td className="px-3 py-2 text-right font-semibold">{count(r.details)}</td>
                   <td className="px-3 py-2 text-right font-semibold">{nf(r.estSqft)}</td>
-                  <td className="px-3 py-2 text-right font-semibold">{money(r.furnitureIncome)}</td>
                   <td className="px-3 py-2 text-right font-semibold">{money(r.detailRevenue)}</td>
                   <td className="px-3 py-2 text-right font-semibold">{money(r.revenue)}</td>
                   <td className="px-3 py-2 text-right font-semibold">{money(r.payout)}</td>
@@ -553,7 +552,6 @@ export default function Budget() {
                         <td className="px-3 py-2 text-right">{count(cr.jobs)}</td>
                         <td className="px-3 py-2 text-right">{count(cr.details)}</td>
                         <td className="px-3 py-2 text-right">{nf(cr.estSqft)}</td>
-                        <td className="px-3 py-2 text-right">{money(cr.furnitureIncome)}</td>
                         <td className="px-3 py-2 text-right">{money(cr.detailRevenue)}</td>
                         <td className="px-3 py-2 text-right font-medium">{money(cr.revenue)}</td>
                         <td className="px-3 py-2 text-right">{money(cr.payout)}</td>
@@ -563,11 +561,14 @@ export default function Budget() {
                       </tr>
                       {open && (
                         <tr className="border-b border-gray-100 bg-[#f7faf3]">
-                          <td colSpan={11} className="px-3 py-2">
+                          <td colSpan={10} className="px-3 py-2">
                             <div className="pl-8">
-                              <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-2">
+                              <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">
                                 SKUs ({Object.values(skuByCat[cr.cat] ?? {}).reduce((n, a) => n + a.length, 0)})
                               </div>
+                              <p className="text-[11px] text-gray-400 mb-2">
+                                Current stores we service — catalog totals for ratios (install vs removal / furniture / pad / tack), not this workroom&apos;s volume.
+                              </p>
                                 <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
                                   {SKU_STREAM_ORDER.map((stream) => {
                                     const list = skuByCat[cr.cat]?.[stream]
@@ -630,7 +631,7 @@ export default function Budget() {
           <table className="min-w-full text-sm">
             <thead>
               <tr className="border-b border-gray-200 text-xs text-gray-500 uppercase tracking-wide">
-                {['Category', 'Jobs', 'Details', 'Est. sqft', 'Install', 'Removal', 'Furniture', 'Ancillary', 'Detail', 'Revenue', 'Payout', 'Gross profit', 'GP%'].map((h) => (
+                {['Category', 'Jobs', 'Details', 'Est. sqft', 'Install', 'Removal', 'Ancillary', 'Detail', 'Revenue', 'Payout', 'Gross profit', 'GP%'].map((h) => (
                   <th key={h} className="px-3 py-2 text-right first:text-left font-semibold">{h}</th>
                 ))}
               </tr>
@@ -647,7 +648,6 @@ export default function Budget() {
                     <td className="px-3 py-2 text-right">{nf(r.estSqft)}</td>
                     <td className="px-3 py-2 text-right">{money(r.installIncome)}</td>
                     <td className="px-3 py-2 text-right">{money(r.removalIncome)}</td>
-                    <td className="px-3 py-2 text-right">{money(r.furnitureIncome)}</td>
                     <td className="px-3 py-2 text-right">{money(r.ancillaryIncome)}</td>
                     <td className="px-3 py-2 text-right">{money(r.detailRevenue)}</td>
                     <td className="px-3 py-2 text-right font-semibold">{money(r.revenue)}</td>
@@ -701,8 +701,9 @@ export default function Budget() {
           <StatusBadge status="pending" label="Pending validation" />
         </div>
         <p className="text-xs text-gray-500 mb-4">
-          Avg job size, removal %, and ancillary % are set per category. Removal % comes from the SKU mix. Ancillary is
-          % of install sqft × $/sqft — still 0 until the add-on mix is confirmed.
+          Avg job size = BASIC LABOR sqft ÷ PO jobs from the two SKU reports (current stores we service). Removal % =
+          removal sqft ÷ install sqft (Each/upcharge SKUs left at zero). Furniture, pad, and tack-strip ratios are
+          stored the same way. Ancillary is still 0 until the add-on mix is confirmed.
         </p>
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">

@@ -1,9 +1,9 @@
 {
   "source": {
-    "historical": "6769bf98...xlsx (Historical Data, Region 27, FY2025) \u2014 Jobs field = PROJECTS from new areas bid.xlsx (per store+category). 54 of 56 Region 27 stores; 3413 (N. Miami Beach) and 3445 (St. Johns) excluded \u2014 not present in new areas bid.xlsx.",
+    "historical": "6769bf98...xlsx Details (Region 27 FY2025) + PROJECTS job counts from new areas bid.xlsx for 54 of 56 stores (3413, 3445 excluded). Job counts left as-is per boss.",
     "pricing": "FY26 Flooring RFP Pricing.xlsx (store-level, Region 27)",
     "labor": "South BID V2.0.xlsb / Current Labor (JACKSONVILLE)",
-    "avgJobSize": "new areas bid.xlsx UNITS / PROJECTS per category",
+    "avgJobSize": "SKUSoldByLineItem (3) BASIC LABOR Total Count \u00f7 SKUSoldByLineItem (2) PO jobs. Current-service stores (72, districts 868/1222/1226/1270/1297) \u2014 ratios only, not new-store volume. Tile check: $440,355.08 cost \u00f7 411 jobs \u00f7 $4.25 = 252 (boss); count/jobs = 247.3.",
     "rateMap": {
       "Carpet": {
         "install": "Input 6",
@@ -36,9 +36,11 @@
         "detail": "Input 114"
       }
     },
-    "furniture": "SKU Sales By Store (South BID V2.0) \u2014 MOVE FURNITURE rooms per sqft \u00d7 avg job size",
+    "furniture": "MOVE FURNITURE PER ROOM count \u00f7 BASIC LABOR install jobs (SKU reports). Oversized furniture excluded (Each/upcharge).",
     "storeMapping": "new areas bid.xlsx (orange/blue file), branch -> workroom",
-    "detailPay": "South BID V2.0 Current Labor \u2014 Assessment (detail) pay, Jacksonville $30/detail"
+    "detailPay": "South BID V2.0 Current Labor \u2014 Assessment (detail) pay, Jacksonville $30/detail",
+    "removalPct": "Named removal sqft (excl. Each/upcharge SKU 419901) + PO-matched floating/anchored, \u00f7 BASIC LABOR install sqft from the same two SKU reports.",
+    "skuReports": "budget 2/SKUSoldByLineItem (2).xlsx = Jobs Containing SKU (PO counts); (3).xlsx = SKU Count (sqft). File-wide grand total row removed (double count). These are CURRENT stores we service \u2014 used for avg job size and subcategory % only."
   },
   "categories": [
     "Carpet",
@@ -2077,18 +2079,18 @@
     }
   },
   "avgJobSize": {
-    "Carpet": 620.2,
-    "Tile": 428.4,
-    "Vinyl": 585.2,
-    "Hardwood/Laminate": 545.9,
-    "Backsplash": 22.4
+    "Carpet": 301.6,
+    "Tile": 247.3,
+    "Vinyl": 310.9,
+    "Hardwood/Laminate": 277.6,
+    "Backsplash": 15.3
   },
   "removalPct": {
-    "Carpet": 0.28,
-    "Tile": 0.337,
-    "Vinyl": 0.066,
-    "Hardwood/Laminate": 0.114,
-    "Backsplash": 0.004
+    "Carpet": 0.41,
+    "Tile": 0.824,
+    "Vinyl": 0.184,
+    "Hardwood/Laminate": 0.203,
+    "Backsplash": 0.0
   },
   "miscPct": {
     "Carpet": 0.0188,
@@ -5900,10 +5902,24 @@
     }
   },
   "furnitureRoomsPerJob": {
-    "Carpet": 1.0565,
-    "Tile": 0.5424,
-    "Vinyl": 0.7481,
-    "Hardwood/Laminate": 0.7631,
+    "Carpet": 0.0511,
+    "Tile": 0.129,
+    "Vinyl": 0.1635,
+    "Hardwood/Laminate": 0.0915,
+    "Backsplash": 0.0
+  },
+  "tackStripPct": {
+    "Carpet": 0.298,
+    "Tile": 0.0,
+    "Vinyl": 0.0,
+    "Hardwood/Laminate": 0.0,
+    "Backsplash": 0.0
+  },
+  "padQtyPct": {
+    "Carpet": 0.128,
+    "Tile": 0.0,
+    "Vinyl": 0.0,
+    "Hardwood/Laminate": 0.0,
     "Backsplash": 0.0
   }
 }
