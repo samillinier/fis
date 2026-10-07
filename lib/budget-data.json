@@ -3,7 +3,7 @@
     "historical": "6769bf98...xlsx Details (Region 27 FY2025) + PROJECTS job counts from new areas bid.xlsx for 54 of 56 stores (3413, 3445 excluded). Job counts left as-is per boss.",
     "pricing": "FY26 Flooring RFP Pricing.xlsx (store-level, Region 27)",
     "labor": "South BID V2.0.xlsb / Current Labor (JACKSONVILLE)",
-    "avgJobSize": "SKUSoldByLineItem (3) BASIC LABOR Total Count \u00f7 SKUSoldByLineItem (2) PO jobs. Current-service stores (72, districts 868/1222/1226/1270/1297) \u2014 ratios only, not new-store volume. Tile check: $440,355.08 cost \u00f7 411 jobs \u00f7 $4.25 = 252 (boss); count/jobs = 247.3.",
+    "avgJobSize": "One primary BASIC LABOR SKU per category: file (3) Total Count / file (2) PO jobs. Carpet = 227645 1,069,252 / 3,553 = 300.9 (boss: 300 sqft).",
     "rateMap": {
       "Carpet": {
         "install": "Input 6",
@@ -39,7 +39,7 @@
     "furniture": "MOVE FURNITURE PER ROOM count \u00f7 BASIC LABOR install jobs (SKU reports). Oversized furniture excluded (Each/upcharge).",
     "storeMapping": "new areas bid.xlsx (orange/blue file), branch -> workroom",
     "detailPay": "South BID V2.0 Current Labor \u2014 Assessment (detail) pay, Jacksonville $30/detail",
-    "removalPct": "Named removal sqft (excl. Each/upcharge SKU 419901) + PO-matched floating/anchored, \u00f7 BASIC LABOR install sqft from the same two SKU reports.",
+    "removalPct": "Carpet 60% exactly as boss: 419901 Total Count 636,438 / 227645 Total Count 1,069,252. Other categories still named+PO-matched pending the same SKU-by-SKU pass.",
     "skuReports": "budget 2/SKUSoldByLineItem (2).xlsx = Jobs Containing SKU (PO counts); (3).xlsx = SKU Count (sqft). File-wide grand total row removed (double count). These are CURRENT stores we service \u2014 used for avg job size and subcategory % only."
   },
   "categories": [
@@ -2079,14 +2079,14 @@
     }
   },
   "avgJobSize": {
-    "Carpet": 301.6,
+    "Carpet": 300.9,
     "Tile": 247.3,
-    "Vinyl": 310.9,
-    "Hardwood/Laminate": 277.6,
-    "Backsplash": 15.3
+    "Vinyl": 311.3,
+    "Hardwood/Laminate": 279.8,
+    "Backsplash": 15.4
   },
   "removalPct": {
-    "Carpet": 0.41,
+    "Carpet": 0.60,
     "Tile": 0.824,
     "Vinyl": 0.184,
     "Hardwood/Laminate": 0.203,

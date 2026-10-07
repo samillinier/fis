@@ -505,15 +505,12 @@ export default function Budget() {
       </div>
 
       <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-900 mb-1">Workroom × Category breakdown</h2>
-        <p className="text-xs text-gray-500 mb-4">
-          Each office broken out by category: revenue minus cost of goods (installer pay + pad/materials) = gross profit, with the %.
-        </p>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Workroom × Category breakdown</h2>
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
               <tr className="border-b border-gray-200 text-xs text-gray-500 uppercase tracking-wide">
-                {['Office / Category', 'Jobs', 'Details', 'Est. sqft', 'Detail', 'Revenue', 'Payout', 'Pad', 'Gross profit', 'GP%'].map((h) => (
+                {['Office / Category', 'Jobs', 'Details', 'Est. sqft', 'Detail', 'Revenue', 'Payout', 'Pad'].map((h) => (
                   <th key={h} className="px-3 py-2 text-right first:text-left font-semibold">{h}</th>
                 ))}
               </tr>
@@ -531,8 +528,6 @@ export default function Budget() {
                   <td className="px-3 py-2 text-right font-semibold">{money(r.revenue)}</td>
                   <td className="px-3 py-2 text-right font-semibold">{money(r.payout)}</td>
                   <td className="px-3 py-2 text-right font-semibold">{money(r.pad)}</td>
-                  <td className="px-3 py-2 text-right font-semibold text-[#6d8a35]">{money(r.contribution)}</td>
-                  <td className="px-3 py-2 text-right font-semibold text-[#6d8a35]">{r.margin.toFixed(1)}%</td>
                 </tr>
                 {r.cats.map((cr: any) => {
                   const key = `${r.workroom}|${cr.cat}`
@@ -556,19 +551,14 @@ export default function Budget() {
                         <td className="px-3 py-2 text-right font-medium">{money(cr.revenue)}</td>
                         <td className="px-3 py-2 text-right">{money(cr.payout)}</td>
                         <td className="px-3 py-2 text-right">{money(cr.pad)}</td>
-                        <td className="px-3 py-2 text-right font-medium text-[#6d8a35]">{money(cr.contribution)}</td>
-                        <td className="px-3 py-2 text-right text-[#6d8a35]">{cr.margin.toFixed(1)}%</td>
                       </tr>
                       {open && (
                         <tr className="border-b border-gray-100 bg-[#f7faf3]">
-                          <td colSpan={10} className="px-3 py-2">
+                          <td colSpan={8} className="px-3 py-2">
                             <div className="pl-8">
-                              <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">
+                              <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-2">
                                 SKUs ({Object.values(skuByCat[cr.cat] ?? {}).reduce((n, a) => n + a.length, 0)})
                               </div>
-                              <p className="text-[11px] text-gray-400 mb-2">
-                                Current stores we service — catalog totals for ratios (install vs removal / furniture / pad / tack), not this workroom&apos;s volume.
-                              </p>
                                 <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
                                   {SKU_STREAM_ORDER.map((stream) => {
                                     const list = skuByCat[cr.cat]?.[stream]
@@ -631,7 +621,7 @@ export default function Budget() {
           <table className="min-w-full text-sm">
             <thead>
               <tr className="border-b border-gray-200 text-xs text-gray-500 uppercase tracking-wide">
-                {['Category', 'Jobs', 'Details', 'Est. sqft', 'Install', 'Removal', 'Ancillary', 'Detail', 'Revenue', 'Payout', 'Gross profit', 'GP%'].map((h) => (
+                {['Category', 'Jobs', 'Details', 'Est. sqft', 'Install', 'Removal', 'Ancillary', 'Detail', 'Revenue', 'Payout', ...d.workrooms].map((h) => (
                   <th key={h} className="px-3 py-2 text-right first:text-left font-semibold">{h}</th>
                 ))}
               </tr>
@@ -639,7 +629,6 @@ export default function Budget() {
             <tbody>
               {CATEGORIES.map((c) => {
                 const r = all.byCat[c]
-                const margin = r.revenue > 0 ? (r.contribution / r.revenue) * 100 : 0
                 return (
                   <tr key={c} className="border-b border-gray-100">
                     <td className="px-3 py-2 font-medium text-gray-900">{c}</td>
@@ -652,8 +641,14 @@ export default function Budget() {
                     <td className="px-3 py-2 text-right">{money(r.detailRevenue)}</td>
                     <td className="px-3 py-2 text-right font-semibold">{money(r.revenue)}</td>
                     <td className="px-3 py-2 text-right">{money(r.payout)}</td>
-                    <td className="px-3 py-2 text-right font-semibold text-[#6d8a35]">{money(r.contribution)}</td>
-                    <td className="px-3 py-2 text-right text-[#6d8a35]">{margin.toFixed(1)}%</td>
+                    {workroomRows.map((wr: any) => {
+                      const catRow = wr.cats.find((x: any) => x.cat === c)
+                      return (
+                        <td key={wr.workroom} className="px-3 py-2 text-right">
+                          {money(catRow?.revenue ?? 0)}
+                        </td>
+                      )
+                    })}
                   </tr>
                 )
               })}
@@ -700,16 +695,11 @@ export default function Budget() {
           <h2 className="text-lg font-semibold text-gray-900">Production &amp; SKU mix assumptions</h2>
           <StatusBadge status="pending" label="Pending validation" />
         </div>
-        <p className="text-xs text-gray-500 mb-4">
-          Avg job size = BASIC LABOR sqft ÷ PO jobs from the two SKU reports (current stores we service). Removal % =
-          removal sqft ÷ install sqft (Each/upcharge SKUs left at zero). Furniture, pad, and tack-strip ratios are
-          stored the same way. Ancillary is still 0 until the add-on mix is confirmed.
-        </p>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto mt-4">
           <table className="min-w-full text-sm">
             <thead>
               <tr className="border-b border-gray-200 text-xs text-gray-500 uppercase tracking-wide">
-                {['Category', 'Avg job (sqft)', 'Removal %', 'Ancillary %', 'Ancillary $/sqft'].map((h) => (
+                {['Category', 'Avg job (sqft)', 'Removal %'].map((h) => (
                   <th key={h} className="px-3 py-2 text-right first:text-left font-semibold">{h}</th>
                 ))}
               </tr>
@@ -720,8 +710,6 @@ export default function Budget() {
                   <td className="px-3 py-2 font-medium text-gray-900">{c}</td>
                   <td className="px-3 py-2 text-right">{rateField('avgJob', c)}</td>
                   <td className="px-3 py-2 text-right">{rateField('removalPct', c)}</td>
-                  <td className="px-3 py-2 text-right">{rateField('ancillaryPct', c)}</td>
-                  <td className="px-3 py-2 text-right">{rateField('ancillaryRate', c)}</td>
                 </tr>
               ))}
             </tbody>
