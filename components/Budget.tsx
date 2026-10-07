@@ -106,10 +106,47 @@ type SkuLine = {
   sku: string
   desc: string
   count?: number
+  jobs?: number
   cost?: number
   payment?: number
   margin?: number
   pct?: number
+}
+
+const AVG_JOB_SKUS: Record<string, string> = {
+  Carpet: '227645',
+  Tile: '104730',
+  Vinyl: '503270',
+  'Hardwood/Laminate': '503247',
+  Backsplash: '475356',
+}
+
+const REMOVAL_NUMERATOR_SKUS: Record<string, string[]> = {
+  Carpet: ['419901'],
+  Tile: ['199922', '405361', '199682', '174252', '166175', '475345'],
+  Vinyl: ['200345', '199363', '174579', '199704', '163979', '343409'],
+  'Hardwood/Laminate': ['199743', '227609', '343405', '343412'],
+  Backsplash: [],
+}
+
+const REMOVAL_DENOM_SKUS: Record<string, string[]> = {
+  Carpet: ['227645'],
+  Tile: ['104730'],
+  Vinyl: ['503270', '163973', '1243934', '1051453', '163978'],
+  'Hardwood/Laminate': ['503247', '724006', '188208', '188204'],
+  Backsplash: ['475356'],
+}
+
+const GENERIC_REMOVAL_SQFT: Record<string, number> = {
+  Carpet: 0,
+  Tile: 19469,
+  Vinyl: 89117,
+  'Hardwood/Laminate': 33077,
+  Backsplash: 0,
+}
+
+function findSku(id: string): any {
+  return ((skuData as any).skus ?? []).find((s: any) => s.sku === id)
 }
 // Count values can be fractional (e.g. linear feet), so keep decimals when non-integer.
 function skuCount(n?: number): string {
@@ -298,6 +335,7 @@ export default function Budget() {
         sku: s.sku,
         desc: s.desc,
         count: s.totalCount,
+        jobs: s.jobs,
         cost: s.totalCost,
         payment: s.totalPayment,
         margin: s.margin,
@@ -574,6 +612,7 @@ export default function Budget() {
                                             <thead>
                                               <tr className="text-[10px] uppercase tracking-wide text-gray-400 border-b border-gray-100">
                                                 <th className="text-left font-medium py-1 pr-2">SKU</th>
+                                                <th className="text-right font-medium py-1 px-2">POs</th>
                                                 <th className="text-right font-medium py-1 px-2">Count</th>
                                                 <th className="text-right font-medium py-1 px-2">Cost</th>
                                                 <th className="text-right font-medium py-1 px-2">Payment</th>
@@ -588,6 +627,7 @@ export default function Budget() {
                                                     <span className="text-gray-400">{s.sku}</span>{' '}
                                                     <span className="text-gray-700">{s.desc}</span>
                                                   </td>
+                                                  <td className="py-1 px-2 text-right text-gray-600 whitespace-nowrap">{s.jobs ? s.jobs.toLocaleString() : '—'}</td>
                                                   <td className="py-1 px-2 text-right text-gray-600 whitespace-nowrap">{skuCount(s.count)}</td>
                                                   <td className="py-1 px-2 text-right text-gray-600 whitespace-nowrap">{skuMoney(s.cost)}</td>
                                                   <td className="py-1 px-2 text-right text-gray-600 whitespace-nowrap">{skuMoney(s.payment)}</td>
@@ -714,6 +754,107 @@ export default function Budget() {
               ))}
             </tbody>
           </table>
+        </div>
+
+        <div className="mt-6 space-y-6">
+          <div>
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
+              SKUs + POs used for avg job
+            </h3>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-xs">
+                <thead>
+                  <tr className="border-b border-gray-200 text-[10px] text-gray-400 uppercase tracking-wide">
+                    {['Category', 'SKU', 'POs', 'Sqft', 'Avg job'].map((h) => (
+                      <th key={h} className="px-2 py-1.5 text-right first:text-left font-semibold">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {CATEGORIES.map((c) => {
+                    const s = findSku(AVG_JOB_SKUS[c])
+                    const jobs = Number(s?.jobs || 0)
+                    const sqft = Number(s?.totalCount || 0)
+                    const avg = jobs ? sqft / jobs : 0
+                    return (
+                      <tr key={c} className="border-b border-gray-50">
+                        <td className="px-2 py-1.5 font-medium text-gray-900">{c}</td>
+                        <td className="px-2 py-1.5 text-gray-600">
+                          <span className="text-gray-400">{s?.sku}</span>{' '}
+                          {s?.desc}
+                          <div className="text-[10px] text-gray-400">{jobs.toLocaleString()} POs</div>
+                        </td>
+                        <td className="px-2 py-1.5 text-right text-gray-600">{jobs.toLocaleString()}</td>
+                        <td className="px-2 py-1.5 text-right text-gray-600">{skuCount(sqft)}</td>
+                        <td className="px-2 py-1.5 text-right font-medium text-gray-900">{avg.toFixed(1)}</td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
+              SKUs + POs used for removal %
+            </h3>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {CATEGORIES.map((c) => {
+                const nums = (REMOVAL_NUMERATOR_SKUS[c] || []).map(findSku).filter(Boolean)
+                const dens = (REMOVAL_DENOM_SKUS[c] || []).map(findSku).filter(Boolean)
+                const namedSqft = nums.reduce((a: number, s: any) => a + Number(s.totalCount || 0), 0)
+                const generic = GENERIC_REMOVAL_SQFT[c] || 0
+                const denomSqft = dens.reduce((a: number, s: any) => a + Number(s.totalCount || 0), 0)
+                const pct = denomSqft ? ((namedSqft + generic) / denomSqft) * 100 : 0
+                return (
+                  <div key={c} className="rounded-md border border-gray-100 p-3">
+                    <div className="text-sm font-semibold text-gray-900 mb-2">
+                      {c}{' '}
+                      <span className="font-normal text-gray-400">{c === 'Carpet' ? '60.0%' : `${pct.toFixed(1)}%`}</span>
+                    </div>
+                    <div className="text-[10px] uppercase tracking-wide text-gray-400 mb-1">Removal</div>
+                    <table className="w-full text-xs mb-2">
+                      <tbody>
+                        {nums.length === 0 && generic === 0 && (
+                          <tr><td className="py-0.5 text-gray-400">No removal SKU</td></tr>
+                        )}
+                        {nums.map((s: any) => (
+                          <tr key={s.sku} className="border-b border-gray-50">
+                            <td className="py-0.5 pr-2 text-gray-600">
+                              <span className="text-gray-400">{s.sku}</span> {s.desc}
+                              <div className="text-[10px] text-gray-400">{Number(s.jobs || 0).toLocaleString()} POs</div>
+                            </td>
+                            <td className="py-0.5 text-right text-gray-500 whitespace-nowrap">{skuCount(s.totalCount)}</td>
+                          </tr>
+                        ))}
+                        {generic > 0 && (
+                          <tr>
+                            <td className="py-0.5 pr-2 text-gray-500">Floating/anchored matched by PO</td>
+                            <td className="py-0.5 text-right text-gray-500 whitespace-nowrap">{skuCount(generic)}</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                    <div className="text-[10px] uppercase tracking-wide text-gray-400 mb-1">÷ Install</div>
+                    <table className="w-full text-xs">
+                      <tbody>
+                        {dens.map((s: any) => (
+                          <tr key={s.sku} className="border-b border-gray-50">
+                            <td className="py-0.5 pr-2 text-gray-600">
+                              <span className="text-gray-400">{s.sku}</span> {s.desc}
+                              <div className="text-[10px] text-gray-400">{Number(s.jobs || 0).toLocaleString()} POs</div>
+                            </td>
+                            <td className="py-0.5 text-right text-gray-500 whitespace-nowrap">{skuCount(s.totalCount)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
         </div>
       </div>
 
