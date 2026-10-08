@@ -17,6 +17,8 @@ import {
 import { DollarSign, Store, FileSpreadsheet, TrendingUp, Wallet, Layers, ChevronDown, ChevronRight } from 'lucide-react'
 import budgetData from '@/lib/budget-data.json'
 import skuData from '@/lib/sku-data.json'
+import existingWorkrooms from '@/lib/existing-workrooms.json'
+import { workroomStoreData } from '@/data/workroomStoreData'
 
 const CATEGORIES = ['Carpet', 'Tile', 'Vinyl', 'Hardwood/Laminate', 'Backsplash'] as const
 
@@ -33,20 +35,19 @@ const SKU_STREAM_LABEL: Record<string, string> = {
 }
 
 const CAT_COLORS: Record<string, string> = {
-  Carpet: '#89ac44',
-  Tile: '#eab308',
-  Vinyl: '#6d8a35',
-  'Hardwood/Laminate': '#f59e0b',
-  Backsplash: '#a5c266',
+  Carpet: '#2563eb',
+  Tile: '#ea580c',
+  Vinyl: '#0d9488',
+  'Hardwood/Laminate': '#7c3aed',
+  Backsplash: '#db2777',
 }
 
-// Revenue stream colors (distinct hues)
 const STREAM_COLORS: Record<string, string> = {
-  Install: '#89ac44',
-  Removal: '#eab308',
-  Furniture: '#b45309',
-  Ancillary: '#0d9488',
-  Detail: '#14532d',
+  Install: '#2563eb',
+  Removal: '#ea580c',
+  Furniture: '#7c3aed',
+  Ancillary: '#64748b',
+  Detail: '#16a34a',
 }
 
 // Global (non-store) assumptions that remain editable
@@ -396,6 +397,83 @@ export default function Budget() {
     })
   }, [])
 
+  const existingStoresByWr = useMemo(() => {
+    const m: Record<string, number[]> = {}
+    for (const { workroom, store } of workroomStoreData) {
+      if (!m[workroom]) m[workroom] = []
+      if (!m[workroom].includes(store)) m[workroom].push(store)
+    }
+    return m
+  }, [])
+
+  function existingRate(wr: string, cat: string, stream: string): number {
+    const ids = existingStoresByWr[wr] || []
+    const vals = ids
+      .map((st) => {
+        const sr = d.storeRates?.[String(st)]?.[cat]
+        if (sr && sr[stream] != null && num(sr[stream]) !== 0) return num(sr[stream])
+        return null
+      })
+      .filter((v): v is number => v != null)
+    if (vals.length) return vals.reduce((a, b) => a + b, 0) / vals.length
+    return num(d.pricing[stream]?.[cat])
+  }
+
+  const existingWorkroomRows = useMemo(() => {
+    const padRate = num(padPct) / 100
+    return ((existingWorkrooms as any).workrooms ?? []).map((w: any) => {
+      const wr = w.workroom as string
+      const storeIds = existingStoresByWr[wr] || []
+      const detailLabor = num(EXISTING_DETAIL_PAY[wr] ?? '30')
+      const cats = CATEGORIES.map((c) => {
+        const vol = w.categories?.[c] || {}
+        const jobs = num(vol.jobs)
+        const details = num(vol.details)
+        const estSqft = num(vol.installSqft)
+        const removalSqft = num(vol.removalSqft)
+        const furnitureRooms = num(vol.furnitureRooms)
+        const installIncome = estSqft * existingRate(wr, c, 'install')
+        const removalIncome = removalSqft * existingRate(wr, c, 'removal')
+        const furnitureIncome = furnitureRooms * existingRate(wr, c, 'furniture')
+        const detailRevenue = details * existingRate(wr, c, 'detail')
+        const payout =
+          estSqft * num(params.installLabor[c]) +
+          removalSqft * num(params.removalLabor[c]) +
+          furnitureRooms * num(params.furnitureLabor[c]) +
+          details * detailLabor
+        const revenue = installIncome + removalIncome + furnitureIncome + detailRevenue
+        const pad = revenue * padRate
+        return {
+          cat: c,
+          jobs,
+          details,
+          estSqft,
+          installIncome,
+          removalIncome,
+          furnitureIncome,
+          detailRevenue,
+          revenue,
+          payout,
+          pad,
+          contribution: revenue - payout - pad,
+        }
+      })
+      const sum = (k: string) => cats.reduce((a, r: any) => a + (r[k] || 0), 0)
+      return {
+        workroom: wr,
+        stores: storeIds.length,
+        cats,
+        jobs: sum('jobs'),
+        details: sum('details'),
+        estSqft: sum('estSqft'),
+        detailRevenue: sum('detailRevenue'),
+        revenue: sum('revenue'),
+        payout: sum('payout'),
+        pad: sum('pad'),
+      }
+    })
+  }, [params, padPct, existingStoresByWr])
+
   const barData = workroomRows.map((r: any) => ({
     workroom: r.workroom,
     Install: Math.round(r.installIncome),
@@ -410,6 +488,28 @@ export default function Budget() {
     value: Math.max(0, Math.round(all.byCat[c].revenue)),
   }))
   const pieTotal = pieData.reduce((s, d) => s + d.value, 0)
+
+  const existingBarData = existingWorkroomRows.map((r: any) => ({
+    workroom: r.workroom,
+    Install: Math.round(r.cats.reduce((a: number, c: any) => a + (c.installIncome || 0), 0)),
+    Removal: Math.round(r.cats.reduce((a: number, c: any) => a + (c.removalIncome || 0), 0)),
+    Furniture: Math.round(r.cats.reduce((a: number, c: any) => a + (c.furnitureIncome || 0), 0)),
+    Detail: Math.round(r.detailRevenue || 0),
+  }))
+
+  const existingPieData = CATEGORIES.map((c) => ({
+    name: c,
+    value: Math.max(
+      0,
+      Math.round(
+        existingWorkroomRows.reduce((a: number, r: any) => {
+          const row = r.cats.find((x: any) => x.cat === c)
+          return a + (row?.revenue || 0)
+        }, 0)
+      )
+    ),
+  }))
+  const existingPieTotal = existingPieData.reduce((s, d) => s + d.value, 0)
 
   const contributionMargin =
     all.totals.revenue > 0 ? ((all.totals.contribution / all.totals.revenue) * 100).toFixed(1) + '%' : '—'
@@ -494,7 +594,7 @@ export default function Budget() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Revenue by workroom</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">New Florida — revenue by workroom</h2>
           <ResponsiveContainer width="100%" height={340}>
             <BarChart data={barData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -512,7 +612,7 @@ export default function Budget() {
         </div>
 
         <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Revenue share by category</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">New Florida — revenue share by category</h2>
           {pieTotal > 0 ? (
             <ResponsiveContainer width="100%" height={340}>
               <PieChart>
@@ -525,6 +625,8 @@ export default function Budget() {
                   innerRadius={60}
                   outerRadius={110}
                   dataKey="value"
+                  stroke="#fff"
+                  strokeWidth={2}
                 >
                   {pieData.map((entry) => (
                     <Cell key={entry.name} fill={CAT_COLORS[entry.name]} />
@@ -543,7 +645,7 @@ export default function Budget() {
       </div>
 
       <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Workroom × Category breakdown</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">New Florida workrooms</h2>
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
@@ -649,6 +751,100 @@ export default function Budget() {
                     </Fragment>
                   )
                 })}
+              </tbody>
+            ))}
+          </table>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Existing — revenue by workroom</h2>
+          <ResponsiveContainer width="100%" height={380}>
+            <BarChart data={existingBarData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis dataKey="workroom" tick={{ fontSize: 11 }} interval={0} angle={-35} textAnchor="end" height={90} />
+              <YAxis tickFormatter={(v) => money(v)} tick={{ fontSize: 12 }} />
+              <Tooltip formatter={(v: any) => money(Number(v))} />
+              <Legend />
+              <Bar dataKey="Install" stackId="a" fill={STREAM_COLORS.Install} />
+              <Bar dataKey="Removal" stackId="a" fill={STREAM_COLORS.Removal} />
+              <Bar dataKey="Furniture" stackId="a" fill={STREAM_COLORS.Furniture} />
+              <Bar dataKey="Detail" stackId="a" fill={STREAM_COLORS.Detail} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Existing — revenue share by category</h2>
+          {existingPieTotal > 0 ? (
+            <ResponsiveContainer width="100%" height={380}>
+              <PieChart>
+                <Pie
+                  data={existingPieData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }: any) => `${name} ${((percent ?? 0) * 100).toFixed(1)}%`}
+                  innerRadius={60}
+                  outerRadius={110}
+                  dataKey="value"
+                  stroke="#fff"
+                  strokeWidth={2}
+                >
+                  {existingPieData.map((entry) => (
+                    <Cell key={entry.name} fill={CAT_COLORS[entry.name]} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(v: any) => money(Number(v))} />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[380px] flex items-center justify-center text-gray-400 text-sm">
+              No revenue data
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Existing workrooms</h2>
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-200 text-xs text-gray-500 uppercase tracking-wide">
+                {['Office / Category', 'Jobs', 'Details', 'Est. sqft', 'Detail', 'Revenue', 'Payout', 'Pad'].map((h) => (
+                  <th key={h} className="px-3 py-2 text-right first:text-left font-semibold">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            {existingWorkroomRows.map((r: any) => (
+              <tbody key={r.workroom}>
+                <tr className="border-b border-gray-200 bg-gray-50">
+                  <td className="px-3 py-2 font-semibold text-gray-900">
+                    {r.workroom} <span className="font-normal text-gray-400">({r.stores} stores)</span>
+                  </td>
+                  <td className="px-3 py-2 text-right font-semibold">{count(r.jobs)}</td>
+                  <td className="px-3 py-2 text-right font-semibold">{count(r.details)}</td>
+                  <td className="px-3 py-2 text-right font-semibold">{nf(r.estSqft)}</td>
+                  <td className="px-3 py-2 text-right font-semibold">{money(r.detailRevenue)}</td>
+                  <td className="px-3 py-2 text-right font-semibold">{money(r.revenue)}</td>
+                  <td className="px-3 py-2 text-right font-semibold">{money(r.payout)}</td>
+                  <td className="px-3 py-2 text-right font-semibold">{money(r.pad)}</td>
+                </tr>
+                {r.cats.map((cr: any) => (
+                  <tr key={cr.cat} className="border-b border-gray-100">
+                    <td className="px-3 py-2 pl-6 text-gray-700">{cr.cat}</td>
+                    <td className="px-3 py-2 text-right">{count(cr.jobs)}</td>
+                    <td className="px-3 py-2 text-right">{count(cr.details)}</td>
+                    <td className="px-3 py-2 text-right">{nf(cr.estSqft)}</td>
+                    <td className="px-3 py-2 text-right">{money(cr.detailRevenue)}</td>
+                    <td className="px-3 py-2 text-right font-medium">{money(cr.revenue)}</td>
+                    <td className="px-3 py-2 text-right">{money(cr.payout)}</td>
+                    <td className="px-3 py-2 text-right">{money(cr.pad)}</td>
+                  </tr>
+                ))}
               </tbody>
             ))}
           </table>

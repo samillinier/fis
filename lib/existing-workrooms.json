@@ -1,0 +1,598 @@
+{
+  "source": "SKUSoldByLineItem (3) line items (no Total rows). Jobs=distinct POs on primary BASIC LABOR SKU. Install=that SKU Total Count. Removal=named haul SKUs + floating/anchored matched by PO. Details=DETAIL SKU count. Furniture=MOVE FURNITURE PER ROOM only.",
+  "workrooms": [
+    {
+      "workroom": "Albany",
+      "stores": [
+        491,
+        1564,
+        2621
+      ],
+      "categories": {
+        "Carpet": {
+          "jobs": 21,
+          "details": 68.0,
+          "installSqft": 10791.0,
+          "removalSqft": 6475.0,
+          "furnitureRooms": 3.0,
+          "namedRemovalSqft": 6475.0,
+          "genericRemovalSqft": 0.0
+        },
+        "Tile": {
+          "jobs": 3,
+          "details": 18.0,
+          "installSqft": 1165.0,
+          "removalSqft": 573.0,
+          "furnitureRooms": 1.0,
+          "namedRemovalSqft": 573.0,
+          "genericRemovalSqft": 0.0
+        },
+        "Vinyl": {
+          "jobs": 34,
+          "details": 98.0,
+          "installSqft": 14939.0,
+          "removalSqft": 3544.0,
+          "furnitureRooms": 18.0,
+          "namedRemovalSqft": 458.0,
+          "genericRemovalSqft": 3086.0
+        },
+        "Hardwood/Laminate": {
+          "jobs": 4,
+          "details": 22.0,
+          "installSqft": 2861.0,
+          "removalSqft": 1272.0,
+          "furnitureRooms": 2.0,
+          "namedRemovalSqft": 4.0,
+          "genericRemovalSqft": 1268.0
+        },
+        "Backsplash": {
+          "jobs": 3,
+          "details": 4.0,
+          "installSqft": 33.0,
+          "removalSqft": 0.0,
+          "furnitureRooms": 0.0,
+          "namedRemovalSqft": 0.0,
+          "genericRemovalSqft": 0.0
+        }
+      }
+    },
+    {
+      "workroom": "Dothan",
+      "stores": [
+        281,
+        606,
+        2212,
+        2884
+      ],
+      "categories": {
+        "Carpet": {
+          "jobs": 89,
+          "details": 215.0,
+          "installSqft": 49379.0,
+          "removalSqft": 23081.0,
+          "furnitureRooms": 5.0,
+          "namedRemovalSqft": 22787.0,
+          "genericRemovalSqft": 294.0
+        },
+        "Tile": {
+          "jobs": 11,
+          "details": 39.0,
+          "installSqft": 4397.0,
+          "removalSqft": 2249.0,
+          "furnitureRooms": 0.0,
+          "namedRemovalSqft": 2249.0,
+          "genericRemovalSqft": 0.0
+        },
+        "Vinyl": {
+          "jobs": 60,
+          "details": 197.0,
+          "installSqft": 37856.0,
+          "removalSqft": 6738.0,
+          "furnitureRooms": 8.0,
+          "namedRemovalSqft": 1069.0,
+          "genericRemovalSqft": 5669.0
+        },
+        "Hardwood/Laminate": {
+          "jobs": 23,
+          "details": 50.0,
+          "installSqft": 9745.0,
+          "removalSqft": 2251.0,
+          "furnitureRooms": 2.0,
+          "namedRemovalSqft": 7.0,
+          "genericRemovalSqft": 2244.0
+        },
+        "Backsplash": {
+          "jobs": 6,
+          "details": 6.0,
+          "installSqft": 190.0,
+          "removalSqft": 0.0,
+          "furnitureRooms": 0.0,
+          "namedRemovalSqft": 0.0,
+          "genericRemovalSqft": 0.0
+        }
+      }
+    },
+    {
+      "workroom": "Gainesville",
+      "stores": [
+        179,
+        2365,
+        2462,
+        2984,
+        3278
+      ],
+      "categories": {
+        "Carpet": {
+          "jobs": 79,
+          "details": 203.0,
+          "installSqft": 48238.0,
+          "removalSqft": 26407.0,
+          "furnitureRooms": 9.0,
+          "namedRemovalSqft": 26262.0,
+          "genericRemovalSqft": 145.0
+        },
+        "Tile": {
+          "jobs": 9,
+          "details": 44.0,
+          "installSqft": 1539.0,
+          "removalSqft": 2271.0,
+          "furnitureRooms": 0.0,
+          "namedRemovalSqft": 2271.0,
+          "genericRemovalSqft": 0.0
+        },
+        "Vinyl": {
+          "jobs": 53,
+          "details": 196.0,
+          "installSqft": 30916.0,
+          "removalSqft": 4686.0,
+          "furnitureRooms": 16.0,
+          "namedRemovalSqft": 1408.0,
+          "genericRemovalSqft": 3278.0
+        },
+        "Hardwood/Laminate": {
+          "jobs": 16,
+          "details": 44.0,
+          "installSqft": 10291.0,
+          "removalSqft": 678.0,
+          "furnitureRooms": 1.0,
+          "namedRemovalSqft": 5.0,
+          "genericRemovalSqft": 673.0
+        },
+        "Backsplash": {
+          "jobs": 5,
+          "details": 14.0,
+          "installSqft": 195.0,
+          "removalSqft": 0.0,
+          "furnitureRooms": 0.0,
+          "namedRemovalSqft": 0.0,
+          "genericRemovalSqft": 0.0
+        }
+      }
+    },
+    {
+      "workroom": "Lakeland",
+      "stores": [
+        783,
+        1079,
+        1592,
+        1652,
+        1854,
+        2224,
+        2240,
+        2253,
+        2282,
+        2363,
+        2438,
+        2457,
+        2531,
+        2702
+      ],
+      "categories": {
+        "Carpet": {
+          "jobs": 277,
+          "details": 725.0,
+          "installSqft": 142821.6,
+          "removalSqft": 92389.0,
+          "furnitureRooms": 41.0,
+          "namedRemovalSqft": 89290.0,
+          "genericRemovalSqft": 3099.0
+        },
+        "Tile": {
+          "jobs": 34,
+          "details": 242.0,
+          "installSqft": 10280.0,
+          "removalSqft": 6860.0,
+          "furnitureRooms": 3.0,
+          "namedRemovalSqft": 6541.0,
+          "genericRemovalSqft": 319.0
+        },
+        "Vinyl": {
+          "jobs": 138,
+          "details": 604.0,
+          "installSqft": 77280.0,
+          "removalSqft": 12265.0,
+          "furnitureRooms": 47.0,
+          "namedRemovalSqft": 1623.0,
+          "genericRemovalSqft": 10642.0
+        },
+        "Hardwood/Laminate": {
+          "jobs": 46,
+          "details": 184.0,
+          "installSqft": 24696.0,
+          "removalSqft": 3846.0,
+          "furnitureRooms": 8.0,
+          "namedRemovalSqft": 11.0,
+          "genericRemovalSqft": 3835.0
+        },
+        "Backsplash": {
+          "jobs": 30,
+          "details": 105.0,
+          "installSqft": 702.0,
+          "removalSqft": 0.0,
+          "furnitureRooms": 0.0,
+          "namedRemovalSqft": 0.0,
+          "genericRemovalSqft": 0.0
+        }
+      }
+    },
+    {
+      "workroom": "Naples",
+      "stores": [
+        582,
+        592,
+        613,
+        2221,
+        2261,
+        2361,
+        2362
+      ],
+      "categories": {
+        "Carpet": {
+          "jobs": 321,
+          "details": 631.0,
+          "installSqft": 173767.2,
+          "removalSqft": 114416.0,
+          "furnitureRooms": 27.0,
+          "namedRemovalSqft": 113410.0,
+          "genericRemovalSqft": 1006.0
+        },
+        "Tile": {
+          "jobs": 22,
+          "details": 94.0,
+          "installSqft": 11541.0,
+          "removalSqft": 13258.0,
+          "furnitureRooms": 6.0,
+          "namedRemovalSqft": 11481.0,
+          "genericRemovalSqft": 1777.0
+        },
+        "Vinyl": {
+          "jobs": 118,
+          "details": 329.0,
+          "installSqft": 72551.0,
+          "removalSqft": 13296.0,
+          "furnitureRooms": 38.0,
+          "namedRemovalSqft": 1333.0,
+          "genericRemovalSqft": 11963.0
+        },
+        "Hardwood/Laminate": {
+          "jobs": 21,
+          "details": 74.0,
+          "installSqft": 12981.0,
+          "removalSqft": 3118.0,
+          "furnitureRooms": 7.0,
+          "namedRemovalSqft": 20.0,
+          "genericRemovalSqft": 3098.0
+        },
+        "Backsplash": {
+          "jobs": 6,
+          "details": 27.0,
+          "installSqft": 168.0,
+          "removalSqft": 0.0,
+          "furnitureRooms": 0.0,
+          "namedRemovalSqft": 0.0,
+          "genericRemovalSqft": 0.0
+        }
+      }
+    },
+    {
+      "workroom": "Ocala",
+      "stores": [
+        440,
+        569,
+        1605,
+        1685,
+        1827,
+        1853,
+        1855,
+        2577,
+        2753,
+        3351
+      ],
+      "categories": {
+        "Carpet": {
+          "jobs": 312,
+          "details": 674.0,
+          "installSqft": 167505.0,
+          "removalSqft": 95878.0,
+          "furnitureRooms": 35.0,
+          "namedRemovalSqft": 91448.0,
+          "genericRemovalSqft": 4430.0
+        },
+        "Tile": {
+          "jobs": 44,
+          "details": 202.0,
+          "installSqft": 20185.0,
+          "removalSqft": 9840.0,
+          "furnitureRooms": 9.0,
+          "namedRemovalSqft": 5540.0,
+          "genericRemovalSqft": 4300.0
+        },
+        "Vinyl": {
+          "jobs": 176,
+          "details": 559.0,
+          "installSqft": 95166.0,
+          "removalSqft": 19473.0,
+          "furnitureRooms": 58.0,
+          "namedRemovalSqft": 4600.0,
+          "genericRemovalSqft": 14873.0
+        },
+        "Hardwood/Laminate": {
+          "jobs": 57,
+          "details": 177.0,
+          "installSqft": 23104.0,
+          "removalSqft": 3220.0,
+          "furnitureRooms": 11.0,
+          "namedRemovalSqft": 27.0,
+          "genericRemovalSqft": 3193.0
+        },
+        "Backsplash": {
+          "jobs": 27,
+          "details": 102.0,
+          "installSqft": 735.0,
+          "removalSqft": 0.0,
+          "furnitureRooms": 0.0,
+          "namedRemovalSqft": 0.0,
+          "genericRemovalSqft": 0.0
+        }
+      }
+    },
+    {
+      "workroom": "Panama City",
+      "stores": [
+        448,
+        1924,
+        2367,
+        2886
+      ],
+      "categories": {
+        "Carpet": {
+          "jobs": 95,
+          "details": 228.0,
+          "installSqft": 55276.0,
+          "removalSqft": 31466.0,
+          "furnitureRooms": 10.0,
+          "namedRemovalSqft": 31013.0,
+          "genericRemovalSqft": 453.0
+        },
+        "Tile": {
+          "jobs": 9,
+          "details": 32.0,
+          "installSqft": 4987.0,
+          "removalSqft": 2971.0,
+          "furnitureRooms": 3.0,
+          "namedRemovalSqft": 2435.0,
+          "genericRemovalSqft": 536.0
+        },
+        "Vinyl": {
+          "jobs": 44,
+          "details": 177.0,
+          "installSqft": 30634.0,
+          "removalSqft": 6828.0,
+          "furnitureRooms": 22.0,
+          "namedRemovalSqft": 993.0,
+          "genericRemovalSqft": 5835.0
+        },
+        "Hardwood/Laminate": {
+          "jobs": 17,
+          "details": 56.0,
+          "installSqft": 7615.0,
+          "removalSqft": 4004.0,
+          "furnitureRooms": 5.0,
+          "namedRemovalSqft": 17.0,
+          "genericRemovalSqft": 3987.0
+        },
+        "Backsplash": {
+          "jobs": 7,
+          "details": 24.0,
+          "installSqft": 194.0,
+          "removalSqft": 0.0,
+          "furnitureRooms": 0.0,
+          "namedRemovalSqft": 0.0,
+          "genericRemovalSqft": 0.0
+        }
+      }
+    },
+    {
+      "workroom": "Sarasota",
+      "stores": [
+        772,
+        1683,
+        1732,
+        1843,
+        1935,
+        2727,
+        2933,
+        3453
+      ],
+      "categories": {
+        "Carpet": {
+          "jobs": 296,
+          "details": 619.0,
+          "installSqft": 157577.7,
+          "removalSqft": 99116.0,
+          "furnitureRooms": 33.0,
+          "namedRemovalSqft": 98768.0,
+          "genericRemovalSqft": 348.0
+        },
+        "Tile": {
+          "jobs": 39,
+          "details": 141.0,
+          "installSqft": 25872.0,
+          "removalSqft": 24369.8,
+          "furnitureRooms": 19.0,
+          "namedRemovalSqft": 17930.8,
+          "genericRemovalSqft": 6439.0
+        },
+        "Vinyl": {
+          "jobs": 139,
+          "details": 443.0,
+          "installSqft": 76100.0,
+          "removalSqft": 10418.0,
+          "furnitureRooms": 41.0,
+          "namedRemovalSqft": 764.0,
+          "genericRemovalSqft": 9654.0
+        },
+        "Hardwood/Laminate": {
+          "jobs": 44,
+          "details": 124.0,
+          "installSqft": 23172.0,
+          "removalSqft": 3612.0,
+          "furnitureRooms": 3.0,
+          "namedRemovalSqft": 25.0,
+          "genericRemovalSqft": 3587.0
+        },
+        "Backsplash": {
+          "jobs": 28,
+          "details": 83.0,
+          "installSqft": 803.0,
+          "removalSqft": 0.0,
+          "furnitureRooms": 0.0,
+          "namedRemovalSqft": 0.0,
+          "genericRemovalSqft": 0.0
+        }
+      }
+    },
+    {
+      "workroom": "Tallahassee",
+      "stores": [
+        417,
+        716
+      ],
+      "categories": {
+        "Carpet": {
+          "jobs": 50,
+          "details": 132.0,
+          "installSqft": 29923.0,
+          "removalSqft": 16596.0,
+          "furnitureRooms": 3.0,
+          "namedRemovalSqft": 16080.0,
+          "genericRemovalSqft": 516.0
+        },
+        "Tile": {
+          "jobs": 5,
+          "details": 27.0,
+          "installSqft": 3454.0,
+          "removalSqft": 1641.0,
+          "furnitureRooms": 1.0,
+          "namedRemovalSqft": 1074.0,
+          "genericRemovalSqft": 567.0
+        },
+        "Vinyl": {
+          "jobs": 36,
+          "details": 90.0,
+          "installSqft": 23394.0,
+          "removalSqft": 3454.0,
+          "furnitureRooms": 6.0,
+          "namedRemovalSqft": 420.0,
+          "genericRemovalSqft": 3034.0
+        },
+        "Hardwood/Laminate": {
+          "jobs": 9,
+          "details": 35.0,
+          "installSqft": 6636.0,
+          "removalSqft": 567.0,
+          "furnitureRooms": 2.0,
+          "namedRemovalSqft": 10.0,
+          "genericRemovalSqft": 557.0
+        },
+        "Backsplash": {
+          "jobs": 3,
+          "details": 8.0,
+          "installSqft": 129.0,
+          "removalSqft": 0.0,
+          "furnitureRooms": 0.0,
+          "namedRemovalSqft": 0.0,
+          "genericRemovalSqft": 0.0
+        }
+      }
+    },
+    {
+      "workroom": "Tampa",
+      "stores": [
+        564,
+        573,
+        724,
+        740,
+        771,
+        1003,
+        1190,
+        1629,
+        1701,
+        1714,
+        1911,
+        2238,
+        2360,
+        2639,
+        2777,
+        3477
+      ],
+      "categories": {
+        "Carpet": {
+          "jobs": 351,
+          "details": 841.0,
+          "installSqft": 214561.0,
+          "removalSqft": 132202.0,
+          "furnitureRooms": 34.0,
+          "namedRemovalSqft": 128571.0,
+          "genericRemovalSqft": 3631.0
+        },
+        "Tile": {
+          "jobs": 51,
+          "details": 236.0,
+          "installSqft": 15128.0,
+          "removalSqft": 16439.0,
+          "furnitureRooms": 10.0,
+          "namedRemovalSqft": 12012.0,
+          "genericRemovalSqft": 4427.0
+        },
+        "Vinyl": {
+          "jobs": 149,
+          "details": 596.0,
+          "installSqft": 86114.0,
+          "removalSqft": 20643.0,
+          "furnitureRooms": 46.0,
+          "namedRemovalSqft": 2324.0,
+          "genericRemovalSqft": 18319.0
+        },
+        "Hardwood/Laminate": {
+          "jobs": 45,
+          "details": 203.0,
+          "installSqft": 23634.0,
+          "removalSqft": 4714.0,
+          "furnitureRooms": 10.0,
+          "namedRemovalSqft": 35.0,
+          "genericRemovalSqft": 4679.0
+        },
+        "Backsplash": {
+          "jobs": 27,
+          "details": 93.0,
+          "installSqft": 794.0,
+          "removalSqft": 0.0,
+          "furnitureRooms": 0.0,
+          "namedRemovalSqft": 0.0,
+          "genericRemovalSqft": 0.0
+        }
+      }
+    }
+  ]
+}
